@@ -1,1007 +1,955 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KKU Pay — Student Portal</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KKU Pay — ระบบชำระเงินออนไลน์ มหาวิทยาลัยขอนแก่น</title>
 <style>
-  :root {
-    --kku: #4f2d7f;
-    --kku2: #7b47b8;
-    --gold: #f5a623;
-    --bg: #f4f6fb;
-    --white: #ffffff;
-    --text: #1a1a2e;
-    --muted: #6b7280;
-    --success: #10b981;
-    --danger: #ef4444;
-    --border: #e5e7eb;
-    --card: #ffffff;
-    --shadow: 0 2px 12px rgba(79,45,127,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  /* ── Login ── */
-  #loginPage { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--kku) 0%, var(--kku2) 100%); }
-  .login-card { background: var(--white); border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
-  .login-logo { text-align: center; margin-bottom: 24px; }
-  .login-logo .logo-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--kku), var(--kku2)); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-  .login-logo h1 { font-size: 26px; font-weight: 800; color: var(--kku); }
-  .login-logo p { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; transition: .2s; }
-  .form-group input:focus, .form-group select:focus { border-color: var(--kku); box-shadow: 0 0 0 3px rgba(79,45,127,0.1); }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: .2s; width: 100%; }
-  .btn-primary { background: linear-gradient(135deg, var(--kku), var(--kku2)); color: white; }
-  .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
-  .btn-outline { background: transparent; border: 1.5px solid var(--kku); color: var(--kku); }
-  .btn-outline:hover { background: rgba(79,45,127,0.06); }
-  .btn-green { background: var(--success); color: white; }
-  .btn-green:hover { opacity: .9; }
-  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; }
-  .demo-hints { background: #f3f0ff; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; }
-  .demo-hints b { color: var(--kku); }
-  .error-msg { color: var(--danger); font-size: 13px; margin-top: 8px; text-align: center; }
-
-  /* ── App Layout ── */
-  #app { display: none; }
-  .sidebar { width: 240px; background: linear-gradient(180deg, var(--kku) 0%, #3b1f5e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 24px 0; z-index: 100; }
-  .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-  .sidebar-logo h2 { color: white; font-size: 20px; font-weight: 800; }
-  .sidebar-logo p { color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 2px; }
-  .sidebar-nav { padding: 16px 0; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer; transition: .2s; border-left: 3px solid transparent; }
-  .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--gold); }
-  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .sidebar-user { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-  .sidebar-user .uname { color: white; font-size: 13px; font-weight: 600; }
-  .sidebar-user .urole { color: rgba(255,255,255,0.5); font-size: 11px; }
-  .main-content { margin-left: 240px; padding: 32px; min-height: 100vh; }
-
-  /* ── Cards ── */
-  .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
-  .card-sm { padding: 16px 20px; }
-  .page-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 24px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-
-  /* ── Stat cards ── */
-  .stat-card { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
-  .stat-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-  .stat-value { font-size: 28px; font-weight: 800; color: var(--text); margin: 6px 0; }
-  .stat-sub { font-size: 12px; color: var(--muted); }
-
-  /* ── Wallet card ── */
-  .wallet-card { background: linear-gradient(135deg, var(--kku) 0%, var(--kku2) 100%); border-radius: 20px; padding: 28px; color: white; position: relative; overflow: hidden; }
-  .wallet-card::after { content: ''; position: absolute; right: -30px; top: -30px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.06); }
-  .wallet-label { font-size: 13px; opacity: .8; margin-bottom: 8px; }
-  .wallet-amount { font-size: 36px; font-weight: 800; }
-  .wallet-sub { font-size: 12px; opacity: .7; margin-top: 4px; }
-  .wallet-id { font-size: 12px; opacity: .6; margin-top: 16px; font-family: monospace; }
-
-  /* ── Fee items ── */
-  .fee-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg); border-radius: 12px; margin-bottom: 10px; border: 1.5px solid var(--border); transition: .2s; }
-  .fee-item:hover { border-color: var(--kku); }
-  .fee-item.paid { opacity: .5; }
-  .fee-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; flex-shrink: 0; }
-  .fee-desc { flex: 1; }
-  .fee-desc .fname { font-size: 14px; font-weight: 600; }
-  .fee-desc .fdue { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .fee-right { text-align: right; }
-  .fee-amount { font-size: 16px; font-weight: 700; color: var(--kku); }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-success { background: #d1fae5; color: #065f46; }
-  .badge-warn { background: #fef3c7; color: #92400e; }
-  .badge-danger { background: #fee2e2; color: #991b1b; }
-  .badge-blue { background: #dbeafe; color: #1e40af; }
-  .badge-purple { background: #ede9fe; color: #5b21b6; }
-
-  /* ── Table ── */
-  table { width: 100%; border-collapse: collapse; }
-  th { background: var(--bg); padding: 10px 14px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; text-align: left; }
-  td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #fafafa; }
-
-  /* ── Payment flow ── */
-  .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
-  .method-card { border: 2px solid var(--border); border-radius: 14px; padding: 18px 12px; text-align: center; cursor: pointer; transition: .2s; }
-  .method-card:hover { border-color: var(--kku); background: #f9f5ff; }
-  .method-card.selected { border-color: var(--kku); background: #f3f0ff; }
-  .method-icon { font-size: 28px; margin-bottom: 8px; }
-  .method-name { font-size: 13px; font-weight: 600; color: var(--text); }
-  .method-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .qr-container { text-align: center; padding: 20px; }
-  .qr-container img { border-radius: 12px; border: 1px solid var(--border); padding: 8px; }
-  .qr-amount { font-size: 28px; font-weight: 800; color: var(--kku); margin: 12px 0 4px; }
-  .qr-desc { font-size: 13px; color: var(--muted); }
-  .qr-countdown { font-size: 12px; color: var(--danger); margin-top: 8px; }
-  .card-form input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: monospace; margin-bottom: 12px; outline: none; }
-  .card-form input:focus { border-color: var(--kku); }
-  .success-box { text-align: center; padding: 32px 20px; }
-  .success-icon { font-size: 56px; margin-bottom: 12px; }
-  .success-title { font-size: 20px; font-weight: 800; color: var(--success); margin-bottom: 8px; }
-  .success-sub { font-size: 14px; color: var(--muted); }
-  .step-indicator { display: flex; gap: 6px; margin-bottom: 24px; }
-  .step { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
-  .step.done { background: var(--kku); }
-  .step.active { background: var(--kku2); }
-  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-
-  /* Spinner */
-  .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Toast */
-  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 9999; animation: slideUp .3s ease; box-shadow: 0 4px 20px rgba(0,0,0,.3); }
-  .toast.success { background: var(--success); }
-  .toast.error { background: var(--danger); }
-  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-  /* Modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 500; display: flex; align-items: center; justify-content: center; }
-  .modal { background: white; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; max-height: 90vh; overflow-y: auto; }
-  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-
-  .hidden { display: none !important; }
-  .flex { display: flex; }
-  .items-center { align-items: center; }
-  .gap-2 { gap: 8px; }
-  .gap-3 { gap: 12px; }
-  .justify-between { justify-content: space-between; }
-  .mt-2 { margin-top: 8px; }
-  .mt-4 { margin-top: 16px; }
-  .mt-6 { margin-top: 24px; }
-  .mb-4 { margin-bottom: 16px; }
-  .text-sm { font-size: 13px; }
-  .text-xs { font-size: 11px; }
-  .font-bold { font-weight: 700; }
-  .text-muted { color: var(--muted); }
-  .text-purple { color: var(--kku); }
-  .text-green { color: var(--success); }
-  .text-right { text-align: right; }
-  .w-full { width: 100%; }
-  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
-
-  @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .main-content { margin-left: 0; padding: 16px; }
-    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
-    .method-grid { grid-template-columns: 1fr 1fr; }
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--purple:#4a0072;--purple2:#6a0dad;--gold:#f5c518;--green:#00897b;--red:#e53935;--gray:#f5f5f5;--border:#e0e0e0;--text:#212121;--text2:#757575}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:var(--text);min-height:100vh}
+/* ── LOGIN ── */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#4a0072 0%,#1a237e 100%)}
+.login-card{background:#fff;border-radius:20px;padding:48px 44px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo h1{color:var(--purple);font-size:2rem;font-weight:800;letter-spacing:1px}
+.login-logo p{color:var(--text2);font-size:.85rem;margin-top:4px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:6px}
+.form-group input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;transition:.2s}
+.form-group input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(74,0,114,.1)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:none;border-radius:10px;cursor:pointer;font-size:.95rem;font-weight:600;transition:.2s;text-decoration:none}
+.btn-primary{background:var(--purple);color:#fff;width:100%}
+.btn-primary:hover{background:var(--purple2)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#00796b}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:#c62828}
+.btn-gray{background:#eee;color:var(--text)}
+.btn-gray:hover{background:#ddd}
+.btn-sm{padding:7px 14px;font-size:.82rem}
+.demo-hints{margin-top:20px;background:#f3e5f5;border-radius:10px;padding:14px}
+.demo-hints p{font-size:.78rem;color:#6a1b9a;font-weight:700;margin-bottom:6px}
+.demo-hints li{font-size:.78rem;color:#555;line-height:1.8;list-style:none;padding-left:4px}
+/* ── LAYOUT ── */
+#app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:linear-gradient(180deg,#4a0072 0%,#1a237e 100%);color:#fff;z-index:100;display:flex;flex-direction:column;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.sidebar-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.15)}
+.sidebar-logo h2{font-size:1.3rem;font-weight:800;color:#fff}
+.sidebar-logo p{font-size:.72rem;color:rgba(255,255,255,.6);margin-top:2px}
+.sidebar-user{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-user .name{font-size:.88rem;font-weight:700;color:#fff}
+.sidebar-user .sid{font-size:.75rem;color:rgba(255,255,255,.55)}
+.sidebar-nav{flex:1;padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:13px 20px;cursor:pointer;transition:.2s;font-size:.9rem;color:rgba(255,255,255,.75);border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:var(--gold);font-weight:700}
+.nav-item .icon{width:20px;text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-footer .balance{font-size:.75rem;color:rgba(255,255,255,.55);margin-bottom:4px}
+.sidebar-footer .bal-amt{font-size:1.1rem;font-weight:800;color:var(--gold)}
+.main{margin-left:240px;padding:28px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.topbar-title h2{font-size:1.4rem;font-weight:800;color:var(--purple)}
+.topbar-title p{font-size:.82rem;color:var(--text2);margin-top:2px}
+.topbar-actions{display:flex;align-items:center;gap:12px}
+.notif-btn{position:relative;background:none;border:none;cursor:pointer;font-size:1.4rem;padding:6px}
+.notif-badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border-radius:50%;width:17px;height:17px;font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+/* ── CARDS ── */
+.card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:1rem;font-weight:700;color:var(--text)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center}
+.stat-icon{font-size:2rem;margin-bottom:8px}
+.stat-val{font-size:1.6rem;font-weight:800;color:var(--purple)}
+.stat-lbl{font-size:.78rem;color:var(--text2);margin-top:4px}
+/* ── FEES ── */
+.fee-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:10px;cursor:pointer;transition:.2s;background:#fff}
+.fee-item:hover{border-color:var(--purple);background:#faf5ff}
+.fee-item.overdue{border-color:var(--red);background:#fff5f5}
+.fee-item.paid{border-color:#c8e6c9;background:#f1f8e9;opacity:.7;cursor:default}
+.fee-badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-pending{background:#fff3e0;color:#e65100}
+.badge-overdue{background:#ffebee;color:var(--red)}
+.badge-paid{background:#e8f5e9;color:#2e7d32}
+.badge-processing{background:#e3f2fd;color:#1565c0}
+/* ── PAYMENT MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;display:none}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-header{padding:22px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:1.1rem;font-weight:800;color:var(--purple)}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text2);line-height:1}
+.modal-body{padding:22px 24px}
+/* ── PAYMENT METHODS ── */
+.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.method-card{border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:.2s;text-align:center;background:#fafafa}
+.method-card:hover{border-color:var(--purple);background:#faf5ff}
+.method-card.selected{border-color:var(--purple);background:#f3e5f5}
+.method-card .m-icon{font-size:1.8rem;margin-bottom:6px}
+.method-card .m-name{font-size:.82rem;font-weight:700;color:var(--text)}
+.method-card .m-desc{font-size:.7rem;color:var(--text2);margin-top:2px}
+/* ── BANK GRID ── */
+.bank-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.bank-card{border:2px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:.2s;text-align:center;background:#fafafa}
+.bank-card:hover,.bank-card.selected{border-width:3px}
+.bank-card .bk-name{font-size:.72rem;font-weight:700;margin-top:6px;color:var(--text)}
+.bank-card .bk-short{font-size:.68rem;color:var(--text2)}
+/* ── QR DISPLAY ── */
+.qr-box{text-align:center;padding:24px;background:linear-gradient(135deg,#f3e5f5,#e8eaf6);border-radius:14px;margin-bottom:16px}
+.qr-box img{border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);max-width:220px}
+.qr-box .qr-amount{font-size:1.8rem;font-weight:800;color:var(--purple);margin-top:12px}
+.qr-box .qr-ref{font-size:.75rem;color:var(--text2);margin-top:4px;font-family:monospace}
+/* ── BANKING DETAILS ── */
+.banking-card{border-radius:14px;padding:20px;color:#fff;margin-bottom:16px}
+.banking-card .bk-header{font-size:1.1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.banking-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.2);font-size:.88rem}
+.banking-row:last-child{border:none}
+.banking-row .lbl{opacity:.75}
+.banking-row .val{font-weight:700;font-family:monospace;font-size:.95rem}
+.copy-btn{background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;padding:3px 10px;font-size:.72rem;cursor:pointer;font-weight:700}
+.copy-btn:hover{background:rgba(255,255,255,.35)}
+.steps-list{background:#f8f9fa;border-radius:10px;padding:14px 16px}
+.steps-list li{font-size:.83rem;color:var(--text);padding:5px 0 5px 24px;position:relative;border-bottom:1px dashed #e0e0e0}
+.steps-list li:last-child{border:none}
+.steps-list li::before{content:attr(data-n);position:absolute;left:0;top:5px;width:18px;height:18px;background:var(--purple);color:#fff;border-radius:50%;font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:18px;text-align:center}
+/* ── CARD FORM ── */
+.card-form-visual{background:linear-gradient(135deg,#4a0072,#1a237e);border-radius:14px;padding:22px;color:#fff;margin-bottom:16px}
+.card-chip{width:36px;height:28px;background:linear-gradient(135deg,#f5c518,#e6ac00);border-radius:5px;margin-bottom:14px}
+.card-number-display{font-size:1.3rem;letter-spacing:.15em;font-family:monospace;margin-bottom:14px}
+.card-bottom{display:flex;justify-content:space-between;font-size:.8rem;opacity:.8}
+/* ── COUNTER BARCODE ── */
+.barcode-box{background:#fff;border:2px solid #333;border-radius:10px;padding:18px;text-align:center;margin-bottom:14px}
+.barcode-visual{font-family:monospace;font-size:2.2rem;letter-spacing:.15em;color:#111;line-height:1;display:block;overflow:hidden;word-break:break-all}
+.barcode-num{font-size:.72rem;color:#555;margin-top:6px;font-family:monospace;letter-spacing:.1em}
+/* ── SUCCESS ── */
+.success-box{text-align:center;padding:28px}
+.success-icon{font-size:4rem;margin-bottom:12px}
+.success-box h3{font-size:1.3rem;font-weight:800;color:var(--green);margin-bottom:8px}
+.success-box p{font-size:.88rem;color:var(--text2);margin-bottom:4px}
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:#f3e5f5;color:var(--purple);font-size:.8rem;font-weight:700;padding:10px 12px;text-align:left}
+td{padding:10px 12px;font-size:.83rem;border-bottom:1px solid var(--border)}
+tr:hover td{background:#faf5ff}
+/* ── WALLET ── */
+.wallet-hero{background:linear-gradient(135deg,#4a0072,#6a0dad);border-radius:16px;padding:28px;color:#fff;margin-bottom:20px;text-align:center}
+.wallet-hero .bal-lbl{font-size:.85rem;opacity:.7;margin-bottom:6px}
+.wallet-hero .bal-val{font-size:2.8rem;font-weight:800;letter-spacing:1px}
+.wallet-hero .bal-updated{font-size:.72rem;opacity:.55;margin-top:6px}
+.topup-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.topup-preset{padding:8px 16px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.2s;background:#fff}
+.topup-preset:hover,.topup-preset.selected{border-color:var(--purple);background:#f3e5f5;color:var(--purple)}
+/* ── CHAT ── */
+#chatBtn{position:fixed;bottom:28px;right:28px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;cursor:pointer;box-shadow:0 6px 20px rgba(74,0,114,.45);z-index:900;font-size:1.5rem;color:#fff;display:flex;align-items:center;justify-content:center;transition:.25s}
+#chatBtn:hover{transform:scale(1.08)}
+#chatWindow{position:fixed;bottom:100px;right:28px;width:340px;height:460px;background:#fff;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.2);z-index:901;display:none;flex-direction:column;overflow:hidden;border:1.5px solid var(--border)}
+#chatWindow.open{display:flex}
+.chat-head{background:linear-gradient(135deg,var(--purple),var(--purple2));padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.chat-head .ch-info{font-size:.88rem;font-weight:700}
+.chat-head .ch-sub{font-size:.7rem;opacity:.7}
+.chat-head button{background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;opacity:.8}
+.chat-head button:hover{opacity:1}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f8f5fb}
+.msg{max-width:82%;word-break:break-word}
+.msg-user{align-self:flex-end;background:var(--purple);color:#fff;border-radius:14px 14px 4px 14px;padding:9px 13px;font-size:.84rem}
+.msg-bot{align-self:flex-start;background:#fff;color:var(--text);border-radius:14px 14px 14px 4px;padding:9px 13px;font-size:.84rem;box-shadow:0 1px 6px rgba(0,0,0,.1);white-space:pre-line}
+.msg-time{font-size:.63rem;opacity:.5;margin-top:2px;text-align:right}
+.chat-input-wrap{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;background:#fff}
+.chat-input-wrap input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:9px 14px;font-size:.85rem;outline:none}
+.chat-input-wrap input:focus{border-color:var(--purple)}
+.chat-input-wrap button{background:var(--purple);color:#fff;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1rem}
+.chat-input-wrap button:hover{background:var(--purple2)}
+.chat-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px 0;background:#f8f5fb}
+.chat-quick-btns button{border:1px solid var(--purple);border-radius:12px;background:#fff;color:var(--purple);font-size:.7rem;padding:4px 10px;cursor:pointer}
+.chat-quick-btns button:hover{background:#f3e5f5}
+/* ── NOTIF PANEL ── */
+#notifPanel{position:fixed;top:70px;right:24px;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:800;display:none;max-height:420px;overflow-y:auto;border:1px solid var(--border)}
+#notifPanel.open{display:block}
+.notif-head{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;color:var(--purple);font-size:.9rem;display:flex;justify-content:space-between;align-items:center}
+.notif-item{padding:12px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer}
+.notif-item:hover{background:#faf5ff}
+.notif-item.unread{border-left:3px solid var(--purple)}
+.notif-item .ni-title{font-size:.83rem;font-weight:700;color:var(--text)}
+.notif-item .ni-msg{font-size:.76rem;color:var(--text2);margin-top:3px;line-height:1.4}
+.notif-item .ni-time{font-size:.68rem;color:#bbb;margin-top:4px}
+/* ── UTILS ── */
+input[type=text],input[type=password],input[type=number],input[type=email],select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74,0,114,.1)}
+.alert{padding:12px 14px;border-radius:10px;font-size:.85rem;margin-bottom:14px}
+.alert-info{background:#e3f2fd;color:#1565c0;border-left:4px solid #1976d2}
+.alert-warn{background:#fff8e1;color:#e65100;border-left:4px solid #ff9800}
+.alert-success{background:#e8f5e9;color:#2e7d32;border-left:4px solid #43a047}
+.alert-err{background:#ffebee;color:var(--red);border-left:4px solid var(--red)}
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.text-center{text-align:center}.mt-8{margin-top:8px}.mt-14{margin-top:14px}.mt-20{margin-top:20px}
+.d-none{display:none!important}
+.flex{display:flex}.gap-8{gap:8px}.items-center{align-items:center}.justify-between{justify-content:space-between}.flex-wrap{flex-wrap:wrap}
 </style>
 </head>
 <body>
-
-<!-- ===== LOGIN PAGE ===== -->
+<!-- ══════════════ LOGIN ══════════════ -->
 <div id="loginPage">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-icon">
-        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-          <path d="M18 4L6 10v8c0 7.5 5.1 14.5 12 16.5 6.9-2 12-9 12-16.5V10L18 4z" fill="white" opacity=".9"/>
-          <path d="M14 18l3 3 6-6" stroke="#4f2d7f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <h1>KKU Pay</h1>
-      <p>ระบบชำระเงินดิจิทัล มหาวิทยาลัยขอนแก่น</p>
-    </div>
+<div class="login-card">
+  <div class="login-logo">
+    <h1>🎓 KKU Pay</h1>
+    <p>ระบบชำระเงินออนไลน์ มหาวิทยาลัยขอนแก่น</p>
+  </div>
+  <div class="form-group">
+    <label>ชื่อผู้ใช้ / Username</label>
+    <input type="text" id="lgUser" placeholder="กรอกชื่อผู้ใช้" autocomplete="username">
+  </div>
+  <div class="form-group">
+    <label>รหัสผ่าน / Password</label>
+    <input type="password" id="lgPass" placeholder="กรอกรหัสผ่าน" autocomplete="current-password">
+  </div>
+  <div id="lgErr" class="alert alert-err d-none"></div>
+  <button class="btn btn-primary" onclick="doLogin()">
+    <span id="lgSpinner" class="d-none"><span class="spinner"></span></span>
+    เข้าสู่ระบบ
+  </button>
+  <div class="demo-hints">
+    <p>👤 บัญชีทดสอบ (Demo Accounts):</p>
+    <ul>
+      <li>🎓 <b>somchai</b> / password123 — วิศวกรรมศาสตร์ ชั้นปี 3</li>
+      <li>🎓 <b>wannisa</b> / password123 — วิทยาศาสตร์ ชั้นปี 4</li>
+      <li>🎓 <b>pichai</b> / password123 — แพทยศาสตร์ ชั้นปี 1</li>
+      <li>🎓 <b>maneeratana</b> / password123 — พยาบาลศาสตร์ ชั้นปี 2</li>
+      <li>🔑 <b>admin</b> / admin1234 — ผู้ดูแลระบบ → <a href="/admin.html">Admin Panel</a></li>
+    </ul>
+  </div>
+</div>
+</div>
 
-    <div class="demo-hints">
-      <b>🎓 Demo Accounts:</b><br>
-      นักศึกษา: somchai@kku.ac.th / demo1234<br>
-      Admin: admin@kkupay.co.th / admin1234
-    </div>
-
-    <div class="form-group">
-      <label>อีเมล KKU</label>
-      <input type="email" id="loginEmail" placeholder="student@kku.ac.th" value="somchai@kku.ac.th">
-    </div>
-    <div class="form-group">
-      <label>รหัสผ่าน</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" value="demo1234">
-    </div>
-    <div id="loginError" class="error-msg"></div>
-    <button class="btn btn-primary mt-2" onclick="doLogin()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-      เข้าสู่ระบบ
-    </button>
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h2>🎓 KKU Pay</h2>
+    <p>ระบบชำระเงินออนไลน์ มข.</p>
+  </div>
+  <div class="sidebar-user">
+    <div class="name" id="sbName">—</div>
+    <div class="sid" id="sbSid">—</div>
+    <div class="sid" id="sbFaculty" style="margin-top:2px;font-size:.7rem">—</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span>หน้าหลัก</div>
+    <div class="nav-item" onclick="showPage('fees')"><span class="icon">💳</span>รายการค่าธรรมเนียม</div>
+    <div class="nav-item" onclick="showPage('wallet')"><span class="icon">👛</span>KKU Wallet</div>
+    <div class="nav-item" onclick="showPage('history')"><span class="icon">📋</span>ประวัติธุรกรรม</div>
+    <div class="nav-item" onclick="showPage('profile')"><span class="icon">👤</span>ข้อมูลส่วนตัว</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="balance">ยอดกระเป๋าเงิน</div>
+    <div class="bal-amt" id="sbBalance">฿0.00</div>
+    <button class="btn btn-gray btn-sm mt-8" onclick="doLogout()" style="width:100%;margin-top:10px;border-radius:8px">ออกจากระบบ</button>
   </div>
 </div>
 
-<!-- ===== MAIN APP ===== -->
-<div id="app">
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="sidebar-logo">
-      <h2>🛡️ KKU Pay</h2>
-      <p>Student Portal</p>
+<!-- Main Content -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h2 id="pageTitle">หน้าหลัก</h2>
+      <p id="pageSubtitle">ยินดีต้อนรับสู่ KKU Pay</p>
     </div>
-    <div class="sidebar-nav">
-      <div class="nav-item active" onclick="showPage('dashboard')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        ภาพรวม
-      </div>
-      <div class="nav-item" onclick="showPage('payment')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        ชำระเงิน
-      </div>
-      <div class="nav-item" onclick="showPage('wallet')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-        Wallet
-      </div>
-      <div class="nav-item" onclick="showPage('history')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        ประวัติธุรกรรม
-      </div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotif()" title="การแจ้งเตือน">
+        🔔<span class="notif-badge d-none" id="notifBadge">0</span>
+      </button>
+      <button class="btn btn-gray btn-sm" onclick="doLogout()">ออกจากระบบ</button>
     </div>
-    <div class="sidebar-user">
-      <div class="uname" id="sidebarName">Loading...</div>
-      <div class="urole" id="sidebarRole">นักศึกษา</div>
-      <button class="btn btn-outline mt-2" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2);font-size:12px;padding:6px 12px;width:auto;" onclick="doLogout()">ออกจากระบบ</button>
+  </div>
+  <div id="pageContent"></div>
+</div>
+
+<!-- Notification Panel -->
+<div id="notifPanel">
+  <div class="notif-head">
+    <span>🔔 การแจ้งเตือน</span>
+    <button style="background:none;border:none;cursor:pointer;color:#999;font-size:.8rem" onclick="toggleNotif()">✕ ปิด</button>
+  </div>
+  <div id="notifList"></div>
+</div>
+</div>
+
+<!-- ══════════════ PAYMENT MODAL ══════════════ -->
+<div class="modal-overlay" id="payModal">
+<div class="modal">
+  <div class="modal-header">
+    <h3>💳 ชำระเงิน</h3>
+    <button class="modal-close" onclick="closePayModal()">✕</button>
+  </div>
+  <div class="modal-body" id="payModalBody"></div>
+</div>
+</div>
+
+<!-- ══════════════ CHAT ══════════════ -->
+<button id="chatBtn" onclick="toggleChat()" title="แชทสอบถาม">💬</button>
+<div id="chatWindow">
+  <div class="chat-head">
+    <div>
+      <div class="ch-info">🤖 KKU Pay Support</div>
+      <div class="ch-sub">ออนไลน์ตลอด 24 ชั่วโมง</div>
     </div>
-  </nav>
-
-  <!-- Main -->
-  <main class="main-content">
-
-    <!-- ── Dashboard Page ── -->
-    <div id="page-dashboard">
-      <div class="page-title">🏠 ภาพรวมบัญชี</div>
-
-      <div class="grid-3 mb-4">
-        <div class="wallet-card" style="grid-column: span 3;">
-          <div class="flex justify-between items-center">
-            <div>
-              <div class="wallet-label">💳 KKU Wallet Balance</div>
-              <div class="wallet-amount" id="dashWalletBalance">฿ 0.00</div>
-              <div class="wallet-sub">ยอดเงินคงเหลือใน KKU Wallet</div>
-              <div class="wallet-id" id="dashStudentId">รหัสนักศึกษา: —</div>
-            </div>
-            <div style="text-align:right;">
-              <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,.4);width:auto;" onclick="showPage('wallet')">+ เติมเงิน</button>
-              <div style="font-size:12px;opacity:.6;margin-top:8px;" id="dashFaculty"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-4 mb-4">
-        <div class="stat-card">
-          <div class="stat-label">📚 รายการค้างชำระ</div>
-          <div class="stat-value text-purple" id="dashPendingCount">—</div>
-          <div class="stat-sub">รายการ</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">💰 ยอดค้างชำระรวม</div>
-          <div class="stat-value" id="dashPendingAmt">—</div>
-          <div class="stat-sub">บาท</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">✅ ชำระแล้วทั้งหมด</div>
-          <div class="stat-value text-green" id="dashPaidCount">—</div>
-          <div class="stat-sub">รายการ</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">📄 ธุรกรรมล่าสุด</div>
-          <div class="stat-value" id="dashTxnCount">—</div>
-          <div class="stat-sub">รายการ</div>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="card">
-          <div class="section-title">📋 รายการค้างชำระ</div>
-          <div id="dashFeeList"></div>
-          <button class="btn btn-primary mt-4" onclick="showPage('payment')">ชำระเงินตอนนี้</button>
-        </div>
-        <div class="card">
-          <div class="section-title">🕒 ธุรกรรมล่าสุด</div>
-          <div id="dashRecentTxn"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Payment Page ── -->
-    <div id="page-payment" class="hidden">
-      <div class="page-title">💳 ชำระเงิน</div>
-      <div class="grid-2">
-        <!-- Left: Select fee -->
-        <div class="card">
-          <div class="section-title">เลือกรายการที่ต้องการชำระ</div>
-          <div id="payFeeList"></div>
-          <hr class="divider">
-          <div class="section-title">หรือระบุจำนวนเงินเอง</div>
-          <div class="form-group">
-            <label>จำนวนเงิน (บาท)</label>
-            <input type="number" id="customAmount" placeholder="0.00" min="1">
-          </div>
-          <div class="form-group">
-            <label>รายละเอียด</label>
-            <input type="text" id="customDesc" placeholder="ระบุรายละเอียด">
-          </div>
-          <button class="btn btn-outline" onclick="selectCustomAmount()">เลือกรายการนี้ →</button>
-        </div>
-
-        <!-- Right: Payment flow -->
-        <div class="card">
-          <div id="payFlowSelectMethod" class="hidden">
-            <div class="step-indicator">
-              <div class="step done"></div><div class="step active"></div><div class="step"></div>
-            </div>
-            <div class="section-title">เลือกช่องทางชำระเงิน</div>
-            <div id="selectedFeeInfo" style="background:#f3f0ff;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:14px;"></div>
-            <div class="method-grid">
-              <div class="method-card" onclick="selectMethod('promptpay')">
-                <div class="method-icon">📱</div>
-                <div class="method-name">PromptPay</div>
-                <div class="method-desc">QR Code</div>
-              </div>
-              <div class="method-card" onclick="selectMethod('card')">
-                <div class="method-icon">💳</div>
-                <div class="method-name">บัตรเครดิต</div>
-                <div class="method-desc">Visa / MC / JCB</div>
-              </div>
-              <div class="method-card" onclick="selectMethod('wallet')">
-                <div class="method-icon">👛</div>
-                <div class="method-name">KKU Wallet</div>
-                <div class="method-desc">ยอดเงินคงเหลือ: <span id="methodWalletBal">฿0</span></div>
-              </div>
-              <div class="method-card" onclick="selectMethod('banking')">
-                <div class="method-icon">🏦</div>
-                <div class="method-name">Internet Banking</div>
-                <div class="method-desc">KBank, SCB, KTB</div>
-              </div>
-              <div class="method-card" onclick="selectMethod('ewallet')">
-                <div class="method-icon">🐰</div>
-                <div class="method-name">e-Wallet</div>
-                <div class="method-desc">TrueMoney, Rabbit Pay</div>
-              </div>
-              <div class="method-card" onclick="selectMethod('counter')">
-                <div class="method-icon">🏪</div>
-                <div class="method-name">Counter Service</div>
-                <div class="method-desc">7-Eleven / Tesco</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- PromptPay QR -->
-          <div id="payFlowQR" class="hidden">
-            <div class="step-indicator">
-              <div class="step done"></div><div class="step done"></div><div class="step active"></div>
-            </div>
-            <div class="section-title">สแกน PromptPay QR Code</div>
-            <div class="qr-container">
-              <img id="qrImage" src="" width="220" alt="QR Code">
-              <div class="qr-amount" id="qrAmount"></div>
-              <div class="qr-desc" id="qrDesc"></div>
-              <div class="qr-countdown" id="qrCountdown">⏱ หมดอายุใน: 15:00</div>
-            </div>
-            <div style="background:#f0fdf4;border-radius:10px;padding:12px;font-size:12px;color:#065f46;margin-bottom:16px;">
-              ✅ สแกน QR ด้วยแอป Mobile Banking หรือ PromptPay ใดก็ได้<br>
-              ✅ ระบบจะยืนยันการชำระเงินอัตโนมัติ
-            </div>
-            <button class="btn btn-green w-full" onclick="confirmPayment()">
-              ✅ จำลองการชำระเงินสำเร็จ (Demo)
-            </button>
-            <button class="btn btn-outline mt-2 w-full" onclick="showMethodSelect()">← เปลี่ยนช่องทาง</button>
-          </div>
-
-          <!-- Card Payment -->
-          <div id="payFlowCard" class="hidden">
-            <div class="step-indicator">
-              <div class="step done"></div><div class="step done"></div><div class="step active"></div>
-            </div>
-            <div class="section-title">กรอกข้อมูลบัตรเครดิต / เดบิต</div>
-            <div style="background:#fef3c7;border-radius:10px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:16px;">
-              🔒 ข้อมูลบัตรถูกเข้ารหัสด้วย TLS 1.3 — ไม่มีการจัดเก็บข้อมูลบัตร<br>
-              <b>Test Card:</b> 4242 4242 4242 4242 | 12/27 | 123
-            </div>
-            <div class="card-form">
-              <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">หมายเลขบัตร</label>
-              <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)">
-              <div class="flex gap-2">
-                <div style="flex:1">
-                  <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">หมดอายุ</label>
-                  <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
-                </div>
-                <div style="flex:1">
-                  <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">CVV</label>
-                  <input type="text" id="cardCVV" placeholder="123" maxlength="3">
-                </div>
-              </div>
-              <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">ชื่อบนบัตร</label>
-              <input type="text" id="cardName" placeholder="SOMCHAI JAIDEE">
-            </div>
-            <button class="btn btn-primary w-full" onclick="processCardPayment()" id="cardPayBtn">
-              🔒 ชำระเงิน <span id="cardPayAmt"></span>
-            </button>
-            <button class="btn btn-outline mt-2 w-full" onclick="showMethodSelect()">← เปลี่ยนช่องทาง</button>
-          </div>
-
-          <!-- Banking/eWallet/Counter - demo redirect -->
-          <div id="payFlowOther" class="hidden">
-            <div class="step-indicator">
-              <div class="step done"></div><div class="step done"></div><div class="step active"></div>
-            </div>
-            <div class="section-title" id="otherTitle">ช่องทางนี้</div>
-            <div id="otherContent"></div>
-            <button class="btn btn-outline mt-4 w-full" onclick="showMethodSelect()">← เปลี่ยนช่องทาง</button>
-          </div>
-
-          <!-- Success -->
-          <div id="payFlowSuccess" class="hidden">
-            <div class="step-indicator">
-              <div class="step done"></div><div class="step done"></div><div class="step done"></div>
-            </div>
-            <div class="success-box">
-              <div class="success-icon">✅</div>
-              <div class="success-title">ชำระเงินสำเร็จ!</div>
-              <div class="success-sub" id="successDesc"></div>
-              <div style="background:#f3f0ff;border-radius:12px;padding:16px;margin:16px 0;text-align:left;">
-                <div class="flex justify-between text-sm"><span class="text-muted">ยอดชำระ</span><span class="font-bold text-purple" id="successAmt"></span></div>
-                <div class="flex justify-between text-sm mt-2"><span class="text-muted">ช่องทาง</span><span id="successMethod"></span></div>
-                <div class="flex justify-between text-sm mt-2"><span class="text-muted">เลขอ้างอิง</span><span id="successRef"></span></div>
-              </div>
-              <button class="btn btn-primary w-full" id="receiptBtn" onclick="downloadReceipt()">📄 ดาวน์โหลด e-Receipt (PDF)</button>
-              <button class="btn btn-outline mt-2 w-full" onclick="resetPayment()">ชำระรายการอื่น</button>
-            </div>
-          </div>
-
-          <!-- Default: prompt to select -->
-          <div id="payFlowDefault">
-            <div style="text-align:center;padding:40px 20px;color:var(--muted);">
-              <div style="font-size:48px;margin-bottom:12px;">👈</div>
-              <div style="font-size:15px;font-weight:600;">เลือกรายการจากซ้ายมือ</div>
-              <div style="font-size:13px;margin-top:6px;">เลือกรายการค้างชำระหรือระบุยอดเงินเอง</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Wallet Page ── -->
-    <div id="page-wallet" class="hidden">
-      <div class="page-title">👛 KKU Wallet</div>
-      <div class="grid-2">
-        <div>
-          <div class="wallet-card mb-4">
-            <div class="wallet-label">💳 ยอดเงินคงเหลือ</div>
-            <div class="wallet-amount" id="walletBalance">฿ 0.00</div>
-            <div class="wallet-sub">Student Wallet — ใช้ได้ทุก service ใน campus</div>
-            <div class="wallet-id" id="walletStudentId"></div>
-          </div>
-          <div class="card">
-            <div class="section-title">เติมเงิน Wallet</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;" id="topupPresets">
-              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(100)">฿100</button>
-              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(300)">฿300</button>
-              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(500)">฿500</button>
-              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(1000)">฿1,000</button>
-            </div>
-            <div class="form-group">
-              <label>จำนวนเงิน (บาท)</label>
-              <input type="number" id="topupAmount" placeholder="ระบุจำนวน" min="20" max="50000">
-            </div>
-            <div class="form-group">
-              <label>ช่องทางเติมเงิน</label>
-              <select id="topupMethod">
-                <option value="promptpay">📱 PromptPay QR</option>
-                <option value="card">💳 บัตรเครดิต/เดบิต</option>
-                <option value="banking">🏦 Internet Banking</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" onclick="doTopup()">เติมเงิน →</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="section-title">ประวัติการใช้งาน Wallet</div>
-          <div id="walletTxnList" style="max-height:480px;overflow-y:auto;"></div>
-        </div>
-      </div>
-
-      <!-- Topup QR Modal -->
-      <div id="topupModal" class="modal-overlay hidden">
-        <div class="modal">
-          <h3>📱 สแกน QR เพื่อเติมเงิน</h3>
-          <div class="qr-container">
-            <img id="topupQRImg" src="" width="220" alt="QR">
-            <div class="qr-amount" id="topupQRAmt"></div>
-            <div class="qr-desc">เติมเงิน KKU Wallet ผ่าน PromptPay</div>
-          </div>
-          <button class="btn btn-green w-full" onclick="confirmTopup()">✅ จำลองการโอนเงินสำเร็จ (Demo)</button>
-          <button class="btn btn-outline mt-2 w-full" onclick="document.getElementById('topupModal').classList.add('hidden')">ปิด</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── History Page ── -->
-    <div id="page-history" class="hidden">
-      <div class="page-title">📄 ประวัติธุรกรรม</div>
-      <div class="card">
-        <div class="flex justify-between items-center mb-4">
-          <div class="section-title" style="margin:0;">รายการทั้งหมด</div>
-          <div class="flex gap-2">
-            <select id="filterMethod" onchange="loadHistory()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
-              <option value="">ทุกช่องทาง</option>
-              <option value="promptpay">PromptPay</option>
-              <option value="card">บัตรเครดิต</option>
-              <option value="wallet">Wallet</option>
-            </select>
-          </div>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>วันที่</th>
-                <th>รายการ</th>
-                <th>ช่องทาง</th>
-                <th>สถานะ</th>
-                <th class="text-right">จำนวน (฿)</th>
-                <th>ใบเสร็จ</th>
-              </tr>
-            </thead>
-            <tbody id="historyTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </main>
+    <button onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-quick-btns">
+    <button onclick="sendQuick('ค่าเล่าเรียน')">ค่าเล่าเรียน</button>
+    <button onclick="sendQuick('PromptPay')">PromptPay</button>
+    <button onclick="sendQuick('Internet Banking')">โอนธนาคาร</button>
+    <button onclick="sendQuick('ใบเสร็จ')">ใบเสร็จ</button>
+    <button onclick="sendQuick('ติดต่อ')">ติดต่อเจ้าหน้าที่</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="msg msg-bot">สวัสดีครับ/ค่ะ! ยินดีให้บริการ 😊<br>พิมพ์คำถามหรือเลือกหัวข้อด้านบนได้เลย</div>
+  </div>
+  <div class="chat-input-wrap">
+    <input type="text" id="chatInput" placeholder="พิมพ์ข้อความ..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">➤</button>
+  </div>
 </div>
 
 <script>
-const API = '';
+// ── STATE ──
 let token = localStorage.getItem('kkupay_token');
-let currentUser = null, currentWallet = null;
-let selectedFeeItem = null, selectedMethod = null;
-let currentPaymentId = null, currentReceiptId = null;
-let topupPaymentId = null;
-let qrTimer = null;
+let me = null;
+let wallet = null;
+let currentFee = null;
+let currentMethod = null;
+let selectedBank = null;
+let selectedEwallet = null;
+let topupAmt = 0;
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-window.onload = () => {
-  if (token) loadApp();
+const API = async (path, opts={}) => {
+  const r = await fetch(path, { headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json', ...opts.headers }, ...opts });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error||'เกิดข้อผิดพลาด');
+  return j;
 };
 
+const fmtMoney = n => '฿'+parseFloat(n).toLocaleString('th-TH',{minimumFractionDigits:2});
+const fmtDate = s => { try{ return new Date(s).toLocaleString('th-TH'); }catch{ return s||'-'; } };
+const escHtml = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const methodLabel = m => ({promptpay:'PromptPay QR',card:'บัตรเครดิต/เดบิต',wallet:'KKU Wallet',banking:'Internet Banking',ewallet:'e-Wallet',counter:'Counter Service',wallet_topup:'เติมเงิน Wallet'}[m]||m);
+const statusBadge = s => { const m={pending:'badge-pending',overdue:'badge-overdue',paid:'badge-paid',processing:'badge-processing',success:'badge-paid',refunded:'badge-overdue'}; return `<span class="fee-badge ${m[s]||'badge-pending'}">${{pending:'รอชำระ',overdue:'เกินกำหนด',paid:'ชำระแล้ว',processing:'กำลังดำเนินการ',success:'สำเร็จ',refunded:'คืนเงินแล้ว',pending_payment:'รอยืนยัน'}[s]||s}</span>`; };
+
+// ── INIT ──
+async function init() {
+  if (!token) { showLogin(); return; }
+  try {
+    const d = await API('/api/auth/me');
+    me = d.user; wallet = d.wallet;
+    if (me.role !== 'student') { window.location.href='/admin.html'; return; }
+    showApp();
+    loadNotifications();
+    showPage('dashboard');
+  } catch { localStorage.removeItem('kkupay_token'); showLogin(); }
+}
+
+function showLogin(){ document.getElementById('loginPage').style.display='flex'; document.getElementById('app').style.display='none'; }
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sbName').textContent = me.name;
+  document.getElementById('sbSid').textContent = me.studentId + ' | ชั้นปี '+me.year;
+  document.getElementById('sbFaculty').textContent = me.faculty + ' — ' + me.program;
+  updateSbBalance();
+  showChatBtn();
+}
+function updateSbBalance(){ if(wallet) document.getElementById('sbBalance').textContent = fmtMoney(wallet.balance); }
+function showChatBtn(){ document.getElementById('chatBtn').style.display='flex'; }
+
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPassword').value;
-  document.getElementById('loginError').textContent = '';
-
+  const u = document.getElementById('lgUser').value.trim();
+  const p = document.getElementById('lgPass').value;
+  const err = document.getElementById('lgErr');
+  const sp = document.getElementById('lgSpinner');
+  err.classList.add('d-none');
+  sp.classList.remove('d-none');
   try {
-    const r = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error);
-    token = d.token;
+    const d = await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const j = await d.json();
+    if (!d.ok) throw new Error(j.error);
+    token = j.token; me = j.user;
     localStorage.setItem('kkupay_token', token);
-    currentUser = d.user;
-    currentWallet = d.wallet;
-    if (currentUser.role === 'admin') {
-      window.location.href = '/admin.html';
-      return;
-    }
-    startApp();
-  } catch (e) {
-    document.getElementById('loginError').textContent = e.message;
-  }
+    if (me.role !== 'student') { window.location.href='/admin.html'; return; }
+    wallet = await API('/api/wallet').then(r=>r.wallet);
+    showApp(); loadNotifications(); showPage('dashboard');
+  } catch(e) { err.textContent = e.message; err.classList.remove('d-none'); }
+  finally { sp.classList.add('d-none'); }
 }
 
-async function loadApp() {
+function doLogout(){ localStorage.removeItem('kkupay_token'); token=null; me=null; wallet=null; showLogin(); }
+
+// ── PAGES ──
+function showPage(page) {
+  document.querySelectorAll('.nav-item').forEach((el,i)=>{ el.classList.remove('active'); if(['dashboard','fees','wallet','history','profile'][i]===page) el.classList.add('active'); });
+  const titles = { dashboard:['หน้าหลัก','ภาพรวมบัญชีและรายการที่รอชำระ'], fees:['รายการค่าธรรมเนียม','เลือกรายการเพื่อดำเนินการชำระเงิน'], wallet:['KKU Wallet','กระเป๋าเงินอิเล็กทรอนิกส์ภายในมหาวิทยาลัย'], history:['ประวัติธุรกรรม','บันทึกการชำระเงินทั้งหมด'], profile:['ข้อมูลส่วนตัว','ข้อมูลนักศึกษาและบัญชีผู้ใช้'] };
+  const [t,s] = titles[page]||['—',''];
+  document.getElementById('pageTitle').textContent = t;
+  document.getElementById('pageSubtitle').textContent = s;
+  if (page==='dashboard') renderDashboard();
+  else if (page==='fees') renderFees();
+  else if (page==='wallet') renderWallet();
+  else if (page==='history') renderHistory();
+  else if (page==='profile') renderProfile();
+}
+
+// ── DASHBOARD ──
+async function renderDashboard() {
+  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
   try {
-    const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-    if (!r.ok) { doLogout(); return; }
-    const d = await r.json();
-    if (d.user.role === 'admin') { window.location.href = '/admin.html'; return; }
-    currentUser = d.user;
-    currentWallet = d.wallet;
-    startApp();
-  } catch { doLogout(); }
-}
-
-function startApp() {
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('sidebarName').textContent = currentUser.name;
-  document.getElementById('sidebarRole').textContent = `${currentUser.faculty || ''} ปี ${currentUser.year || ''} | ${currentUser.student_id || ''}`;
-  loadDashboard();
-}
-
-function doLogout() {
-  localStorage.removeItem('kkupay_token');
-  token = null;
-  location.reload();
-}
-
-function showPage(name) {
-  ['dashboard','payment','wallet','history'].forEach(p => document.getElementById(`page-${p}`).classList.add('hidden'));
-  document.getElementById(`page-${name}`).classList.remove('hidden');
-  document.querySelectorAll('.nav-item').forEach((el, i) => {
-    el.classList.toggle('active', el.getAttribute('onclick').includes(name));
-  });
-  if (name === 'dashboard') loadDashboard();
-  if (name === 'payment') loadPaymentPage();
-  if (name === 'wallet') loadWalletPage();
-  if (name === 'history') loadHistory();
-}
-
-// ── Dashboard ────────────────────────────────────────────────────────────────
-async function loadDashboard() {
-  const [fees, payments, walletData] = await Promise.all([
-    apiFetch('/api/fees'), apiFetch('/api/payments?limit=5'), apiFetch('/api/wallet')
-  ]);
-
-  currentWallet = walletData.wallet;
-  const bal = walletData.wallet?.balance || 0;
-  document.getElementById('dashWalletBalance').textContent = `฿ ${fmt(bal)}`;
-  document.getElementById('dashStudentId').textContent = `รหัสนักศึกษา: ${currentUser.student_id || '—'}`;
-  document.getElementById('dashFaculty').textContent = `คณะ${currentUser.faculty || ''}`;
-
-  const pending = fees.filter(f => f.status === 'unpaid');
-  const paid = fees.filter(f => f.status === 'paid');
-  const pendingAmt = pending.reduce((s, f) => s + f.amount, 0);
-
-  document.getElementById('dashPendingCount').textContent = pending.length;
-  document.getElementById('dashPendingAmt').textContent = fmt(pendingAmt);
-  document.getElementById('dashPaidCount').textContent = paid.length;
-  document.getElementById('dashTxnCount').textContent = payments.length;
-
-  // Fee list
-  const feeHtml = fees.slice(0, 3).map(f => feeItemHtml(f, false)).join('');
-  document.getElementById('dashFeeList').innerHTML = feeHtml || '<p class="text-muted text-sm">ไม่มีรายการค้างชำระ 🎉</p>';
-
-  // Recent txns
-  const txnHtml = payments.slice(0, 4).map(p => `
-    <div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--border);">
-      <div>
-        <div class="text-sm font-bold">${p.description || '—'}</div>
-        <div class="text-xs text-muted">${fmtDate(p.created_at)} · ${methodLabel(p.payment_method)}</div>
-      </div>
-      <div class="text-right">
-        <div class="text-sm font-bold ${p.status==='success'?'text-green':''}">${p.status==='success'?'-':''} ฿${fmt(p.amount)}</div>
-        ${statusBadge(p.status)}
-      </div>
+    const [feesData, txData] = await Promise.all([ API('/api/fees'), API('/api/transactions') ]);
+    const fees = feesData.fees;
+    const pending = fees.filter(f=>f.status==='pending'||f.status==='overdue');
+    const pendingTotal = pending.reduce((s,f)=>s+f.amount,0);
+    const paidTotal = fees.filter(f=>f.status==='paid').reduce((s,f)=>s+f.amount,0);
+    const txns = txData.transactions.slice(0,5);
+    document.getElementById('pageContent').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon">👛</div><div class="stat-val">${fmtMoney(wallet?.balance||0)}</div><div class="stat-lbl">ยอดคงเหลือ KKU Wallet</div></div>
+      <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" style="color:var(--red)">${fmtMoney(pendingTotal)}</div><div class="stat-lbl">ค่าธรรมเนียมรอชำระ (${pending.length} รายการ)</div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" style="color:var(--green)">${fmtMoney(paidTotal)}</div><div class="stat-lbl">ชำระแล้วภาคนี้</div></div>
+      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val">${fees.length}</div><div class="stat-lbl">รายการทั้งหมด</div></div>
     </div>
-  `).join('');
-  document.getElementById('dashRecentTxn').innerHTML = txnHtml || '<p class="text-muted text-sm">ยังไม่มีธุรกรรม</p>';
-}
-
-// ── Payment Page ──────────────────────────────────────────────────────────────
-async function loadPaymentPage() {
-  const fees = await apiFetch('/api/fees');
-  const pending = fees.filter(f => f.status !== 'paid');
-  const html = pending.map(f => feeItemHtml(f, true)).join('');
-  document.getElementById('payFeeList').innerHTML = html || '<p class="text-muted text-sm">ไม่มีรายการค้างชำระ ✅</p>';
-
-  const wallet = await apiFetch('/api/wallet');
-  currentWallet = wallet.wallet;
-  document.getElementById('methodWalletBal').textContent = `฿${fmt(currentWallet?.balance || 0)}`;
-}
-
-function feeItemHtml(f, clickable) {
-  const icons = { tuition: '🎓', dormitory: '🏠', health: '💊', activity: '⚽', fine: '📚' };
-  const colors = { tuition: '#dbeafe', dormitory: '#fce7f3', health: '#d1fae5', activity: '#fef3c7', fine: '#fee2e2' };
-  return `
-    <div class="fee-item ${f.status==='paid'?'paid':''}" ${clickable && f.status!=='paid' ? `onclick="selectFeeItem('${f.id}','${f.description}',${f.amount})"` : ''} style="${clickable && f.status!=='paid'?'cursor:pointer;':''}" >
-      <div class="fee-icon" style="background:${colors[f.type]||'#f3f0ff'};">${icons[f.type]||'💰'}</div>
-      <div class="fee-desc">
-        <div class="fname">${f.description}</div>
-        <div class="fdue">กำหนดชำระ: ${f.due_date || '—'}</div>
-      </div>
-      <div class="fee-right">
-        <div class="fee-amount">฿${fmt(f.amount)}</div>
-        ${statusBadge(f.status==='unpaid'?'pending':f.status)}
-      </div>
-    </div>
-  `;
-}
-
-function selectFeeItem(id, desc, amount) {
-  selectedFeeItem = { id, desc, amount };
-  document.getElementById('selectedFeeInfo').innerHTML = `
-    <div class="font-bold">${desc}</div>
-    <div class="text-sm text-muted mt-2">จำนวนเงิน: <span class="font-bold text-purple">฿${fmt(amount)}</span></div>
-  `;
-  showMethodSelect();
-}
-
-function selectCustomAmount() {
-  const amount = parseFloat(document.getElementById('customAmount').value);
-  const desc = document.getElementById('customDesc').value || 'ชำระเงิน';
-  if (!amount || amount <= 0) { toast('กรุณาระบุจำนวนเงิน', 'error'); return; }
-  selectedFeeItem = { id: null, desc, amount };
-  document.getElementById('selectedFeeInfo').innerHTML = `
-    <div class="font-bold">${desc}</div>
-    <div class="text-sm text-muted mt-2">จำนวนเงิน: <span class="font-bold text-purple">฿${fmt(amount)}</span></div>
-  `;
-  showMethodSelect();
-}
-
-function showMethodSelect() {
-  hideAllFlows();
-  document.getElementById('payFlowSelectMethod').classList.remove('hidden');
-  document.getElementById('payFlowDefault').classList.add('hidden');
-}
-
-function hideAllFlows() {
-  ['payFlowDefault','payFlowSelectMethod','payFlowQR','payFlowCard','payFlowOther','payFlowSuccess'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
-  });
-}
-
-async function selectMethod(method) {
-  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-  selectedMethod = method;
-
-  if (method === 'promptpay') {
-    await createPromptPayPayment();
-  } else if (method === 'card') {
-    hideAllFlows();
-    document.getElementById('payFlowCard').classList.remove('hidden');
-    document.getElementById('cardPayAmt').textContent = `฿${fmt(selectedFeeItem.amount)}`;
-  } else if (method === 'wallet') {
-    await processWalletPayment();
-  } else {
-    hideAllFlows();
-    document.getElementById('payFlowOther').classList.remove('hidden');
-    const titles = { banking: '🏦 Internet Banking', ewallet: '🐰 e-Wallet', counter: '🏪 Counter Service' };
-    document.getElementById('otherTitle').textContent = titles[method] || method;
-    document.getElementById('otherContent').innerHTML = `
-      <div style="text-align:center;padding:24px;background:#f3f0ff;border-radius:12px;">
-        <div style="font-size:36px;margin-bottom:8px;">${method==='banking'?'🏦':method==='ewallet'?'🐰':'🏪'}</div>
-        <p style="font-size:14px;color:var(--muted);">ช่องทางนี้จะ redirect ไปยัง<br>หน้าชำระเงินของธนาคาร/ผู้ให้บริการ</p>
-        <button class="btn btn-primary mt-4" style="width:auto;" onclick="simulateOtherPayment()">จำลองการชำระเงินสำเร็จ (Demo)</button>
-      </div>
-    `;
-  }
-}
-
-async function createPromptPayPayment() {
-  hideAllFlows();
-  document.getElementById('payFlowQR').classList.remove('hidden');
-  document.getElementById('qrImage').src = '';
-  document.getElementById('qrAmount').textContent = `กำลังสร้าง QR...`;
-
-  try {
-    const r = await apiFetch('/api/payments/promptpay', 'POST', {
-      amount: selectedFeeItem.amount,
-      description: selectedFeeItem.desc,
-      fee_item_id: selectedFeeItem.id
-    });
-    currentPaymentId = r.payment_id;
-    document.getElementById('qrImage').src = r.qr_image;
-    document.getElementById('qrAmount').textContent = `฿ ${fmt(r.amount)}`;
-    document.getElementById('qrDesc').textContent = selectedFeeItem.desc;
-    startQRCountdown(r.expires_in || 900);
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-function startQRCountdown(seconds) {
-  if (qrTimer) clearInterval(qrTimer);
-  let s = seconds;
-  qrTimer = setInterval(() => {
-    s--;
-    const m = Math.floor(s/60), sec = s%60;
-    document.getElementById('qrCountdown').textContent = `⏱ หมดอายุใน: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-    if (s <= 0) { clearInterval(qrTimer); document.getElementById('qrCountdown').textContent = '❌ QR หมดอายุแล้ว'; }
-  }, 1000);
-}
-
-async function confirmPayment() {
-  if (!currentPaymentId) return;
-  try {
-    const r = await apiFetch(`/api/payments/${currentPaymentId}/confirm`, 'POST', {});
-    if (qrTimer) clearInterval(qrTimer);
-    currentReceiptId = r.receipt_id;
-    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, 'PromptPay', r.payment.order_ref);
-    loadDashboard();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-async function processCardPayment() {
-  const btn = document.getElementById('cardPayBtn');
-  btn.innerHTML = '<span class="spinner"></span> กำลังชำระ...';
-  btn.disabled = true;
-  try {
-    const r = await apiFetch('/api/payments/card', 'POST', {
-      amount: selectedFeeItem.amount, description: selectedFeeItem.desc, fee_item_id: selectedFeeItem.id,
-      token: 'demo_card_token'
-    });
-    currentReceiptId = r.receipt_id;
-    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, 'บัตรเครดิต', r.order_ref);
-    loadDashboard();
-  } catch (e) { toast(e.message, 'error'); }
-  btn.innerHTML = `🔒 ชำระเงิน ฿${fmt(selectedFeeItem.amount)}`;
-  btn.disabled = false;
-}
-
-async function processWalletPayment() {
-  if (!currentWallet || currentWallet.balance < selectedFeeItem.amount) {
-    toast('ยอดเงินใน Wallet ไม่เพียงพอ', 'error');
-    showMethodSelect();
-    return;
-  }
-  try {
-    const r = await apiFetch('/api/payments/wallet', 'POST', {
-      amount: selectedFeeItem.amount, description: selectedFeeItem.desc, fee_item_id: selectedFeeItem.id
-    });
-    currentReceiptId = r.receipt_id;
-    currentWallet.balance = r.new_balance;
-    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, 'KKU Wallet', '');
-    loadDashboard();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-async function simulateOtherPayment() {
-  if (!currentPaymentId) {
-    // Create a mock payment first
-    const r = await apiFetch('/api/payments/card', 'POST', {
-      amount: selectedFeeItem.amount, description: selectedFeeItem.desc, fee_item_id: selectedFeeItem.id
-    });
-    currentReceiptId = r.receipt_id;
-    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, selectedMethod, r.order_ref);
-    loadDashboard();
-  }
-}
-
-function showSuccess(amount, desc, method, ref) {
-  hideAllFlows();
-  document.getElementById('payFlowSuccess').classList.remove('hidden');
-  document.getElementById('successDesc').textContent = desc;
-  document.getElementById('successAmt').textContent = `฿ ${fmt(amount)}`;
-  document.getElementById('successMethod').textContent = method;
-  document.getElementById('successRef').textContent = ref || '—';
-  toast('ชำระเงินสำเร็จ! ✅', 'success');
-}
-
-function downloadReceipt() {
-  if (!currentReceiptId) { toast('ไม่พบเลขใบเสร็จ', 'error'); return; }
-  window.open(`/api/receipts/${currentReceiptId}/pdf?token=${token}`, '_blank');
-  // Workaround: fetch with auth
-  const url = `/api/receipts/${currentReceiptId}/pdf`;
-  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-    .then(r => r.blob()).then(blob => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `receipt_${currentReceiptId}.pdf`;
-      a.click();
-    });
-}
-
-function resetPayment() {
-  selectedFeeItem = null; selectedMethod = null; currentPaymentId = null; currentReceiptId = null;
-  if (qrTimer) clearInterval(qrTimer);
-  hideAllFlows();
-  document.getElementById('payFlowDefault').classList.remove('hidden');
-  loadPaymentPage();
-}
-
-// ── Wallet Page ───────────────────────────────────────────────────────────────
-async function loadWalletPage() {
-  const data = await apiFetch('/api/wallet');
-  currentWallet = data.wallet;
-  const bal = data.wallet?.balance || 0;
-  document.getElementById('walletBalance').textContent = `฿ ${fmt(bal)}`;
-  document.getElementById('walletStudentId').textContent = `รหัสนักศึกษา: ${currentUser.student_id || '—'} | ${currentUser.name}`;
-
-  const txnHtml = data.transactions.map(t => `
-    <div class="flex justify-between items-center" style="padding:12px 0;border-bottom:1px solid var(--border);">
-      <div class="flex items-center gap-2">
-        <div style="width:36px;height:36px;border-radius:10px;background:${t.type==='credit'?'#d1fae5':'#fee2e2'};display:flex;align-items:center;justify-content:center;font-size:16px;">${t.type==='credit'?'⬆️':'⬇️'}</div>
+    ${pending.length>0?`<div class="alert alert-warn">⚠️ คุณมี <b>${pending.length} รายการ</b> รอชำระ รวม <b>${fmtMoney(pendingTotal)}</b> กรุณาชำระก่อนวันครบกำหนด</div>`:'<div class="alert alert-success">✅ ไม่มีรายการค้างชำระ</div>'}
+    <div class="card">
+      <div class="card-header"><div class="card-title">📋 รายการที่ต้องชำระ</div><button class="btn btn-gray btn-sm" onclick="showPage('fees')">ดูทั้งหมด →</button></div>
+      ${pending.slice(0,4).map(f=>`
+      <div class="fee-item${f.status==='overdue'?' overdue':''}" onclick="openPayModal(${JSON.stringify(f).replace(/"/g,'&quot;')})">
         <div>
-          <div class="text-sm font-bold">${t.description || (t.type==='credit'?'รับเงิน':'ใช้จ่าย')}</div>
-          <div class="text-xs text-muted">${fmtDate(t.created_at)}</div>
+          <div style="font-weight:700;font-size:.88rem">${escHtml(f.label)}</div>
+          <div style="font-size:.75rem;color:var(--text2);margin-top:3px">รหัส: ${escHtml(f.code)} | กำหนด: ${escHtml(f.due)} | ${escHtml(f.semester)}</div>
+          ${f.note?`<div style="font-size:.72rem;color:#888;margin-top:2px">📌 ${escHtml(f.note)}</div>`:''}
         </div>
+        <div style="text-align:right">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--purple)">${fmtMoney(f.amount)}</div>
+          <div class="mt-8">${statusBadge(f.status)}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">🕑 ธุรกรรมล่าสุด</div><button class="btn btn-gray btn-sm" onclick="showPage('history')">ดูทั้งหมด →</button></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>วันที่</th><th>วิธีชำระ</th><th>จำนวน</th><th>สถานะ</th></tr></thead>
+        <tbody>${txns.length?txns.map(t=>`<tr><td>${fmtDate(t.createdAt)}</td><td>${methodLabel(t.method)}</td><td style="font-weight:700;color:var(--purple)">${fmtMoney(t.amount)}</td><td>${statusBadge(t.status)}</td></tr>`).join(''):'<tr><td colspan="4" class="text-center" style="color:#aaa;padding:20px">ยังไม่มีธุรกรรม</td></tr>'}</tbody>
+        </table>
       </div>
-      <div class="text-right">
-        <div class="font-bold ${t.type==='credit'?'text-green':'text-danger'}">${t.type==='credit'?'+':'-'}฿${fmt(t.amount)}</div>
-        <div class="text-xs text-muted">คงเหลือ ฿${fmt(t.balance_after)}</div>
+    </div>`;
+  } catch(e) { document.getElementById('pageContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+// ── FEES PAGE ──
+async function renderFees() {
+  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  try {
+    const { fees } = await API('/api/fees');
+    const groups = { pending:fees.filter(f=>f.status==='pending'), overdue:fees.filter(f=>f.status==='overdue'), processing:fees.filter(f=>f.status==='processing'), paid:fees.filter(f=>f.status==='paid') };
+    const renderGroup = (title,icon,arr,clickable=true) => !arr.length?'':`
+    <div class="card">
+      <div class="card-header"><div class="card-title">${icon} ${title} (${arr.length} รายการ)</div></div>
+      ${arr.map(f=>`
+      <div class="fee-item${f.status==='overdue'?' overdue':''} ${f.status==='paid'?' paid':''}" ${clickable?`onclick="openPayModal(${JSON.stringify(f).replace(/"/g,'&quot;')})"`:''} style="${!clickable?'cursor:default':''}">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.9rem">${escHtml(f.label)}</div>
+          <div style="font-size:.75rem;color:var(--text2);margin-top:4px">📌 ${escHtml(f.code)} | ภาค ${escHtml(f.semester)} | กำหนด ${escHtml(f.due)}</div>
+          ${f.note?`<div style="font-size:.73rem;color:#888;margin-top:2px">🏫 ${escHtml(f.note)}</div>`:''}
+          ${f.paidAt?`<div style="font-size:.72rem;color:var(--green);margin-top:2px">✅ ชำระเมื่อ ${fmtDate(f.paidAt)}</div>`:''}
+        </div>
+        <div style="text-align:right;min-width:120px">
+          <div style="font-size:1.15rem;font-weight:800;color:var(--purple)">${fmtMoney(f.amount)}</div>
+          <div class="mt-8">${statusBadge(f.status)}</div>
+          ${clickable?'<div style="font-size:.7rem;color:var(--purple);margin-top:6px">คลิกเพื่อชำระ →</div>':''}
+        </div>
+      </div>`).join('')}
+    </div>`;
+    document.getElementById('pageContent').innerHTML =
+      (groups.overdue.length?'<div class="alert alert-err">🚨 มีรายการเกินกำหนดชำระ '+groups.overdue.length+' รายการ กรุณาชำระโดยด่วน!</div>':'') +
+      renderGroup('รายการเกินกำหนด ⚠️','🚨',groups.overdue) +
+      renderGroup('รอชำระ','⏳',groups.pending) +
+      renderGroup('กำลังดำเนินการ','⏱️',groups.processing,false) +
+      renderGroup('ชำระแล้ว','✅',groups.paid,false) ||
+      '<div class="alert alert-success text-center">✅ ไม่มีรายการค้างชำระ</div>';
+  } catch(e) { document.getElementById('pageContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+// ── WALLET PAGE ──
+async function renderWallet() {
+  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  try {
+    const { wallet: w, transactions } = await API('/api/wallet');
+    wallet = w;
+    document.getElementById('sbBalance').textContent = fmtMoney(w.balance);
+    document.getElementById('pageContent').innerHTML = `
+    <div class="wallet-hero">
+      <div class="bal-lbl">ยอดคงเหลือ KKU Wallet</div>
+      <div class="bal-val">${fmtMoney(w.balance)}</div>
+      <div class="bal-updated">อัพเดทล่าสุด: ${fmtDate(w.updatedAt)}</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">💰 เติมเงิน KKU Wallet</div></div>
+      <div class="alert alert-info">💡 สามารถใช้ยอดใน Wallet ชำระค่าธรรมเนียมได้ทันที ไม่มีค่าธรรมเนียมเพิ่มเติม</div>
+      <div class="topup-presets">
+        ${[100,200,500,1000,2000,5000].map(a=>`<div class="topup-preset" onclick="selectTopup(${a})">${fmtMoney(a)}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <input type="number" id="topupInput" placeholder="หรือพิมพ์จำนวนเงิน (20–50,000 บาท)" min="20" max="50000" style="flex:1">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="doTopup('card')" style="flex:1">💳 เติมผ่านบัตร</button>
+        <button class="btn" style="flex:1;background:#138f2d;color:#fff" onclick="doTopup('promptpay')">📱 เติมผ่าน PromptPay</button>
       </div>
     </div>
-  `).join('');
-  document.getElementById('walletTxnList').innerHTML = txnHtml || '<p class="text-muted text-sm">ยังไม่มีธุรกรรม</p>';
+    <div class="card">
+      <div class="card-header"><div class="card-title">📝 ประวัติการเคลื่อนไหว Wallet</div></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th></tr></thead>
+        <tbody>${transactions.length?transactions.map(t=>`<tr>
+          <td>${fmtDate(t.createdAt)}</td>
+          <td>${escHtml(t.desc||'-')}</td>
+          <td>${t.type==='credit'?'<span style="color:var(--green);font-weight:700">+ เข้า</span>':'<span style="color:var(--red);font-weight:700">- ออก</span>'}</td>
+          <td style="font-weight:700;color:${t.type==='credit'?'var(--green)':'var(--red)'}">${t.type==='credit'?'+':'−'}${fmtMoney(t.amount)}</td>
+        </tr>`).join(''):'<tr><td colspan="4" class="text-center" style="color:#aaa;padding:20px">ยังไม่มีธุรกรรม</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>`;
+  } catch(e) { document.getElementById('pageContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
 
-function setTopupAmount(amount) {
-  document.getElementById('topupAmount').value = amount;
+function selectTopup(a){ document.getElementById('topupInput').value=a; document.querySelectorAll('.topup-preset').forEach(el=>{ el.classList.toggle('selected', parseInt(el.textContent.replace(/[฿,]/g,''))===a); }); }
+
+async function doTopup(method) {
+  const amt = parseFloat(document.getElementById('topupInput').value)||0;
+  if (amt < 20) return alert('ยอดเติมขั้นต่ำ 20 บาท');
+  if (amt > 50000) return alert('ยอดเติมสูงสุด 50,000 บาท');
+  try {
+    const r = await API('/api/wallet/topup',{method:'POST',body:JSON.stringify({amount:amt,method})});
+    wallet.balance = r.newBalance;
+    alert(`✅ เติมเงินสำเร็จ! ยอดใหม่: ${fmtMoney(r.newBalance)}`);
+    renderWallet();
+  } catch(e) { alert('❌ '+e.message); }
 }
 
-async function doTopup() {
-  const amount = parseFloat(document.getElementById('topupAmount').value);
-  const method = document.getElementById('topupMethod').value;
-  if (!amount || amount < 20) { toast('ขั้นต่ำ ฿20', 'error'); return; }
-
-  if (method === 'promptpay') {
-    const r = await apiFetch('/api/wallet/topup', 'POST', { amount, method: 'promptpay' });
-    topupPaymentId = r.payment_id;
-    document.getElementById('topupQRImg').src = r.qr_image;
-    document.getElementById('topupQRAmt').textContent = `฿ ${fmt(amount)}`;
-    document.getElementById('topupModal').classList.remove('hidden');
-  } else {
-    const r = await apiFetch('/api/wallet/topup', 'POST', { amount, method });
-    toast(`เติมเงิน ฿${fmt(amount)} สำเร็จ! 💰`, 'success');
-    loadWalletPage();
-  }
+// ── HISTORY ──
+async function renderHistory() {
+  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  try {
+    const { transactions } = await API('/api/transactions');
+    document.getElementById('pageContent').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📋 ประวัติธุรกรรมทั้งหมด (${transactions.length} รายการ)</div>
+        <select id="txFilter" onchange="filterTx()" style="width:auto;padding:7px 12px;font-size:.82rem">
+          <option value="">— ทุกวิธี —</option>
+          <option value="promptpay">PromptPay</option>
+          <option value="card">บัตรเครดิต</option>
+          <option value="wallet">KKU Wallet</option>
+          <option value="banking">Internet Banking</option>
+          <option value="ewallet">e-Wallet</option>
+          <option value="counter">Counter Service</option>
+          <option value="wallet_topup">เติมเงิน Wallet</option>
+        </select>
+      </div>
+      <div class="table-wrap" id="txTableWrap">
+        <table><thead><tr><th>วันที่</th><th>รายการ</th><th>วิธีชำระ</th><th>จำนวน</th><th>สถานะ</th><th>ใบเสร็จ</th></tr></thead>
+        <tbody id="txBody">${renderTxRows(transactions)}</tbody></table>
+      </div>
+    </div>`;
+    window._allTx = transactions;
+  } catch(e) { document.getElementById('pageContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
 
-async function confirmTopup() {
-  if (!topupPaymentId) return;
-  await apiFetch(`/api/wallet/topup/${topupPaymentId}/confirm`, 'POST', {});
-  document.getElementById('topupModal').classList.add('hidden');
-  toast('เติมเงินสำเร็จ! 💰', 'success');
-  loadWalletPage();
+function renderTxRows(txns){ return txns.length?txns.map(t=>`<tr>
+  <td>${fmtDate(t.createdAt)}</td>
+  <td><span style="font-size:.8rem">${escHtml(t.ref)}</span></td>
+  <td>${methodLabel(t.method)}</td>
+  <td style="font-weight:700;color:var(--purple)">${fmtMoney(t.amount)}</td>
+  <td>${statusBadge(t.status)}</td>
+  <td>${t.status==='success'?`<button class="btn btn-gray btn-sm" onclick="dlReceipt('${t.id}')">📄 PDF</button>`:'-'}</td>
+</tr>`).join(''):'<tr><td colspan="6" class="text-center" style="color:#aaa;padding:20px">ไม่พบรายการ</td></tr>'; }
+
+function filterTx(){ const f=document.getElementById('txFilter').value; document.getElementById('txBody').innerHTML=renderTxRows(f?window._allTx.filter(t=>t.method===f):window._allTx); }
+
+async function dlReceipt(id) {
+  const a=document.createElement('a'); a.href=`/api/receipt/${id}`; a.target='_blank'; a.click();
 }
 
-// ── History ───────────────────────────────────────────────────────────────────
-async function loadHistory() {
-  const method = document.getElementById('filterMethod').value;
-  const url = `/api/payments?limit=50${method ? `&method=${method}` : ''}`;
-  const payments = await apiFetch(url);
-  const html = payments.map(p => `
-    <tr>
-      <td>${fmtDate(p.created_at)}</td>
-      <td>${p.description || '—'}</td>
-      <td>${methodLabel(p.payment_method)}</td>
-      <td>${statusBadge(p.status)}</td>
-      <td class="text-right font-bold">฿${fmt(p.amount)}</td>
-      <td>${p.receipt_id ? `<button class="btn btn-outline btn-sm" onclick="downloadReceiptById('${p.receipt_id}')">📄 PDF</button>` : '—'}</td>
-    </tr>
-  `).join('');
-  document.getElementById('historyTable').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--muted);">ยังไม่มีธุรกรรม</td></tr>';
+// ── PROFILE ──
+function renderProfile() {
+  if (!me) return;
+  document.getElementById('pageContent').innerHTML = `
+  <div class="card">
+    <div class="card-header"><div class="card-title">👤 ข้อมูลส่วนตัว</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      ${[['ชื่อ-สกุล (ภาษาไทย)',me.name],['ชื่อ-สกุล (ภาษาอังกฤษ)',me.nameEn||'-'],['รหัสนักศึกษา',me.studentId],['ชั้นปี','ปีที่ '+me.year],['คณะ',me.faculty],['สาขาวิชา',me.program||'-'],['Email',me.email||'-'],['เบอร์โทร',me.phone||'-']].map(([l,v])=>`
+      <div style="background:#faf5ff;border-radius:10px;padding:14px">
+        <div style="font-size:.75rem;color:var(--text2);font-weight:700;margin-bottom:4px">${l}</div>
+        <div style="font-size:.95rem;font-weight:700;color:var(--text)">${escHtml(v)}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🔐 ความปลอดภัย</div></div>
+    <div class="alert alert-info">🔒 ระบบจะออกจากบัญชีอัตโนมัติเมื่อครบ 8 ชั่วโมง</div>
+    <div class="alert alert-info">📧 หากต้องการเปลี่ยนรหัสผ่าน ติดต่อกองทะเบียน โทร 043-009-700 ต่อ 42111</div>
+    <button class="btn btn-red" onclick="doLogout()">🚪 ออกจากระบบ</button>
+  </div>`;
 }
 
-function downloadReceiptById(receiptId) {
-  fetch(`/api/receipts/${receiptId}/pdf`, { headers: { Authorization: `Bearer ${token}` } })
-    .then(r => r.blob()).then(blob => {
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `receipt_${receiptId}.pdf`; a.click();
-    });
+// ── NOTIFICATIONS ──
+async function loadNotifications() {
+  try {
+    const { notifications } = await API('/api/notifications');
+    const unread = notifications.filter(n=>!n.read);
+    const badge = document.getElementById('notifBadge');
+    if (unread.length) { badge.textContent=unread.length; badge.classList.remove('d-none'); }
+    else badge.classList.add('d-none');
+    document.getElementById('notifList').innerHTML = notifications.length?notifications.map(n=>`
+    <div class="notif-item${n.read?'':' unread'}" onclick="markRead('${n.id}',this)">
+      <div class="ni-title">${n.type==='broadcast'?'📢':'🔔'} ${escHtml(n.title)}</div>
+      <div class="ni-msg">${escHtml(n.message)}</div>
+      <div class="ni-time">${fmtDate(n.createdAt)}</div>
+    </div>`).join(''):'<div style="padding:20px;text-align:center;color:#aaa;font-size:.85rem">ไม่มีการแจ้งเตือน</div>';
+  } catch {}
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-async function apiFetch(url, method = 'GET', body = null) {
-  const opts = { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(url, opts);
-  const d = await r.json();
-  if (!r.ok) throw new Error(d.error || 'API Error');
-  return d;
+async function markRead(id, el) {
+  el.classList.remove('unread');
+  await API('/api/notifications/read',{method:'POST',body:JSON.stringify({notifId:id})}).catch(()=>{});
+  loadNotifications();
 }
 
-function fmt(n) { return Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function toggleNotif(){ document.getElementById('notifPanel').classList.toggle('open'); }
+document.addEventListener('click', e=>{ if(!e.target.closest('#notifPanel')&&!e.target.closest('.notif-btn')) document.getElementById('notifPanel').classList.remove('open'); });
 
-function fmtDate(d) {
-  return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+// ── PAYMENT MODAL ──
+function openPayModal(fee) {
+  if (fee.status==='paid') return;
+  currentFee = fee;
+  currentMethod = null; selectedBank = null; selectedEwallet = null;
+  document.querySelector('.modal-overlay').classList.add('open');
+  renderMethodSelect();
+}
+function closePayModal(){ document.querySelector('.modal-overlay').classList.remove('open'); currentFee=null; currentMethod=null; }
+
+function renderMethodSelect() {
+  document.getElementById('payModalBody').innerHTML = `
+  <div style="background:#f3e5f5;border-radius:12px;padding:14px;margin-bottom:18px">
+    <div style="font-size:.8rem;color:var(--text2);margin-bottom:4px">รายการที่เลือก</div>
+    <div style="font-weight:800;font-size:1rem;color:var(--purple)">${escHtml(currentFee.label)}</div>
+    <div style="font-size:.78rem;color:var(--text2);margin-top:4px">รหัส: ${escHtml(currentFee.code)} | กำหนด: ${escHtml(currentFee.due)}</div>
+    <div style="font-size:1.4rem;font-weight:800;color:var(--purple);margin-top:8px">${fmtMoney(currentFee.amount)}</div>
+  </div>
+  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem">เลือกวิธีชำระเงิน</div>
+  <div class="method-grid">
+    <div class="method-card" onclick="selectMethod('promptpay')"><div class="m-icon">📱</div><div class="m-name">PromptPay QR</div><div class="m-desc">สแกนผ่านแอปธนาคาร</div></div>
+    <div class="method-card" onclick="selectMethod('card')"><div class="m-icon">💳</div><div class="m-name">บัตรเครดิต/เดบิต</div><div class="m-desc">Visa / MasterCard / JCB</div></div>
+    <div class="method-card" onclick="selectMethod('wallet')"><div class="m-icon">👛</div><div class="m-name">KKU Wallet</div><div class="m-desc">ยอดคงเหลือ ${fmtMoney(wallet?.balance||0)}</div></div>
+    <div class="method-card" onclick="selectMethod('banking')"><div class="m-icon">🏦</div><div class="m-name">Internet Banking</div><div class="m-desc">โอนผ่านธนาคาร 7 แห่ง</div></div>
+    <div class="method-card" onclick="selectMethod('ewallet')"><div class="m-icon">📲</div><div class="m-name">e-Wallet</div><div class="m-desc">TrueMoney / LINE Pay / Shopee</div></div>
+    <div class="method-card" onclick="selectMethod('counter')"><div class="m-icon">🏪</div><div class="m-name">Counter Service</div><div class="m-desc">7-Eleven / Big C / Lotus's</div></div>
+  </div>`;
 }
 
-function statusBadge(status) {
-  const m = { success: ['badge-success','✅ สำเร็จ'], paid: ['badge-success','✅ ชำระแล้ว'], pending: ['badge-warn','⏳ รอชำระ'], failed: ['badge-danger','❌ ล้มเหลว'], processing: ['badge-blue','🔄 กำลังดำเนินการ'] };
-  const [cls, label] = m[status] || ['badge-blue', status];
-  return `<span class="badge ${cls}">${label}</span>`;
+function selectMethod(m) {
+  currentMethod = m;
+  if (m==='promptpay') renderPromptPay();
+  else if (m==='card') renderCardForm();
+  else if (m==='wallet') renderWalletPay();
+  else if (m==='banking') renderBankingSelect();
+  else if (m==='ewallet') renderEwalletSelect();
+  else if (m==='counter') renderCounter();
 }
 
-function methodLabel(m) {
-  return { promptpay: '📱 PromptPay', card: '💳 บัตรเครดิต', wallet: '👛 Wallet', banking: '🏦 Internet Banking', ewallet: '🐰 e-Wallet', counter: '🏪 Counter' }[m] || m;
+// ── PROMPTPAY ──
+async function renderPromptPay() {
+  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้าง QR Code...</div>';
+  try {
+    const r = await API('/api/payments/promptpay',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount})});
+    document.getElementById('payModalBody').innerHTML = `
+    <div class="qr-box">
+      <img src="${r.qrImage}" alt="PromptPay QR">
+      <div class="qr-amount">${fmtMoney(r.amount)}</div>
+      <div class="qr-ref">Ref: ${r.orderId}</div>
+      <div class="qr-ref">PromptPay ID: ${r.promptpayId}</div>
+    </div>
+    <div class="alert alert-info">📱 ${r.instruction}</div>
+    <div style="text-align:center;font-size:.8rem;color:var(--text2)">⏱️ หมดอายุ: ${fmtDate(r.expiresAt)}</div>
+    <div class="alert alert-warn mt-14">⏳ รอการยืนยันจากธนาคาร... (ระบบ demo จำลองหลังสแกน 8 วินาที)</div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธีชำระ</button>
+      <button class="btn btn-green" onclick="checkPayStatus('${r.orderId}')" style="flex:1">🔄 ตรวจสอบสถานะ</button>
+    </div>`;
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderMethodSelect()">← กลับ</button>`; }
 }
 
-function toast(msg, type='') {
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+// ── CARD ──
+function renderCardForm() {
+  document.getElementById('payModalBody').innerHTML = `
+  <div class="card-form-visual">
+    <div class="card-chip"></div>
+    <div class="card-number-display" id="cvNum">•••• •••• •••• ••••</div>
+    <div class="card-bottom"><span id="cvName">ชื่อบนบัตร</span><span id="cvExp">MM/YY</span></div>
+  </div>
+  <div class="form-group"><label>หมายเลขบัตร</label>
+    <input type="text" id="cardNum" placeholder="0000 0000 0000 0000" maxlength="19"
+      oninput="this.value=this.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim();document.getElementById('cvNum').textContent=this.value||'•••• •••• •••• ••••'">
+  </div>
+  <div class="form-group"><label>ชื่อบนบัตร (ตัวพิมพ์ใหญ่)</label>
+    <input type="text" id="cardName" placeholder="SOMCHAI MEESUK" style="text-transform:uppercase"
+      oninput="document.getElementById('cvName').textContent=this.value||'ชื่อบนบัตร'">
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-group"><label>วันหมดอายุ</label>
+      <input type="text" id="cardExp" placeholder="MM/YY" maxlength="5"
+        oninput="document.getElementById('cvExp').textContent=this.value||'MM/YY'">
+    </div>
+    <div class="form-group"><label>CVV / CVC</label><input type="password" id="cardCvv" placeholder="•••" maxlength="4"></div>
+  </div>
+  <div class="alert alert-info">🔒 ข้อมูลบัตรถูกเข้ารหัสด้วย TLS 1.3 และผ่านมาตรฐาน PCI-DSS โดย Omise Payment</div>
+  <div class="alert alert-warn">⚠️ Demo: ใส่เลขบัตรอะไรก็ได้ (ระบบ sandbox)</div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
+    <button class="btn btn-primary" onclick="doCardPay()" style="flex:1">💳 ชำระ ${fmtMoney(currentFee.amount)}</button>
+  </div>`;
 }
 
-function formatCard(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,16);
-  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+async function doCardPay() {
+  try {
+    const r = await API('/api/payments/card',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount,cardNumber:document.getElementById('cardNum').value,cardName:document.getElementById('cardName').value,expiry:document.getElementById('cardExp').value,cvv:document.getElementById('cardCvv').value})});
+    renderSuccess(r.orderId, currentFee.amount, `บัตรลงท้าย *${r.cardLast4}`);
+  } catch(e) { alert('❌ '+e.message); }
 }
+
+// ── WALLET PAY ──
+function renderWalletPay() {
+  const enough = (wallet?.balance||0) >= currentFee.amount;
+  document.getElementById('payModalBody').innerHTML = `
+  <div style="background:linear-gradient(135deg,#4a0072,#6a0dad);border-radius:14px;padding:20px;color:#fff;text-align:center;margin-bottom:16px">
+    <div style="font-size:.85rem;opacity:.75;margin-bottom:6px">ยอดคงเหลือ KKU Wallet</div>
+    <div style="font-size:2rem;font-weight:800">${fmtMoney(wallet?.balance||0)}</div>
+  </div>
+  <div style="background:#f3e5f5;border-radius:10px;padding:14px;margin-bottom:14px;display:flex;justify-content:space-between">
+    <span>จำนวนที่ต้องชำระ</span><span style="font-weight:800;color:var(--purple);font-size:1.1rem">${fmtMoney(currentFee.amount)}</span>
+  </div>
+  ${!enough?'<div class="alert alert-err">❌ ยอดเงินไม่เพียงพอ กรุณาเติมเงินก่อน</div>':''}
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
+    <button class="btn btn-green" onclick="doWalletPay()" style="flex:1" ${!enough?'disabled style="opacity:.5"':''}>👛 หักจาก Wallet</button>
+  </div>`;
+}
+
+async function doWalletPay() {
+  try {
+    const r = await API('/api/payments/wallet',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount})});
+    wallet.balance = r.newBalance;
+    updateSbBalance();
+    renderSuccess(r.orderId, r.amount, 'KKU Wallet', r.newBalance);
+  } catch(e) { alert('❌ '+e.message); }
+}
+
+// ── INTERNET BANKING ──
+const BANKS = [
+  {code:'kbank',name:'กสิกรไทย',short:'KBank',color:'#138f2d',emoji:'💚'},
+  {code:'scb',name:'ไทยพาณิชย์',short:'SCB',color:'#4e2b84',emoji:'💜'},
+  {code:'ktb',name:'กรุงไทย',short:'KTB',color:'#1a9cd8',emoji:'🔵'},
+  {code:'bbl',name:'กรุงเทพ',short:'BBL',color:'#1e4e9a',emoji:'🔷'},
+  {code:'ttb',name:'ทีทีบี',short:'TTB',color:'#f4762c',emoji:'🟠'},
+  {code:'gsb',name:'ออมสิน',short:'GSB',color:'#eb008a',emoji:'🩷'},
+  {code:'baac',name:'ธกส.',short:'BAAC',color:'#007a3d',emoji:'🟢'},
+];
+function renderBankingSelect() {
+  document.getElementById('payModalBody').innerHTML = `
+  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem">🏦 เลือกธนาคารที่ต้องการโอน</div>
+  <div class="bank-grid">${BANKS.map(b=>`
+    <div class="bank-card" id="bk-${b.code}" onclick="selectBank('${b.code}')" style="--bk:${b.color}">
+      <div style="font-size:2rem">${b.emoji}</div>
+      <div class="bk-name">${b.name}</div>
+      <div class="bk-short" style="color:${b.color};font-weight:700">${b.short}</div>
+    </div>`).join('')}
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px">
+    <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
+    <button class="btn btn-primary" id="bankConfirmBtn" onclick="doBankingPay()" style="flex:1" disabled>ถัดไป → รับรายละเอียด</button>
+  </div>`;
+}
+function selectBank(code) {
+  selectedBank = code;
+  BANKS.forEach(b=>{ const el=document.getElementById('bk-'+b.code); if(el){ el.style.border=b.code===code?`3px solid ${b.color}`:'2px solid var(--border)'; el.style.background=b.code===code?`${b.color}18`:'#fafafa'; } });
+  document.getElementById('bankConfirmBtn').removeAttribute('disabled');
+}
+async function doBankingPay() {
+  if (!selectedBank) return;
+  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้างรายการโอน...</div>';
+  try {
+    const r = await API('/api/payments/banking',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount,bankCode:selectedBank})});
+    document.getElementById('payModalBody').innerHTML = `
+    <div class="banking-card" style="background:${r.color}">
+      <div class="bk-header">🏦 ${r.bankName}</div>
+      <div class="banking-row"><span class="lbl">ชื่อบัญชี</span><span class="val">${escHtml(r.accountName)}</span></div>
+      <div class="banking-row"><span class="lbl">เลขบัญชี</span><span class="val">${escHtml(r.accountNumber)} <button class="copy-btn" onclick="copyText('${r.accountNumber}')">คัดลอก</button></span></div>
+      <div class="banking-row"><span class="lbl">จำนวนเงิน</span><span class="val">${fmtMoney(r.amount)}</span></div>
+      <div class="banking-row"><span class="lbl">Ref1 (อ้างอิง 1)</span><span class="val" style="word-break:break-all">${escHtml(r.ref1)} <button class="copy-btn" onclick="copyText('${r.ref1}')">คัดลอก</button></span></div>
+      <div class="banking-row"><span class="lbl">Ref2 (อ้างอิง 2)</span><span class="val">${escHtml(r.ref2)} <button class="copy-btn" onclick="copyText('${r.ref2}')">คัดลอก</button></span></div>
+      <div class="banking-row"><span class="lbl">หมดอายุ</span><span class="val">${fmtDate(r.expiresAt)}</span></div>
+    </div>
+    <div style="font-weight:700;font-size:.85rem;margin-bottom:8px;color:var(--text)">📋 ขั้นตอนการโอนเงิน</div>
+    <ol class="steps-list">${r.steps.map((s,i)=>`<li data-n="${i+1}">${escHtml(s)}</li>`).join('')}</ol>
+    <div class="alert alert-warn mt-14">⚠️ ${r.instruction}</div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="renderBankingSelect()" style="flex:1">← เลือกธนาคารอื่น</button>
+      <button class="btn btn-green" onclick="closePayModal();showPage('fees')" style="flex:1">✅ รับทราบ</button>
+    </div>`;
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderBankingSelect()">← กลับ</button>`; }
+}
+
+function copyText(t){ navigator.clipboard.writeText(t).then(()=>alert('คัดลอกแล้ว: '+t)); }
+
+// ── E-WALLET ──
+const EWALLETS = [
+  {code:'truemoney',name:'TrueMoney Wallet',color:'#ff6600',emoji:'🟠',desc:'แอป TrueMoney'},
+  {code:'rabbit',name:'Rabbit LINE Pay',color:'#00c300',emoji:'🟢',desc:'แอป LINE'},
+  {code:'shopee',name:'ShopeePay',color:'#ee4d2d',emoji:'🔴',desc:'แอป Shopee'},
+];
+function renderEwalletSelect() {
+  document.getElementById('payModalBody').innerHTML = `
+  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem">📲 เลือก e-Wallet</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+  ${EWALLETS.map(e=>`
+    <div class="fee-item" id="ew-${e.code}" onclick="selectEwallet('${e.code}')" style="cursor:pointer">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:2rem">${e.emoji}</span>
+        <div><div style="font-weight:700">${e.name}</div><div style="font-size:.75rem;color:var(--text2)">${e.desc}</div></div>
+      </div>
+      <span id="ewcheck-${e.code}" style="font-size:1.4rem;display:none">✅</span>
+    </div>`).join('')}
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
+    <button class="btn btn-primary" id="ewConfirmBtn" onclick="doEwalletPay()" style="flex:1" disabled>สร้าง QR Code</button>
+  </div>`;
+}
+function selectEwallet(code) {
+  selectedEwallet = code;
+  EWALLETS.forEach(e=>{ const el=document.getElementById('ew-'+e.code); const chk=document.getElementById('ewcheck-'+e.code); if(el&&chk){ el.style.borderColor=e.code===code?e.color:'var(--border)'; el.style.background=e.code===code?`${e.color}12`:'#fff'; chk.style.display=e.code===code?'block':'none'; } });
+  document.getElementById('ewConfirmBtn').removeAttribute('disabled');
+}
+async function doEwalletPay() {
+  if (!selectedEwallet) return;
+  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้าง QR...</div>';
+  try {
+    const r = await API('/api/payments/ewallet',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount,provider:selectedEwallet})});
+    document.getElementById('payModalBody').innerHTML = `
+    <div class="qr-box" style="background:${r.bg||'#f5f5f5'}">
+      <div style="font-size:1.1rem;font-weight:800;color:${r.color};margin-bottom:12px">${r.icon} ${r.provider}</div>
+      <img src="${r.qrImage}" alt="e-Wallet QR" style="max-width:200px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15)">
+      <div class="qr-amount" style="color:${r.color}">${fmtMoney(r.amount)}</div>
+      <div class="qr-ref">Ref: ${r.orderId}</div>
+    </div>
+    <div class="alert alert-info">📲 ${r.instruction}</div>
+    <div style="text-align:center;font-size:.8rem;color:var(--text2)">⏱️ หมดอายุ: ${fmtDate(r.expiresAt)}</div>
+    <div class="alert alert-warn mt-14">⏳ รอการยืนยัน... (ระบบ demo จำลองหลัง 10 วินาที)</div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="renderEwalletSelect()" style="flex:1">← เลือก Wallet อื่น</button>
+      <button class="btn btn-green" onclick="closePayModal();renderFees()" style="flex:1">✅ รับทราบ</button>
+    </div>`;
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderEwalletSelect()">← กลับ</button>`; }
+}
+
+// ── COUNTER SERVICE ──
+async function renderCounter() {
+  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้างบาร์โค้ด...</div>';
+  try {
+    const r = await API('/api/payments/counter',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount})});
+    document.getElementById('payModalBody').innerHTML = `
+    <div class="barcode-box">
+      <span class="barcode-visual">||| | || ||| || | ||| | ||</span>
+      <div class="barcode-num">${r.barcode}</div>
+    </div>
+    <div style="background:#f3e5f5;border-radius:10px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>ค่าธรรมเนียม</span><span style="font-weight:700">${fmtMoney(r.amount)}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>ค่าบริการ Counter</span><span style="font-weight:700;color:var(--text2)">${fmtMoney(r.serviceFee)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #ddd"><span style="font-weight:700">รวมชำระ</span><span style="font-weight:800;color:var(--purple);font-size:1.1rem">${fmtMoney(r.total)}</span></div>
+    </div>
+    <div style="font-weight:700;font-size:.85rem;margin-bottom:8px">🏪 จุดชำระเงิน</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+      ${r.locations.map(l=>`<div style="background:#f5f5f5;border-radius:8px;padding:8px;font-size:.78rem;text-align:center">${escHtml(l)}</div>`).join('')}
+    </div>
+    <div class="alert alert-warn">⏱️ ${r.instruction}</div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
+      <button class="btn btn-green" onclick="closePayModal();showPage('fees')" style="flex:1">✅ รับทราบ</button>
+    </div>`;
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderMethodSelect()">← กลับ</button>`; }
+}
+
+// ── SUCCESS ──
+function renderSuccess(orderId, amount, method, newBalance=null) {
+  document.getElementById('payModalBody').innerHTML = `
+  <div class="success-box">
+    <div class="success-icon">🎉</div>
+    <h3>ชำระเงินสำเร็จ!</h3>
+    <p>รายการ <b>${escHtml(currentFee?.label||'')}</b></p>
+    <p style="font-size:1.4rem;font-weight:800;color:var(--purple);margin:10px 0">${fmtMoney(amount)}</p>
+    <p>วิธีชำระ: ${escHtml(method)}</p>
+    <p style="font-family:monospace;font-size:.8rem;color:var(--text2);margin-top:6px">Ref: ${escHtml(orderId)}</p>
+    ${newBalance!==null?`<p style="margin-top:8px;color:var(--text2)">ยอดคงเหลือ Wallet: <b>${fmtMoney(newBalance)}</b></p>`:''}
+    <p style="font-size:.78rem;color:#aaa;margin-top:8px">ใบเสร็จ PDF จะส่งไปยัง Email ${escHtml(me?.email||'')}</p>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-gray" onclick="closePayModal();renderFees()" style="flex:1">✅ เสร็จสิ้น</button>
+    <button class="btn btn-primary" onclick="closePayModal();showPage('history')" style="flex:1">📋 ดูประวัติ</button>
+  </div>`;
+}
+
+async function checkPayStatus(orderId) {
+  const { transactions } = await API('/api/transactions');
+  const tx = transactions.find(t => t.ref === orderId);
+  if (tx?.status === 'success') renderSuccess(orderId, tx.amount, 'PromptPay QR');
+  else alert('⏳ ยังรอยืนยัน กรุณารอสักครู่...');
+}
+
+// ── CHAT ──
+function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); if(document.getElementById('chatWindow').classList.contains('open')) loadChatHistory(); }
+
+async function loadChatHistory() {
+  try {
+    const { messages } = await API('/api/chat/history');
+    const box = document.getElementById('chatMsgs');
+    if (messages.length) { box.innerHTML=''; messages.forEach(m=>appendMsg(m.from,m.message,m.createdAt)); }
+    box.scrollTop = box.scrollHeight;
+  } catch {}
+}
+
+function appendMsg(from, text, time) {
+  const box = document.getElementById('chatMsgs');
+  const d = document.createElement('div');
+  d.className = 'msg msg-'+from;
+  d.innerHTML = escHtml(text).replace(/\n/g,'<br>') + `<div class="msg-time">${time?new Date(time).toLocaleTimeString('th-TH'):''}</div>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendMsg('user', msg, new Date().toISOString());
+  try {
+    const r = await API('/api/chat',{method:'POST',body:JSON.stringify({message:msg})});
+    appendMsg('bot', r.botReply.message, r.botReply.createdAt);
+  } catch { appendMsg('bot','ขออภัย เกิดข้อผิดพลาด กรุณาลองใหม่'); }
+}
+function sendQuick(msg) { document.getElementById('chatInput').value=msg; sendChat(); }
+
+// ── START ──
+init();
 </script>
 </body>
 </html>

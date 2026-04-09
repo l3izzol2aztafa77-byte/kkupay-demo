@@ -1,646 +1,770 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KKU Pay — Admin Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-  :root {
-    --kku: #4f2d7f; --kku2: #7b47b8; --gold: #f5a623;
-    --bg: #f4f6fb; --white: #fff; --text: #1a1a2e; --muted: #6b7280;
-    --success: #10b981; --danger: #ef4444; --warn: #f59e0b;
-    --border: #e5e7eb; --shadow: 0 2px 12px rgba(79,45,127,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); }
-  .sidebar { width: 240px; background: linear-gradient(180deg, #1a1030 0%, var(--kku) 100%); min-height: 100vh; position: fixed; left:0; top:0; padding: 24px 0; z-index:100; }
-  .sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
-  .sidebar-logo h2 { color: white; font-size: 18px; font-weight: 800; }
-  .sidebar-logo .sub { color: rgba(255,255,255,.5); font-size: 11px; margin-top: 3px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: rgba(255,255,255,.65); font-size: 13px; cursor: pointer; transition:.2s; border-left: 3px solid transparent; }
-  .nav-item:hover, .nav-item.active { background: rgba(255,255,255,.1); color:white; border-left-color: var(--gold); }
-  .nav-item svg { width: 16px; height: 16px; }
-  .main { margin-left: 240px; padding: 28px; min-height: 100vh; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .top-bar h1 { font-size: 20px; font-weight: 800; }
-  .top-bar .badge-live { background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-  .stat { background: var(--white); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-  .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
-  .stat-val { font-size: 26px; font-weight: 800; }
-  .stat-lbl { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-  .stat-trend { font-size: 12px; color: var(--success); margin-top: 4px; }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 16px; }
-  .card { background: var(--white); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
-  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; }
-  table { width: 100%; border-collapse: collapse; }
-  th { background: var(--bg); padding: 9px 12px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; text-align: left; }
-  td { padding: 11px 12px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #fafafa; }
-  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-s { background: #d1fae5; color: #065f46; }
-  .badge-p { background: #fef3c7; color: #92400e; }
-  .badge-f { background: #fee2e2; color: #991b1b; }
-  .method-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #f3f0ff; color: var(--kku); }
-  .progress-bar { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; margin-top: 6px; }
-  .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--kku), var(--kku2)); transition: width .8s ease; }
-  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .filter-row select, .filter-row input { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; outline: none; }
-  .filter-row select:focus, .filter-row input:focus { border-color: var(--kku); }
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition:.2s; }
-  .btn-primary { background: linear-gradient(135deg, var(--kku), var(--kku2)); color: white; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
-  .text-right { text-align: right; }
-  .font-bold { font-weight: 700; }
-  .text-muted { color: var(--muted); }
-  .text-purple { color: var(--kku); }
-  .text-green { color: var(--success); }
-  .text-red { color: var(--danger); }
-  .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; }
-  .tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); transition:.2s; }
-  .tab.active { background: var(--kku); color: white; }
-  .hidden { display: none !important; }
-  .logout-btn { color: rgba(255,255,255,.5); font-size: 12px; padding: 8px 20px; cursor: pointer; margin-top: 8px; }
-  .logout-btn:hover { color: white; }
-  .kpi-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .kpi-bar:last-child { border-bottom: none; }
-  .kpi-name { font-size: 13px; }
-  .kpi-val { font-size: 14px; font-weight: 700; }
-  .kpi-target { font-size: 11px; color: var(--muted); }
-  .alert-box { padding: 12px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 10px; }
-  .alert-success { background: #d1fae5; color: #065f46; }
-  .alert-warn { background: #fef3c7; color: #92400e; }
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--purple:#4a0072;--purple2:#6a0dad;--gold:#f5c518;--green:#00897b;--red:#e53935;--blue:#1565c0;--border:#e0e0e0;--text:#212121;--text2:#757575;--bg:#f0f2f5}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#4a0072,#1a237e)}
+.login-card{background:#fff;border-radius:18px;padding:44px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-logo h1{color:var(--purple);font-size:1.8rem;font-weight:800;text-align:center;margin-bottom:6px}
+.login-logo p{text-align:center;color:var(--text2);font-size:.82rem;margin-bottom:24px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--text2);margin-bottom:5px}
+.form-group input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;outline:none;transition:.2s}
+.form-group input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74,0,114,.1)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;cursor:pointer;font-size:.88rem;font-weight:600;transition:.2s}
+.btn-primary{background:var(--purple);color:#fff;width:100%}
+.btn-primary:hover{background:var(--purple2)}
+.btn-sm{padding:6px 13px;font-size:.78rem;border-radius:7px}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#00796b}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#c62828}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#0d47a1}
+.btn-gray{background:#eee;color:var(--text)}.btn-gray:hover{background:#ddd}
+#app{display:none}
+/* TOPBAR */
+.topbar{background:linear-gradient(90deg,#4a0072,#1a237e);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.topbar-left h1{font-size:1.1rem;font-weight:800}
+.topbar-left .env-tag{background:rgba(255,255,255,.15);border-radius:6px;padding:3px 10px;font-size:.72rem;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-pill{background:rgba(255,255,255,.15);border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:700}
+/* TABS */
+.tabs-wrap{background:#fff;border-bottom:2px solid var(--border);padding:0 24px;display:flex;gap:0;overflow-x:auto;position:sticky;top:58px;z-index:99}
+.tab{padding:14px 18px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;white-space:nowrap;transition:.2s}
+.tab:hover{color:var(--purple);background:#faf5ff}
+.tab.active{color:var(--purple);border-bottom-color:var(--purple);background:#faf5ff}
+/* CONTENT */
+.content{padding:22px 24px;max-width:1400px;margin:0 auto}
+.card{background:#fff;border-radius:13px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:18px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:.95rem;font-weight:700;color:var(--text)}
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.stat-card{background:#fff;border-radius:13px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.06);text-align:center;border-top:3px solid var(--purple)}
+.stat-card.green{border-top-color:var(--green)}
+.stat-card.blue{border-top-color:var(--blue)}
+.stat-card.red{border-top-color:var(--red)}
+.stat-card.gold{border-top-color:var(--gold)}
+.stat-icon{font-size:1.8rem;margin-bottom:6px}
+.stat-val{font-size:1.5rem;font-weight:800;color:var(--purple)}
+.stat-val.green{color:var(--green)}.stat-val.blue{color:var(--blue)}.stat-val.red{color:var(--red)}
+.stat-lbl{font-size:.72rem;color:var(--text2);margin-top:3px}
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:#f3e5f5;color:var(--purple);font-size:.77rem;font-weight:700;padding:10px 11px;text-align:left;white-space:nowrap}
+td{padding:9px 11px;font-size:.8rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#faf5ff}
+/* BADGE */
+.badge{padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.badge-pending{background:#fff3e0;color:#e65100}
+.badge-overdue{background:#ffebee;color:var(--red)}
+.badge-paid,.badge-success{background:#e8f5e9;color:#2e7d32}
+.badge-processing{background:#e3f2fd;color:var(--blue)}
+.badge-refunded{background:#fce4ec;color:#c2185b}
+/* FORMS */
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:.83rem;outline:none;transition:.2s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74,0,114,.1)}
+textarea{resize:vertical;min-height:70px}
+.alert{padding:11px 13px;border-radius:9px;font-size:.82rem;margin-bottom:12px}
+.alert-info{background:#e3f2fd;color:var(--blue);border-left:4px solid var(--blue)}
+.alert-warn{background:#fff8e1;color:#e65100;border-left:4px solid #ff9800}
+.alert-success{background:#e8f5e9;color:#2e7d32;border-left:4px solid var(--green)}
+.alert-err{background:#ffebee;color:var(--red);border-left:4px solid var(--red)}
+/* CHART */
+.chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:18px}
+.chart-box{position:relative;height:250px}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:1rem;font-weight:800;color:var(--purple)}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text2)}
+.modal-body{padding:20px}
+/* MISC */
+.d-none{display:none!important}
+.text-center{text-align:center}
+.text-mono{font-family:monospace;font-size:.78rem}
+.text-purple{color:var(--purple);font-weight:700}
+.mt-8{margin-top:8px}.mt-14{margin-top:14px}
+.action-btns{display:flex;gap:6px;flex-wrap:wrap}
+.kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.kpi-item{flex:1;min-width:140px;background:#f8f9fa;border-radius:10px;padding:12px;text-align:center}
+.kpi-item .kpi-val{font-size:1.3rem;font-weight:800;color:var(--purple)}
+.kpi-item .kpi-lbl{font-size:.72rem;color:var(--text2);margin-top:3px}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filter-row input,.filter-row select{flex:1;min-width:140px}
 </style>
 </head>
 <body>
-
-<nav class="sidebar">
-  <div class="sidebar-logo">
-    <h2>🛡️ KKU Pay</h2>
-    <div class="sub">Admin Dashboard</div>
+<div id="loginPage">
+<div class="login-card">
+  <div class="login-logo">
+    <h1>🔑 KKU Pay Admin</h1>
+    <p>ระบบจัดการชำระเงิน มหาวิทยาลัยขอนแก่น</p>
   </div>
-  <div style="padding: 12px 0;">
-    <div class="nav-item active" onclick="showTab('overview')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      ภาพรวม
-    </div>
-    <div class="nav-item" onclick="showTab('transactions')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-      ธุรกรรมทั้งหมด
-    </div>
-    <div class="nav-item" onclick="showTab('students')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-      นักศึกษา
-    </div>
-    <div class="nav-item" onclick="showTab('reports')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      รายงาน
-    </div>
-    <div class="nav-item" onclick="showTab('api')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      API Docs
-    </div>
+  <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" id="lgUser" placeholder="admin / finance"></div>
+  <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="lgPass" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()"></div>
+  <div id="lgErr" class="alert alert-err d-none"></div>
+  <button class="btn btn-primary" onclick="doLogin()">เข้าสู่ระบบ Admin</button>
+  <div style="margin-top:14px;background:#f3e5f5;border-radius:9px;padding:12px;font-size:.77rem;color:#6a1b9a">
+    <b>Demo:</b> admin / admin1234 หรือ finance / finance1234
   </div>
-  <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 20px;border-top:1px solid rgba(255,255,255,.1);">
-    <div style="color:white;font-size:13px;font-weight:600;" id="adminName">Admin</div>
-    <div style="color:rgba(255,255,255,.5);font-size:11px;">ผู้ดูแลระบบ KKU Pay</div>
-    <div class="logout-btn" onclick="doLogout()">ออกจากระบบ →</div>
+</div>
+</div>
+
+<div id="app">
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>🎓 KKU Pay Admin</h1>
+    <span class="env-tag">SANDBOX</span>
+    <span class="env-tag" id="topRole"></span>
   </div>
-</nav>
-
-<main class="main">
-
-  <!-- ── OVERVIEW ── -->
-  <div id="tab-overview">
-    <div class="top-bar">
-      <h1>📊 Dashboard ภาพรวมระบบ</h1>
-      <div class="badge-live"><div class="live-dot"></div> Live · อัปเดตทุก 30 วิ</div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat">
-        <div class="stat-icon" style="background:#ede9fe;">💸</div>
-        <div class="stat-lbl">รายได้รวมวันนี้</div>
-        <div class="stat-val text-purple" id="todayRevenue">฿0</div>
-        <div class="stat-trend" id="todayCount">0 ธุรกรรม</div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon" style="background:#d1fae5;">✅</div>
-        <div class="stat-lbl">ธุรกรรมสำเร็จรวม</div>
-        <div class="stat-val text-green" id="totalTxn">0</div>
-        <div class="stat-trend" id="totalRevenue">฿0 รวม</div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon" style="background:#fef3c7;">👥</div>
-        <div class="stat-lbl">นักศึกษาในระบบ</div>
-        <div class="stat-val" id="studentCount">0</div>
-        <div class="stat-trend">Active users</div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon" style="background:#fee2e2;">⚠️</div>
-        <div class="stat-lbl">รอดำเนินการ</div>
-        <div class="stat-val text-red" id="pendingCount">0</div>
-        <div class="stat-trend" id="failedCount">0 ล้มเหลว</div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">📈 รายได้ 7 วันล่าสุด</div>
-        <canvas id="revenueChart" height="180"></canvas>
-      </div>
-      <div class="card">
-        <div class="card-title">🥧 ช่องทางชำระเงิน</div>
-        <canvas id="methodChart" height="180"></canvas>
-      </div>
-    </div>
-
-    <div class="grid-3">
-      <div class="card" style="grid-column:span 2;">
-        <div class="card-title">🕒 ธุรกรรมล่าสุด <span style="font-size:12px;color:var(--muted);font-weight:400;">Real-time</span></div>
-        <table>
-          <thead><tr><th>เวลา</th><th>นักศึกษา</th><th>รายการ</th><th>ช่องทาง</th><th>สถานะ</th><th class="text-right">จำนวน</th></tr></thead>
-          <tbody id="recentTable"></tbody>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-title">🎯 KPI Pilot</div>
-        <div id="kpiList"></div>
-        <div style="margin-top:16px;">
-          <div class="alert-success alert-box">✅ Transaction Success Rate: 97%+</div>
-          <div class="alert-success alert-box">✅ System Uptime: 99.9%</div>
-          <div class="alert-warn alert-box">⚠️ User Adoption: กำลังเพิ่มขึ้น</div>
-        </div>
-      </div>
-    </div>
+  <div class="topbar-right">
+    <span class="user-pill" id="topUser">—</span>
+    <button class="btn btn-sm btn-gray" onclick="doLogout()">ออกจากระบบ</button>
+    <a href="/index.html" class="btn btn-sm btn-gray">← Student Portal</a>
   </div>
+</div>
 
-  <!-- ── TRANSACTIONS ── -->
-  <div id="tab-transactions" class="hidden">
-    <div class="top-bar"><h1>🔄 ธุรกรรมทั้งหมด</h1></div>
-    <div class="card">
-      <div class="filter-row">
-        <select id="txnFilterStatus" onchange="loadAllTxns()">
-          <option value="">ทุกสถานะ</option>
-          <option value="success">สำเร็จ</option>
-          <option value="pending">รอดำเนินการ</option>
-          <option value="failed">ล้มเหลว</option>
-        </select>
-        <select id="txnFilterMethod" onchange="loadAllTxns()">
-          <option value="">ทุกช่องทาง</option>
-          <option value="promptpay">PromptPay</option>
-          <option value="card">บัตรเครดิต</option>
-          <option value="wallet">Wallet</option>
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="loadAllTxns()">🔍 ค้นหา</button>
-        <button class="btn btn-outline btn-sm" onclick="exportCSV()">📥 Export CSV</button>
-      </div>
-      <div style="overflow-x:auto;">
-        <table>
-          <thead><tr><th>วันที่</th><th>Order Ref</th><th>นักศึกษา</th><th>รายการ</th><th>ช่องทาง</th><th>สถานะ</th><th class="text-right">จำนวน (฿)</th><th>ใบเสร็จ</th></tr></thead>
-          <tbody id="allTxnTable"></tbody>
-        </table>
-      </div>
-      <div style="padding:12px 0;color:var(--muted);font-size:12px;" id="txnTotal"></div>
-    </div>
+<div class="tabs-wrap">
+  <div class="tab active" onclick="showTab('overview')">📊 ภาพรวม</div>
+  <div class="tab" onclick="showTab('transactions')">💳 ธุรกรรมทั้งหมด</div>
+  <div class="tab" onclick="showTab('students')">🎓 นักศึกษา</div>
+  <div class="tab" onclick="showTab('fees')">📋 จัดการค่าธรรมเนียม</div>
+  <div class="tab" onclick="showTab('refunds')">🔄 คืนเงิน</div>
+  <div class="tab" onclick="showTab('settlement')">📑 Settlement</div>
+  <div class="tab" onclick="showTab('audit')">🔍 Audit Log</div>
+  <div class="tab" onclick="showTab('merchants')">🏪 Merchants</div>
+  <div class="tab" onclick="showTab('notify')">📢 ประกาศ</div>
+  <div class="tab" onclick="showTab('apidocs')">📖 API Docs</div>
+</div>
+
+<div class="content" id="tabContent"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+  <div class="modal-header">
+    <h3 id="modalTitle">—</h3>
+    <button class="modal-close" onclick="closeModal()">✕</button>
   </div>
-
-  <!-- ── STUDENTS ── -->
-  <div id="tab-students" class="hidden">
-    <div class="top-bar"><h1>👥 นักศึกษาในระบบ</h1></div>
-    <div class="card">
-      <table>
-        <thead><tr><th>รหัสนักศึกษา</th><th>ชื่อ</th><th>อีเมล</th><th>คณะ</th><th>ปี</th><th class="text-right">Wallet Balance</th></tr></thead>
-        <tbody id="studentTable"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ── REPORTS ── -->
-  <div id="tab-reports" class="hidden">
-    <div class="top-bar"><h1>📋 รายงาน</h1></div>
-    <div class="grid-3">
-      <div class="card">
-        <div class="card-title">💰 รายได้ตามประเภท</div>
-        <canvas id="typeChart" height="200"></canvas>
-      </div>
-      <div class="card">
-        <div class="card-title">📊 MDR Revenue Share</div>
-        <div style="padding: 12px 0;" id="mdrTable"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🎯 SLA Performance</div>
-        <div id="slaList"></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">
-        Monthly Performance Report
-        <button class="btn btn-primary btn-sm" onclick="generateReport()">📄 Export PDF Report</button>
-      </div>
-      <div id="reportContent"></div>
-    </div>
-  </div>
-
-  <!-- ── API DOCS ── -->
-  <div id="tab-api" class="hidden">
-    <div class="top-bar"><h1>📖 API Documentation</h1></div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">🔑 Authentication</div>
-        <div style="background:#1e1e2e;border-radius:10px;padding:16px;font-family:monospace;font-size:13px;color:#cdd6f4;line-height:1.7;">
-          <span style="color:#89b4fa;">POST</span> /api/auth/login<br>
-          <span style="color:#a6e3a1;">Content-Type:</span> application/json<br><br>
-          {<br>
-          &nbsp;&nbsp;<span style="color:#f38ba8;">"email"</span>: <span style="color:#a6e3a1;">"student@kku.ac.th"</span>,<br>
-          &nbsp;&nbsp;<span style="color:#f38ba8;">"password"</span>: <span style="color:#a6e3a1;">"password"</span><br>
-          }<br><br>
-          <span style="color:#bac2de;">→ Returns: { token, user, wallet }</span>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--muted);">
-          ใส่ token ใน header ทุก request:<br>
-          <code style="background:#f3f0ff;padding:3px 6px;border-radius:4px;">Authorization: Bearer &lt;token&gt;</code>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">💳 Payment Endpoints</div>
-        <div id="apiEndpoints"></div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:16px;">
-      <div class="card-title">🔒 API Security Features</div>
-      <div class="grid-3">
-        <div style="padding:14px;background:#f3f0ff;border-radius:10px;text-align:center;">
-          <div style="font-size:24px;">🔑</div>
-          <div style="font-weight:700;font-size:13px;margin:6px 0;">JWT Bearer Token</div>
-          <div style="font-size:12px;color:var(--muted);">8h expiry + refresh flow</div>
-        </div>
-        <div style="padding:14px;background:#f0fdf4;border-radius:10px;text-align:center;">
-          <div style="font-size:24px;">🛡️</div>
-          <div style="font-weight:700;font-size:13px;margin:6px 0;">HMAC-SHA256</div>
-          <div style="font-size:12px;color:var(--muted);">Signature ทุก request</div>
-        </div>
-        <div style="padding:14px;background:#fef3c7;border-radius:10px;text-align:center;">
-          <div style="font-size:24px;">🔒</div>
-          <div style="font-weight:700;font-size:13px;margin:6px 0;">TLS 1.3</div>
-          <div style="font-size:12px;color:var(--muted);">บังคับทุก connection</div>
-        </div>
-        <div style="padding:14px;background:#fee2e2;border-radius:10px;text-align:center;">
-          <div style="font-size:24px;">🚫</div>
-          <div style="font-weight:700;font-size:13px;margin:6px 0;">IP Whitelist</div>
-          <div style="font-size:12px;color:var(--muted);">server-to-server</div>
-        </div>
-        <div style="padding:14px;background:#f0fdf4;border-radius:10px;text-align:center;">
-          <div style="font-size:24px;">⏱️</div>
-          <div style="font-weight:700;font-size:13px;margin:6px 0;">Replay Protection</div>
-          <div style="font-size:12px;color:var(--muted);">nonce + timestamp</div>
-        </div>
-        <div style="padding:14px;background:#f3f0ff;border-radius:10px;text-align:center;">
-          <div style="font-size:24px;">📊</div>
-          <div style="font-weight:700;font-size:13px;margin:6px 0;">Rate Limiting</div>
-          <div style="font-size:12px;color:var(--muted);">per API key</div>
-        </div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:16px;">
-      <div class="card-title">⚡ Try API (Live Test)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div>
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Endpoint</label>
-          <select id="apiTestEndpoint" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;">
-            <option value="GET /api/admin/stats">GET /api/admin/stats</option>
-            <option value="GET /api/admin/transactions">GET /api/admin/transactions</option>
-            <option value="GET /api/admin/users">GET /api/admin/users</option>
-            <option value="GET /api/fees">GET /api/fees (student)</option>
-            <option value="GET /api/wallet">GET /api/wallet (student)</option>
-            <option value="GET /api">GET /api (docs)</option>
-          </select>
-          <button class="btn btn-primary" onclick="tryAPI()">▶ ส่ง Request</button>
-        </div>
-        <div>
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Response</label>
-          <pre id="apiResponse" style="background:#1e1e2e;color:#cdd6f4;padding:12px;border-radius:8px;font-size:11px;height:120px;overflow:auto;line-height:1.5;">// Click ▶ เพื่อทดสอบ</pre>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</main>
+  <div class="modal-body" id="modalBody"></div>
+</div>
+</div>
 
 <script>
-const API = '';
-let token = localStorage.getItem('kkupay_token');
-let revenueChart = null, methodChart = null, typeChart = null;
-let allStats = null;
+let token = localStorage.getItem('kkupay_admin_token');
+let me = null;
+let revenueChart = null, methodChart = null;
 
-window.onload = () => {
-  if (!token) { window.location.href = '/'; return; }
-  checkAdmin();
+const API = async (path, opts={}) => {
+  const r = await fetch(path, { headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts.headers||{})}, ...opts });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error||'Error');
+  return j;
 };
+const fmtMoney = n => '฿'+parseFloat(n||0).toLocaleString('th-TH',{minimumFractionDigits:2});
+const fmtDate = s => { try{ return new Date(s).toLocaleString('th-TH'); }catch{ return s||'-'; } };
+const escH = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const methodLabel = m => ({promptpay:'PromptPay QR',card:'บัตรเครดิต/เดบิต',wallet:'KKU Wallet',banking:'Internet Banking',ewallet:'e-Wallet',counter:'Counter Service',wallet_topup:'เติมเงิน Wallet'}[m]||m);
+const statusBadge = s => { const cls={pending:'badge-pending',overdue:'badge-overdue',paid:'badge-paid badge-success',processing:'badge-processing',success:'badge-success badge-paid',refunded:'badge-refunded'}; const label={pending:'รอชำระ',overdue:'เกินกำหนด',paid:'ชำระแล้ว',processing:'กำลังดำเนินการ',success:'สำเร็จ',refunded:'คืนเงินแล้ว',approved:'อนุมัติ',active:'ใช้งาน',inactive:'ปิดใช้'}; return `<span class="badge ${cls[s]||'badge-pending'}">${label[s]||s}</span>`; };
 
-async function checkAdmin() {
+async function init() {
+  if (!token) { showLogin(); return; }
   try {
-    const r = await apiFetch('/api/auth/me');
-    if (r.user.role !== 'admin') { window.location.href = '/'; return; }
-    document.getElementById('adminName').textContent = r.user.name;
-    loadOverview();
-    // Auto-refresh every 30s
-    setInterval(loadOverview, 30000);
-  } catch { window.location.href = '/'; }
+    const d = await API('/api/auth/me');
+    me = d.user;
+    if (!['admin','finance','support'].includes(me.role)) { localStorage.removeItem('kkupay_admin_token'); showLogin(); return; }
+    showApp(); showTab('overview');
+  } catch { localStorage.removeItem('kkupay_admin_token'); showLogin(); }
+}
+function showLogin(){ document.getElementById('loginPage').style.display='flex'; document.getElementById('app').style.display='none'; }
+function showApp(){
+  document.getElementById('loginPage').style.display='none'; document.getElementById('app').style.display='block';
+  document.getElementById('topUser').textContent = me.name;
+  document.getElementById('topRole').textContent = {admin:'🔑 Admin',finance:'💰 Finance',support:'🎧 Support'}[me.role]||me.role;
+}
+async function doLogin(){
+  const u=document.getElementById('lgUser').value.trim(), p=document.getElementById('lgPass').value;
+  const err=document.getElementById('lgErr'); err.classList.add('d-none');
+  try{
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const j=await r.json(); if(!r.ok) throw new Error(j.error);
+    token=j.token; me=j.user;
+    localStorage.setItem('kkupay_admin_token',token);
+    if(!['admin','finance','support'].includes(me.role)) throw new Error('ไม่มีสิทธิ์เข้าระบบ Admin');
+    showApp(); showTab('overview');
+  }catch(e){ err.textContent=e.message; err.classList.remove('d-none'); }
+}
+function doLogout(){ localStorage.removeItem('kkupay_admin_token'); token=null; me=null; showLogin(); }
+
+// ── TABS ──
+function showTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.remove('active'); if(['overview','transactions','students','fees','refunds','settlement','audit','merchants','notify','apidocs'][i]===t) el.classList.add('active'); });
+  if(t==='overview') renderOverview();
+  else if(t==='transactions') renderTransactions();
+  else if(t==='students') renderStudents();
+  else if(t==='fees') renderFees();
+  else if(t==='refunds') renderRefunds();
+  else if(t==='settlement') renderSettlement();
+  else if(t==='audit') renderAudit();
+  else if(t==='merchants') renderMerchants();
+  else if(t==='notify') renderNotify();
+  else if(t==='apidocs') renderApiDocs();
 }
 
-function doLogout() {
-  localStorage.removeItem('kkupay_token');
-  window.location.href = '/';
-}
-
-function showTab(name) {
-  ['overview','transactions','students','reports','api'].forEach(t => document.getElementById(`tab-${t}`).classList.add('hidden'));
-  document.getElementById(`tab-${name}`).classList.remove('hidden');
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.getAttribute('onclick').includes(name)));
-  if (name === 'transactions') loadAllTxns();
-  if (name === 'students') loadStudents();
-  if (name === 'reports') loadReports();
-  if (name === 'api') renderAPIDocs();
-}
-
-// ── Overview ─────────────────────────────────────────────────────────────────
-async function loadOverview() {
-  const d = await apiFetch('/api/admin/stats');
-  allStats = d;
-
-  document.getElementById('todayRevenue').textContent = `฿${fmt(d.today?.total || 0)}`;
-  document.getElementById('todayCount').textContent = `${d.today?.count || 0} ธุรกรรม`;
-  document.getElementById('totalTxn').textContent = d.total?.count || 0;
-  document.getElementById('totalRevenue').textContent = `฿${fmt(d.total?.total || 0)} รวม`;
-  document.getElementById('studentCount').textContent = d.userCount?.count || 0;
-  document.getElementById('pendingCount').textContent = d.pendingCount?.count || 0;
-  document.getElementById('failedCount').textContent = `${d.failedCount?.count || 0} ล้มเหลว`;
-
-  // Revenue chart
-  const labels = d.daily.map(r => r.date);
-  const values = d.daily.map(r => r.total || 0);
-  if (revenueChart) revenueChart.destroy();
-  revenueChart = new Chart(document.getElementById('revenueChart'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ label: 'รายได้ (฿)', data: values, backgroundColor: 'rgba(79,45,127,0.7)', borderRadius: 6, borderSkipped: false }]
-    },
-    options: {
-      responsive: true, plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { callback: v => `฿${fmt(v)}` } } }
-    }
-  });
-
-  // Method chart
-  const mColors = ['#4f2d7f','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6'];
-  if (methodChart) methodChart.destroy();
-  methodChart = new Chart(document.getElementById('methodChart'), {
-    type: 'doughnut',
-    data: {
-      labels: d.byMethod.map(m => methodLabel(m.payment_method)),
-      datasets: [{ data: d.byMethod.map(m => m.count), backgroundColor: mColors, borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
-      cutout: '65%'
-    }
-  });
-
-  // Recent table
-  const rHtml = d.recent.map(p => `
-    <tr>
-      <td>${fmtTime(p.created_at)}</td>
-      <td>${p.user_name || '—'}<br><span style="color:var(--muted);font-size:11px;">${p.student_id || ''}</span></td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.description || '—'}</td>
-      <td><span class="method-pill">${methodLabel(p.payment_method)}</span></td>
-      <td>${statusBadge(p.status)}</td>
-      <td class="text-right font-bold">฿${fmt(p.amount)}</td>
-    </tr>
-  `).join('');
-  document.getElementById('recentTable').innerHTML = rHtml;
-
-  // KPI bars
-  const kpis = [
-    { name: 'Transaction Success Rate', val: '97.2%', target: '≥97%', ok: true },
-    { name: 'System Uptime', val: '99.9%', target: '≥99.5%', ok: true },
-    { name: 'e-Receipt Accuracy', val: '100%', target: '100%', ok: true },
-    { name: 'Reconciliation Error Rate', val: '0.0%', target: '<0.1%', ok: true },
-  ];
-  document.getElementById('kpiList').innerHTML = kpis.map(k => `
-    <div class="kpi-bar">
-      <div>
-        <div class="kpi-name">${k.name}</div>
-        <div class="kpi-target">เป้า: ${k.target}</div>
-      </div>
-      <div class="kpi-val ${k.ok?'text-green':'text-red'}">${k.val} ${k.ok?'✅':'⚠️'}</div>
+// ── OVERVIEW ──
+async function renderOverview() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳ กำลังโหลด...</div>';
+  try {
+    const s = await API('/api/admin/stats');
+    document.getElementById('tabContent').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-val">${fmtMoney(s.totalRevenue)}</div><div class="stat-lbl">รายได้รวมทั้งหมด</div></div>
+      <div class="stat-card green"><div class="stat-icon">📅</div><div class="stat-val green">${fmtMoney(s.todayRevenue)}</div><div class="stat-lbl">รายได้วันนี้ (${s.todayCount} รายการ)</div></div>
+      <div class="stat-card blue"><div class="stat-icon">👛</div><div class="stat-val blue">${fmtMoney(s.walletTotal)}</div><div class="stat-lbl">ยอดรวม KKU Wallet</div></div>
+      <div class="stat-card red"><div class="stat-icon">⏳</div><div class="stat-val red">${fmtMoney(s.pendingTotal)}</div><div class="stat-lbl">ยอดค้างชำระรวม</div></div>
+      <div class="stat-card"><div class="stat-icon">🎓</div><div class="stat-val">${s.totalStudents}</div><div class="stat-lbl">นักศึกษาในระบบ</div></div>
+      <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-val green">${s.totalTransactions}</div><div class="stat-lbl">ธุรกรรมสำเร็จ</div></div>
+      <div class="stat-card gold"><div class="stat-icon">📈</div><div class="stat-val" style="color:var(--gold)">${s.successRate}%</div><div class="stat-lbl">อัตราสำเร็จ</div></div>
+      <div class="stat-card"><div class="stat-icon">💹</div><div class="stat-val">${fmtMoney(s.mdrRevenue)}</div><div class="stat-lbl">MDR Revenue (1.5%)</div></div>
     </div>
-  `).join('');
+    <div class="chart-grid">
+      <div class="card"><div class="card-header"><div class="card-title">📊 รายได้ 7 วันล่าสุด</div></div><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">🥧 สัดส่วนวิธีชำระ</div></div><div class="chart-box"><canvas id="methodChart"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📊 KPI & SLA Performance</div></div>
+      <div class="kpi-row">
+        <div class="kpi-item"><div class="kpi-val">${s.successRate}%</div><div class="kpi-lbl">Transaction Success Rate<br><small>(Target: ≥95%)</small></div></div>
+        <div class="kpi-item"><div class="kpi-val">&lt;2s</div><div class="kpi-lbl">Avg Response Time<br><small>(Target: &lt;3s)</small></div></div>
+        <div class="kpi-item"><div class="kpi-val">99.9%</div><div class="kpi-lbl">System Uptime<br><small>(Target: ≥99.5%)</small></div></div>
+        <div class="kpi-item"><div class="kpi-val">${s.refundCount}</div><div class="kpi-lbl">Total Refunds<br><small>(ตั้งแต่เปิดระบบ)</small></div></div>
+        <div class="kpi-item"><div class="kpi-val">1.5%</div><div class="kpi-lbl">MDR Rate<br><small>(Market avg: 1.5-2%)</small></div></div>
+      </div>
+    </div>`;
+    // Charts
+    const labels = s.chartData.map(d=>d.date.slice(5));
+    const amounts = s.chartData.map(d=>d.amount);
+    if (revenueChart) revenueChart.destroy();
+    revenueChart = new Chart(document.getElementById('revenueChart'), { type:'bar', data:{ labels, datasets:[{label:'รายได้ (฿)', data:amounts, backgroundColor:'rgba(74,0,114,.7)', borderRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>'฿'+v.toLocaleString('th-TH') } } } } });
+    const mNames = { promptpay:'PromptPay', card:'บัตรเครดิต', wallet:'KKU Wallet', banking:'Internet Banking', ewallet:'e-Wallet', counter:'Counter Service', wallet_topup:'เติมเงิน' };
+    const mKeys = Object.keys(s.methodBreakdown); const mVals = mKeys.map(k=>s.methodBreakdown[k]);
+    if (methodChart) methodChart.destroy();
+    methodChart = new Chart(document.getElementById('methodChart'), { type:'doughnut', data:{ labels:mKeys.map(k=>mNames[k]||k), datasets:[{data:mVals, backgroundColor:['#4a0072','#1565c0','#00897b','#f57c00','#e53935','#7b1fa2','#00838f'], borderWidth:2 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:12 } } } } });
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
 
-// ── Transactions ──────────────────────────────────────────────────────────────
-async function loadAllTxns() {
-  const status = document.getElementById('txnFilterStatus')?.value || '';
-  const method = document.getElementById('txnFilterMethod')?.value || '';
-  const url = `/api/admin/transactions?limit=100${status?`&status=${status}`:''}${method?`&method=${method}`:''}`;
-  const d = await apiFetch(url);
-  const html = d.transactions.map(p => `
-    <tr>
-      <td>${fmtDate(p.created_at)}</td>
-      <td style="font-family:monospace;font-size:11px;">${p.order_ref}</td>
-      <td>${p.user_name || '—'}<br><span style="color:var(--muted);font-size:11px;">${p.student_id||''}</span></td>
-      <td>${p.description || '—'}</td>
-      <td><span class="method-pill">${methodLabel(p.payment_method)}</span></td>
-      <td>${statusBadge(p.status)}</td>
-      <td class="text-right font-bold">฿${fmt(p.amount)}</td>
-      <td>${p.receipt_id ? `<button class="btn btn-outline btn-sm" onclick="downloadReceipt('${p.receipt_id}')">📄</button>` : '—'}</td>
-    </tr>
-  `).join('');
-  document.getElementById('allTxnTable').innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--muted);">ไม่พบข้อมูล</td></tr>';
-  document.getElementById('txnTotal').textContent = `แสดง ${d.transactions.length} จาก ${d.total} รายการ`;
+// ── TRANSACTIONS ──
+async function renderTransactions() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳ กำลังโหลด...</div>';
+  try {
+    const { transactions } = await API('/api/admin/transactions');
+    window._adminTx = transactions;
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">💳 ธุรกรรมทั้งหมด (${transactions.length} รายการ)</div>
+        <div class="action-btns">
+          <button class="btn btn-sm btn-green" onclick="exportCSV()">📥 Export CSV</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <input type="text" id="txSearch" placeholder="🔍 ค้นหาชื่อ / Ref / นักศึกษา" oninput="filterAdminTx()">
+        <select id="txMethod" onchange="filterAdminTx()">
+          <option value="">— ทุกวิธี —</option>
+          <option value="promptpay">PromptPay</option><option value="card">บัตรเครดิต</option>
+          <option value="wallet">KKU Wallet</option><option value="banking">Internet Banking</option>
+          <option value="ewallet">e-Wallet</option><option value="counter">Counter Service</option>
+          <option value="wallet_topup">เติมเงิน Wallet</option>
+        </select>
+        <select id="txStatus" onchange="filterAdminTx()">
+          <option value="">— ทุกสถานะ —</option>
+          <option value="success">สำเร็จ</option><option value="pending">รอยืนยัน</option>
+          <option value="refunded">คืนเงินแล้ว</option>
+        </select>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่</th><th>Ref</th><th>นักศึกษา</th><th>คณะ</th><th>วิธีชำระ</th><th>รายการ</th><th>จำนวน</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+        <tbody id="txBody">${renderAdminTxRows(transactions)}</tbody>
+      </table></div>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+function renderAdminTxRows(txns) {
+  return txns.length?txns.map(t=>`<tr>
+    <td class="text-mono">${fmtDate(t.createdAt)}</td>
+    <td class="text-mono" style="font-size:.72rem">${escH(t.ref)}</td>
+    <td><b>${escH(t.studentName||'-')}</b><div style="font-size:.7rem;color:var(--text2)">${escH(t.studentId||'-')}</div></td>
+    <td style="font-size:.78rem">${escH(t.faculty||'-')}</td>
+    <td>${methodLabel(t.method)}</td>
+    <td style="font-size:.76rem">${escH(t.feeLabel||'-')}</td>
+    <td style="font-weight:700;color:var(--purple)">${fmtMoney(t.amount)}</td>
+    <td>${statusBadge(t.status)}</td>
+    <td class="action-btns">
+      ${t.status==='success'?`<button class="btn btn-sm btn-red" onclick="openRefundModal('${t.id}','${escH(t.ref)}',${t.amount})">↩ คืนเงิน</button>`:''}
+    </td>
+  </tr>`).join(''):'<tr><td colspan="9" class="text-center" style="color:#aaa;padding:18px">ไม่พบรายการ</td></tr>';
+}
+
+function filterAdminTx() {
+  const q=document.getElementById('txSearch').value.toLowerCase();
+  const m=document.getElementById('txMethod').value;
+  const s=document.getElementById('txStatus').value;
+  const filtered = window._adminTx.filter(t=>{
+    const matchQ = !q||(t.studentName||'').toLowerCase().includes(q)||(t.ref||'').toLowerCase().includes(q)||(t.studentId||'').toLowerCase().includes(q);
+    const matchM = !m||t.method===m;
+    const matchS = !s||t.status===s;
+    return matchQ&&matchM&&matchS;
+  });
+  document.getElementById('txBody').innerHTML = renderAdminTxRows(filtered);
 }
 
 function exportCSV() {
-  if (!allStats) return;
-  const rows = [['วันที่','ชื่อ','รหัสนักศึกษา','รายการ','ช่องทาง','สถานะ','จำนวน']];
-  allStats.recent.forEach(p => rows.push([p.created_at, p.user_name||'', p.student_id||'', p.description||'', p.payment_method, p.status, p.amount]));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
-  a.download = `kkupay_transactions_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
+  const txns = window._adminTx||[];
+  const header = ['วันที่','Ref','นักศึกษา','รหัสนักศึกษา','คณะ','วิธีชำระ','รายการ','จำนวน','สถานะ'];
+  const rows = txns.map(t=>[fmtDate(t.createdAt),t.ref,t.studentName||'',t.studentId||'',t.faculty||'',methodLabel(t.method),t.feeLabel||'',t.amount,t.status]);
+  const csv = [header,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='kkupay-transactions-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
 }
 
-function downloadReceipt(id) {
-  fetch(`/api/receipts/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` } })
-    .then(r => r.blob()).then(blob => {
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `receipt_${id}.pdf`; a.click();
-    });
-}
-
-// ── Students ──────────────────────────────────────────────────────────────────
-async function loadStudents() {
-  const users = await apiFetch('/api/admin/users');
-  const html = users.map(u => `
-    <tr>
-      <td style="font-family:monospace;">${u.student_id||'—'}</td>
-      <td class="font-bold">${u.name}</td>
-      <td>${u.email}</td>
-      <td>${u.faculty||'—'}</td>
-      <td>${u.year||'—'}</td>
-      <td class="text-right font-bold text-purple">฿${fmt(u.balance||0)}</td>
-    </tr>
-  `).join('');
-  document.getElementById('studentTable').innerHTML = html;
-}
-
-// ── Reports ───────────────────────────────────────────────────────────────────
-async function loadReports() {
-  if (!allStats) allStats = await apiFetch('/api/admin/stats');
-  const d = allStats;
-
-  // Type chart
-  if (typeChart) typeChart.destroy();
-  typeChart = new Chart(document.getElementById('typeChart'), {
-    type: 'pie',
-    data: {
-      labels: d.byType.map(t => typeLabel(t.payment_type)),
-      datasets: [{ data: d.byType.map(t => t.total||0), backgroundColor: ['#4f2d7f','#10b981','#f59e0b','#ef4444','#3b82f6'], borderWidth: 0 }]
-    },
-    options: { responsive:true, plugins: { legend: { position:'bottom', labels:{ font:{size:11} } } } }
-  });
-
-  // MDR table
-  const mdrRates = { promptpay: { rate:'0.55%', uni:'0.20%', kkupay:'0.35%' }, card: { rate:'1.50%', uni:'0.30%', kkupay:'1.20%' }, wallet: { rate:'0%', uni:'0%', kkupay:'0%' }, banking: { rate:'0.75%', uni:'0.20%', kkupay:'0.55%' } };
-  const mdrHtml = d.byMethod.map(m => {
-    const r = mdrRates[m.payment_method] || { rate:'—', uni:'—', kkupay:'—' };
-    const est = m.total * (parseFloat(r.kkupay) / 100) || 0;
-    return `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
-        <div>
-          <div style="font-size:13px;font-weight:600;">${methodLabel(m.payment_method)}</div>
-          <div style="font-size:11px;color:var(--muted);">${m.count} รายการ | MDR ${r.rate}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:13px;font-weight:700;color:var(--kku);">+฿${fmt(est)}</div>
-          <div style="font-size:11px;color:var(--muted);">มข.รับ ${r.uni}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-  document.getElementById('mdrTable').innerHTML = mdrHtml;
-
-  // SLA
-  const slaItems = [
-    { label: 'P1: System Down → Response', target: '15 นาที', current: '< 5 นาที', ok: true },
-    { label: 'P1: Resolution Time', target: '1 ชั่วโมง', current: '45 นาที', ok: true },
-    { label: 'P2: Feature Issue', target: '4 ชั่วโมง', current: '2 ชั่วโมง', ok: true },
-    { label: 'Monthly Uptime SLA', target: '99.9%', current: '99.97%', ok: true },
-    { label: 'e-Receipt Delivery', target: 'Real-time', current: '< 2 วินาที', ok: true },
-  ];
-  document.getElementById('slaList').innerHTML = slaItems.map(s => `
-    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-      <div style="font-size:12px;">${s.label}</div>
-      <div style="text-align:right;">
-        <div style="font-size:12px;font-weight:700;color:${s.ok?'var(--success)':'var(--danger)'};">${s.current} ${s.ok?'✅':'⚠️'}</div>
-        <div style="font-size:10px;color:var(--muted);">target: ${s.target}</div>
-      </div>
-    </div>
-  `).join('');
-
-  // Monthly summary
-  document.getElementById('reportContent').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-      <div style="background:#f3f0ff;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;">Total Revenue</div>
-        <div style="font-size:22px;font-weight:800;color:var(--kku);">฿${fmt(d.total?.total||0)}</div>
-      </div>
-      <div style="background:#d1fae5;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:#065f46;font-weight:600;text-transform:uppercase;">Transactions</div>
-        <div style="font-size:22px;font-weight:800;color:#065f46;">${d.total?.count||0}</div>
-      </div>
-      <div style="background:#fef3c7;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:#92400e;font-weight:600;text-transform:uppercase;">Students</div>
-        <div style="font-size:22px;font-weight:800;color:#92400e;">${d.userCount?.count||0}</div>
-      </div>
-      <div style="background:#dbeafe;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:#1e40af;font-weight:600;text-transform:uppercase;">Success Rate</div>
-        <div style="font-size:22px;font-weight:800;color:#1e40af;">97.2%</div>
-      </div>
-    </div>
-    <p style="font-size:13px;color:var(--muted);">Report generated: ${new Date().toLocaleString('th-TH')} | KKU Pay v1.0 | CONFIDENTIAL</p>
-  `;
-}
-
-function generateReport() {
-  alert('📄 ในระบบจริง: PDF Report จะถูก generate และส่งอีเมลไปยัง admin@kku.ac.th ทันที\n\n(Demo mode: ดาวน์โหลด CSV แทน)');
-  exportCSV();
-}
-
-// ── API Docs ──────────────────────────────────────────────────────────────────
-function renderAPIDocs() {
-  const endpoints = [
-    { method: 'POST', path: '/api/auth/login', desc: 'Login — คืน JWT token' },
-    { method: 'GET', path: '/api/fees', desc: 'รายการค้างชำระของนักศึกษา [auth]' },
-    { method: 'POST', path: '/api/payments/promptpay', desc: 'สร้าง PromptPay QR [auth]' },
-    { method: 'POST', path: '/api/payments/card', desc: 'ชำระด้วยบัตร (Omise) [auth]' },
-    { method: 'POST', path: '/api/payments/wallet', desc: 'ชำระจาก Wallet [auth]' },
-    { method: 'GET', path: '/api/receipts/:id/pdf', desc: 'ดาวน์โหลด e-Receipt PDF [auth]' },
-    { method: 'GET', path: '/api/admin/stats', desc: 'สถิติ Dashboard [admin]' },
-    { method: 'GET', path: '/api/admin/transactions', desc: 'ธุรกรรมทั้งหมด [admin]' },
-  ];
-  document.getElementById('apiEndpoints').innerHTML = endpoints.map(e => `
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
-      <span style="background:${e.method==='GET'?'#dbeafe':'#d1fae5'};color:${e.method==='GET'?'#1e40af':'#065f46'};padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;font-family:monospace;">${e.method}</span>
-      <code style="font-size:12px;color:var(--kku);">${e.path}</code>
-      <span style="font-size:11px;color:var(--muted);">${e.desc}</span>
-    </div>
-  `).join('');
-}
-
-async function tryAPI() {
-  const endpoint = document.getElementById('apiTestEndpoint').value;
-  const [method, path] = endpoint.split(' ');
+// ── STUDENTS ──
+async function renderStudents() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
   try {
-    const r = await fetch(path, { headers: { Authorization: `Bearer ${token}` } });
-    const d = await r.json();
-    document.getElementById('apiResponse').textContent = JSON.stringify(d, null, 2).substring(0, 1000) + (JSON.stringify(d).length > 1000 ? '\n...' : '');
-  } catch (e) { document.getElementById('apiResponse').textContent = `Error: ${e.message}`; }
+    const { users } = await API('/api/admin/users');
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">🎓 นักศึกษาในระบบ (${users.length} คน)</div>
+        <input type="text" id="stuSearch" placeholder="🔍 ค้นหาชื่อ / รหัส" oninput="filterStudents()" style="width:220px">
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>รหัสนักศึกษา</th><th>ชื่อ-สกุล</th><th>คณะ/สาขา</th><th>ชั้นปี</th><th>Wallet</th><th>รายการ</th><th>ค้างชำระ</th><th>ชำระแล้ว</th><th>จัดการ</th></tr></thead>
+        <tbody id="stuBody">${renderStuRows(users)}</tbody>
+      </table></div>
+    </div>`;
+    window._students = users;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+function renderStuRows(users){ return users.map(u=>`<tr>
+  <td class="text-mono">${escH(u.studentId)}</td>
+  <td><b>${escH(u.name)}</b><div style="font-size:.7rem;color:var(--text2)">${escH(u.email||'-')}</div></td>
+  <td style="font-size:.78rem">${escH(u.faculty)}<div style="color:var(--text2)">${escH(u.program||'-')}</div></td>
+  <td class="text-center">ปี ${u.year}</td>
+  <td style="font-weight:700;color:var(--purple)">${fmtMoney(u.walletBalance)}</td>
+  <td class="text-center">${u.feeCount}</td>
+  <td class="text-center" style="color:var(--red);font-weight:700">${u.pendingFees}</td>
+  <td style="font-weight:700;color:var(--green)">${fmtMoney(u.totalPaid)}</td>
+  <td class="action-btns">
+    <button class="btn btn-sm btn-blue" onclick="openAddFeeModal('${u.id}','${escH(u.name)}')">+ เพิ่มค่าธรรมเนียม</button>
+  </td>
+</tr>`).join('');}
+function filterStudents(){ const q=document.getElementById('stuSearch').value.toLowerCase(); document.getElementById('stuBody').innerHTML=renderStuRows((window._students||[]).filter(u=>(u.name||'').toLowerCase().includes(q)||(u.studentId||'').toLowerCase().includes(q))); }
+
+// ── FEES MANAGEMENT ──
+async function renderFees() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  try {
+    const { fees } = await API('/api/admin/fees');
+    window._adminFees = fees;
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">📋 จัดการค่าธรรมเนียมทั้งหมด (${fees.length} รายการ)</div>
+        <button class="btn btn-sm btn-primary" onclick="openAddFeeModalGeneral()">+ เพิ่มรายการใหม่</button>
+      </div>
+      <div class="filter-row">
+        <input type="text" id="feeSearch" placeholder="🔍 ค้นหา" oninput="filterFees()">
+        <select id="feeStatus" onchange="filterFees()"><option value="">— ทุกสถานะ —</option><option value="pending">รอชำระ</option><option value="overdue">เกินกำหนด</option><option value="paid">ชำระแล้ว</option><option value="processing">กำลังดำเนินการ</option></select>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>รหัส</th><th>นักศึกษา</th><th>คณะ</th><th>ประเภท</th><th>รายการ</th><th>จำนวน</th><th>กำหนดชำระ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+        <tbody id="feeBody">${renderFeeRows(fees)}</tbody>
+      </table></div>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+function renderFeeRows(fees){ return fees.length?fees.map(f=>`<tr>
+  <td class="text-mono" style="font-size:.72rem">${escH(f.code)}</td>
+  <td><b>${escH(f.studentName||'-')}</b><div style="font-size:.7rem;color:var(--text2)">${escH(f.studentId||'-')}</div></td>
+  <td style="font-size:.78rem">${escH(f.faculty||'-')}</td>
+  <td><span class="badge badge-processing">${escH(f.type)}</span></td>
+  <td>${escH(f.label)}<div style="font-size:.7rem;color:var(--text2)">${escH(f.note||'')}</div></td>
+  <td style="font-weight:700;color:var(--purple)">${fmtMoney(f.amount)}</td>
+  <td class="text-mono">${escH(f.due)}</td>
+  <td>${statusBadge(f.status)}</td>
+  <td class="action-btns">
+    <button class="btn btn-sm btn-gray" onclick="openEditFeeModal(${JSON.stringify(f).replace(/"/g,'&quot;')})">✏️</button>
+    ${f.status!=='paid'?`<button class="btn btn-sm btn-red" onclick="deleteFee('${f.id}','${escH(f.label)}')">🗑️</button>`:''}
+  </td>
+</tr>`).join(''):'<tr><td colspan="9" class="text-center" style="color:#aaa;padding:18px">ไม่พบรายการ</td></tr>';}
+function filterFees(){ const q=(document.getElementById('feeSearch').value||'').toLowerCase(); const s=document.getElementById('feeStatus').value; document.getElementById('feeBody').innerHTML=renderFeeRows((window._adminFees||[]).filter(f=>(!q||(f.label||'').toLowerCase().includes(q)||(f.studentName||'').toLowerCase().includes(q))&&(!s||f.status===s))); }
+
+async function deleteFee(id, label) {
+  if (!confirm(`ลบรายการ "${label}" ?`)) return;
+  try { await API(`/api/admin/fees/${id}`,{method:'DELETE'}); renderFees(); } catch(e) { alert('❌ '+e.message); }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-async function apiFetch(url) {
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  const d = await r.json();
-  if (!r.ok) throw new Error(d.error);
-  return d;
+// ── REFUNDS ──
+async function renderRefunds() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  try {
+    const { refunds } = await API('/api/admin/refunds');
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">🔄 ประวัติการคืนเงิน (${refunds.length} รายการ)</div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่</th><th>Ref การชำระ</th><th>นักศึกษา</th><th>จำนวนคืน</th><th>เหตุผล</th><th>ดำเนินการโดย</th><th>สถานะ</th></tr></thead>
+        <tbody>${refunds.length?refunds.map(r=>`<tr>
+          <td class="text-mono">${fmtDate(r.createdAt)}</td>
+          <td class="text-mono" style="font-size:.72rem">${escH(r.paymentRef||'-')}</td>
+          <td><b>${escH(r.studentName||'-')}</b><br><small>${escH(r.studentId||'-')}</small></td>
+          <td style="font-weight:700;color:var(--red)">${fmtMoney(r.amount)}</td>
+          <td>${escH(r.reason||'-')}</td>
+          <td>${escH(r.processedByName||'-')}</td>
+          <td>${statusBadge(r.status)}</td>
+        </tr>`).join(''):'<tr><td colspan="7" class="text-center" style="color:#aaa;padding:18px">ยังไม่มีการคืนเงิน</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">↩ ดำเนินการคืนเงิน</div></div>
+      <div class="alert alert-info">ℹ️ กรอก Payment ID จากแท็บ "ธุรกรรมทั้งหมด" เพื่อดำเนินการคืนเงิน</div>
+      <div class="form-row">
+        <div class="form-group"><label>Payment ID</label><input type="text" id="refPayId" placeholder="UUID ของ payment"></div>
+        <div class="form-group"><label>จำนวนที่คืน (บาท) — เว้นว่างเพื่อคืนเต็มจำนวน</label><input type="number" id="refAmt" placeholder="ปล่อยว่าง = คืนเต็มจำนวน"></div>
+      </div>
+      <div class="form-group"><label>เหตุผลการคืนเงิน</label><input type="text" id="refReason" placeholder="ระบุเหตุผล เช่น ชำระซ้ำ / ข้อผิดพลาด / ยกเลิกรายการ"></div>
+      <button class="btn btn-red mt-8" onclick="doRefund()">↩ ยืนยันการคืนเงิน</button>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
 
-function fmt(n) { return Number(n||0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function fmtDate(d) { return new Date(d).toLocaleDateString('th-TH', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }); }
-function fmtTime(d) { return new Date(d).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' }); }
-function statusBadge(s) {
-  const m = { success:['badge-s','✅ สำเร็จ'], pending:['badge-p','⏳ รอ'], failed:['badge-f','❌ ล้มเหลว'] };
-  const [c,l] = m[s]||['badge-p',s];
-  return `<span class="badge ${c}">${l}</span>`;
+async function doRefund() {
+  const paymentId=document.getElementById('refPayId').value.trim();
+  const amount=document.getElementById('refAmt').value;
+  const reason=document.getElementById('refReason').value.trim();
+  if (!paymentId||!reason) return alert('กรุณากรอก Payment ID และเหตุผล');
+  if (!confirm('ยืนยันการคืนเงิน?')) return;
+  try {
+    const r = await API('/api/admin/refund',{method:'POST',body:JSON.stringify({paymentId,amount:amount?parseFloat(amount):undefined,reason})});
+    alert('✅ คืนเงินสำเร็จ');
+    renderRefunds();
+  } catch(e) { alert('❌ '+e.message); }
 }
-function methodLabel(m) {
-  return { promptpay:'📱 PromptPay', card:'💳 บัตรเครดิต', wallet:'👛 Wallet', banking:'🏦 Internet Banking', ewallet:'🐰 e-Wallet', counter:'🏪 Counter', topup:'💰 Topup' }[m]||m;
+
+// ── SETTLEMENT ──
+async function renderSettlement() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const [settle, recon] = await Promise.all([ API('/api/admin/settlement?date='+today), API('/api/admin/reconciliation') ]);
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📑 Settlement รายวัน</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="date" id="settlDate" value="${today}" onchange="loadSettlement(this.value)" style="width:auto">
+        </div>
+      </div>
+      <div id="settlContent">${renderSettleContent(settle)}</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📊 Reconciliation 30 วัน</div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่</th><th>จำนวนรายการ</th><th>ยอดรวม (Gross)</th><th>MDR (1.5%)</th><th>ยอดสุทธิ (Net)</th></tr></thead>
+        <tbody>${recon.reconciliation.map(r=>`<tr>
+          <td class="text-mono">${r.date}</td>
+          <td class="text-center">${r.count}</td>
+          <td style="font-weight:700;color:var(--purple)">${fmtMoney(r.gross)}</td>
+          <td style="color:var(--red)">${fmtMoney(r.mdr)}</td>
+          <td style="font-weight:700;color:var(--green)">${fmtMoney(r.net)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
-function typeLabel(t) {
-  return { tuition:'ค่าเทอม', dormitory:'ค่าหอพัก', activity:'กิจกรรม', health:'สุขภาพ', general:'ทั่วไป', topup:'เติมเงิน', canteen:'ร้านอาหาร' }[t]||t;
+
+function renderSettleContent(s){
+  const methodNames={promptpay:'PromptPay',card:'บัตรเครดิต',wallet:'KKU Wallet',banking:'Internet Banking',ewallet:'e-Wallet',counter:'Counter Service',wallet_topup:'เติมเงิน'};
+  return `
+  <div class="stat-grid" style="margin-bottom:14px">
+    <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-val">${fmtMoney(s.gross)}</div><div class="stat-lbl">Gross Revenue</div></div>
+    <div class="stat-card red"><div class="stat-icon">💹</div><div class="stat-val red">${fmtMoney(s.mdr)}</div><div class="stat-lbl">MDR (1.5%)</div></div>
+    <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-val green">${fmtMoney(s.net)}</div><div class="stat-lbl">Net Revenue</div></div>
+    <div class="stat-card blue"><div class="stat-icon">🔢</div><div class="stat-val blue">${s.transactionCount}</div><div class="stat-lbl">จำนวนธุรกรรม</div></div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>วิธีชำระ</th><th>จำนวนรายการ</th><th>Gross</th><th>MDR</th><th>Net</th></tr></thead>
+    <tbody>${Object.entries(s.byMethod).map(([m,v])=>`<tr>
+      <td>${methodNames[m]||m}</td>
+      <td class="text-center">${v.count}</td>
+      <td style="font-weight:700;color:var(--purple)">${fmtMoney(v.gross)}</td>
+      <td style="color:var(--red)">${fmtMoney(v.mdr)}</td>
+      <td style="font-weight:700;color:var(--green)">${fmtMoney(v.net)}</td>
+    </tr>`).join('')||'<tr><td colspan="5" class="text-center" style="color:#aaa;padding:14px">ไม่มีธุรกรรมวันนี้</td></tr>'}</tbody>
+  </table></div>`;
 }
+
+async function loadSettlement(date){ try{ const s=await API('/api/admin/settlement?date='+date); document.getElementById('settlContent').innerHTML=renderSettleContent(s); }catch(e){ document.getElementById('settlContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; } }
+
+// ── AUDIT LOG ──
+async function renderAudit() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  try {
+    const { logs } = await API('/api/admin/audit-log');
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">🔍 Audit Log (ล่าสุด ${logs.length} รายการ)</div>
+        <input type="text" id="auditSearch" placeholder="🔍 ค้นหา" oninput="filterAudit()" style="width:200px">
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่-เวลา</th><th>ผู้ใช้</th><th>Role</th><th>Action</th><th>รายละเอียด</th><th>IP</th></tr></thead>
+        <tbody id="auditBody">${renderAuditRows(logs)}</tbody>
+      </table></div>
+    </div>`;
+    window._auditLogs = logs;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+function renderAuditRows(logs){ return logs.length?logs.map(l=>`<tr>
+  <td class="text-mono" style="font-size:.72rem">${fmtDate(l.createdAt)}</td>
+  <td>${escH(l.userName||'-')}</td>
+  <td><span class="badge badge-processing">${escH(l.userRole||'-')}</span></td>
+  <td><span class="badge ${l.action.includes('SUCCESS')?'badge-success':l.action.includes('REFUND')||l.action.includes('DELETE')?'badge-refunded':'badge-pending'}">${escH(l.action)}</span></td>
+  <td style="font-size:.77rem">${escH(l.detail)}</td>
+  <td class="text-mono" style="font-size:.7rem;color:var(--text2)">${escH(l.ip)}</td>
+</tr>`).join(''):'<tr><td colspan="6" class="text-center" style="color:#aaa;padding:18px">ไม่พบรายการ</td></tr>';}
+function filterAudit(){ const q=document.getElementById('auditSearch').value.toLowerCase(); document.getElementById('auditBody').innerHTML=renderAuditRows((window._auditLogs||[]).filter(l=>(l.userName||'').toLowerCase().includes(q)||(l.action||'').toLowerCase().includes(q)||(l.detail||'').toLowerCase().includes(q))); }
+
+// ── MERCHANTS ──
+async function renderMerchants() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  try {
+    const { merchants } = await API('/api/admin/merchants');
+    window._merchants = merchants;
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">🏪 Merchants (${merchants.length})</div>
+        <button class="btn btn-sm btn-primary" onclick="openMerchantModal()">+ เพิ่ม Merchant</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ชื่อ Merchant</th><th>หมวดหมู่</th><th>MDR</th><th>สถานะ</th><th>วันที่เพิ่ม</th><th>จัดการ</th></tr></thead>
+        <tbody>${merchants.map(m=>`<tr>
+          <td><b>${escH(m.name)}</b></td>
+          <td>${escH(m.category||'-')}</td>
+          <td class="text-center">${m.mdr}%</td>
+          <td>${statusBadge(m.status)}</td>
+          <td class="text-mono" style="font-size:.72rem">${fmtDate(m.createdAt)}</td>
+          <td class="action-btns">
+            <button class="btn btn-sm btn-gray" onclick="toggleMerchant('${m.id}','${m.status}')">${m.status==='active'?'⏸ ปิด':'▶ เปิด'}</button>
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+async function toggleMerchant(id, status) {
+  try { await API('/api/admin/merchants/'+id,{method:'PUT',body:JSON.stringify({status:status==='active'?'inactive':'active'})}); renderMerchants(); }
+  catch(e) { alert('❌ '+e.message); }
+}
+
+// ── NOTIFY ──
+async function renderNotify() {
+  document.getElementById('tabContent').innerHTML = `
+  <div class="card">
+    <div class="card-header"><div class="card-title">📢 ส่งประกาศถึงนักศึกษาทุกคน</div></div>
+    <div class="alert alert-info">📡 ประกาศนี้จะแสดงในหน้า Student Portal ของนักศึกษาทุกคน</div>
+    <div class="form-group"><label>หัวข้อประกาศ *</label><input type="text" id="notifTitle" placeholder="เช่น ระบบปิดปรับปรุง 20:00-22:00 น."></div>
+    <div class="form-group"><label>เนื้อหา *</label><textarea id="notifMsg" rows="4" placeholder="รายละเอียดประกาศ..."></textarea></div>
+    <button class="btn btn-primary mt-8" onclick="doBroadcast()">📢 ส่งประกาศ</button>
+    <div id="broadcastResult" style="margin-top:14px"></div>
+  </div>`;
+}
+
+async function doBroadcast() {
+  const title=document.getElementById('notifTitle').value.trim();
+  const message=document.getElementById('notifMsg').value.trim();
+  if(!title||!message) return alert('กรุณากรอกหัวข้อและเนื้อหา');
+  try {
+    await API('/api/admin/notifications/broadcast',{method:'POST',body:JSON.stringify({title,message})});
+    document.getElementById('broadcastResult').innerHTML='<div class="alert alert-success">✅ ส่งประกาศสำเร็จ!</div>';
+    document.getElementById('notifTitle').value=''; document.getElementById('notifMsg').value='';
+  } catch(e) { document.getElementById('broadcastResult').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+// ── API DOCS ──
+function renderApiDocs() {
+  const endpoints = [
+    {method:'POST',path:'/api/auth/login',desc:'เข้าสู่ระบบ',body:'{"username":"admin","password":"admin1234"}',auth:false},
+    {method:'GET',path:'/api/auth/me',desc:'ข้อมูลผู้ใช้ปัจจุบัน',body:null,auth:true},
+    {method:'GET',path:'/api/fees',desc:'รายการค่าธรรมเนียมของนักศึกษา',body:null,auth:true},
+    {method:'POST',path:'/api/payments/promptpay',desc:'ชำระผ่าน PromptPay QR',body:'{"feeId":"f1","amount":22500}',auth:true},
+    {method:'POST',path:'/api/payments/card',desc:'ชำระผ่านบัตรเครดิต/เดบิต',body:'{"feeId":"f1","amount":22500,"cardNumber":"4242 4242 4242 4242","cardName":"TEST USER","expiry":"12/25","cvv":"123"}',auth:true},
+    {method:'POST',path:'/api/payments/wallet',desc:'ชำระผ่าน KKU Wallet',body:'{"feeId":"f1","amount":2800}',auth:true},
+    {method:'POST',path:'/api/payments/banking',desc:'ชำระผ่าน Internet Banking',body:'{"feeId":"f1","amount":22500,"bankCode":"kbank"}',auth:true},
+    {method:'POST',path:'/api/payments/ewallet',desc:'ชำระผ่าน e-Wallet',body:'{"feeId":"f1","amount":450,"provider":"truemoney"}',auth:true},
+    {method:'POST',path:'/api/payments/counter',desc:'ชำระผ่าน Counter Service',body:'{"feeId":"f1","amount":120}',auth:true},
+    {method:'GET',path:'/api/wallet',desc:'ข้อมูล KKU Wallet และประวัติ',body:null,auth:true},
+    {method:'POST',path:'/api/wallet/topup',desc:'เติมเงิน KKU Wallet',body:'{"amount":500,"method":"card"}',auth:true},
+    {method:'GET',path:'/api/transactions',desc:'ประวัติธุรกรรมของนักศึกษา',body:null,auth:true},
+    {method:'GET',path:'/api/receipt/:id',desc:'ดาวน์โหลดใบเสร็จ PDF',body:null,auth:true},
+    {method:'POST',path:'/api/chat',desc:'ส่งข้อความไปยัง Chatbot',body:'{"message":"ค่าเล่าเรียนเท่าไร"}',auth:true},
+    {method:'GET',path:'/api/admin/stats',desc:'[Admin] สถิติภาพรวม',body:null,auth:true},
+    {method:'GET',path:'/api/admin/users',desc:'[Admin] รายการนักศึกษา',body:null,auth:true},
+    {method:'GET',path:'/api/admin/transactions',desc:'[Admin] ธุรกรรมทั้งหมด',body:null,auth:true},
+    {method:'POST',path:'/api/admin/fees',desc:'[Admin] สร้างค่าธรรมเนียมใหม่',body:'{"userId":"u1","type":"tuition","label":"ค่าเล่าเรียน","amount":22500,"due":"2024-09-30","semester":"1/2567"}',auth:true},
+    {method:'POST',path:'/api/admin/refund',desc:'[Admin] คืนเงิน',body:'{"paymentId":"...","reason":"ชำระซ้ำ","amount":22500}',auth:true},
+    {method:'GET',path:'/api/admin/audit-log',desc:'[Admin] Audit Log',body:null,auth:true},
+    {method:'GET',path:'/api/admin/settlement',desc:'[Admin] Settlement รายวัน',body:null,auth:true},
+    {method:'POST',path:'/api/admin/notifications/broadcast',desc:'[Admin] ส่งประกาศ',body:'{"title":"หัวข้อ","message":"เนื้อหา"}',auth:true},
+  ];
+  document.getElementById('tabContent').innerHTML = `
+  <div class="card">
+    <div class="card-header"><div class="card-title">📖 API Reference — KKU Pay v2.0</div></div>
+    <div class="alert alert-info">🔑 Protected endpoints ต้องส่ง Header: <code>Authorization: Bearer {token}</code><br>Base URL: <b>https://kkupay.up.railway.app</b> (หรือ localhost:3000)</div>
+    <div class="alert alert-warn">⚠️ Demo mode: MOCK_PAYMENT=true ทุก payment จะ simulate สำเร็จ ไม่มีการตัดเงินจริง</div>
+    ${endpoints.map(e=>`
+    <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8f9fa;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <span style="background:${e.method==='GET'?'#1565c0':e.method==='POST'?'#2e7d32':'#c62828'};color:#fff;border-radius:5px;padding:3px 9px;font-size:.72rem;font-weight:700;min-width:44px;text-align:center">${e.method}</span>
+        <code style="font-size:.83rem;flex:1">${e.path}</code>
+        <span style="font-size:.78rem;color:var(--text2)">${e.desc}</span>
+        ${e.auth?'<span class="badge badge-processing">🔑 Auth</span>':'<span class="badge badge-success">Public</span>'}
+      </div>
+      <div style="display:none;padding:12px 14px;border-top:1px solid var(--border)">
+        ${e.body?`<div style="margin-bottom:8px"><b style="font-size:.78rem">Request Body:</b><pre style="background:#1e1e1e;color:#d4d4d4;border-radius:7px;padding:10px;font-size:.75rem;margin-top:5px;overflow-x:auto">${escH(JSON.stringify(JSON.parse(e.body),null,2))}</pre></div>`:''}
+        <button class="btn btn-sm btn-blue" onclick="testApi('${e.method}','${e.path}','${e.body?escH(e.body):''}')">▶ ทดสอบ API</button>
+        <div class="api-result mt-8" style="font-size:.75rem"></div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+async function testApi(method, path, body) {
+  const resultEl = event.target.nextElementSibling;
+  resultEl.innerHTML = '⏳ กำลังเรียก...';
+  const realPath = path.replace(':id', 'test');
+  try {
+    const r = await API(realPath, { method, body: method!=='GET'&&body ? body : undefined });
+    resultEl.innerHTML = `<pre style="background:#1e2a1e;color:#7ec680;border-radius:7px;padding:10px;overflow-x:auto;max-height:200px">${escH(JSON.stringify(r,null,2))}</pre>`;
+  } catch(e) { resultEl.innerHTML = `<pre style="background:#2a1e1e;color:#ff6b6b;border-radius:7px;padding:10px">❌ ${escH(e.message)}</pre>`; }
+}
+
+// ── MODALS ──
+function openModal(title, html){ document.getElementById('modalTitle').textContent=title; document.getElementById('modalBody').innerHTML=html; document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+function openRefundModal(payId, ref, amount) {
+  openModal('↩ คืนเงิน', `
+    <div class="alert alert-warn">⚠️ กำลังดำเนินการคืนเงินรายการ <b>${escH(ref)}</b> (${fmtMoney(amount)})</div>
+    <div class="form-group"><label>จำนวนที่คืน (เว้นว่าง = คืนเต็มจำนวน)</label><input type="number" id="refModalAmt" placeholder="${amount}" max="${amount}"></div>
+    <div class="form-group"><label>เหตุผล *</label><input type="text" id="refModalReason" placeholder="ระบุเหตุผล"></div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="closeModal()" style="flex:1">ยกเลิก</button>
+      <button class="btn btn-red" onclick="confirmRefundModal('${payId}')" style="flex:1">↩ ยืนยันคืนเงิน</button>
+    </div>`);
+}
+
+async function confirmRefundModal(payId) {
+  const reason=document.getElementById('refModalReason').value.trim();
+  const amt=document.getElementById('refModalAmt').value;
+  if(!reason) return alert('กรุณาระบุเหตุผล');
+  try {
+    await API('/api/admin/refund',{method:'POST',body:JSON.stringify({paymentId:payId,reason,amount:amt?parseFloat(amt):undefined})});
+    closeModal(); alert('✅ คืนเงินสำเร็จ'); renderTransactions();
+  } catch(e){ alert('❌ '+e.message); }
+}
+
+function openAddFeeModal(userId, userName) {
+  openModal('+ เพิ่มค่าธรรมเนียม — '+userName, addFeeFormHtml(userId));
+}
+function openAddFeeModalGeneral() {
+  openModal('+ เพิ่มค่าธรรมเนียมใหม่', addFeeFormHtml(''));
+}
+function addFeeFormHtml(userId='') {
+  return `
+    <div class="form-row">
+      <div class="form-group"><label>นักศึกษา (User ID)</label><input type="text" id="feeUserId" value="${userId}" placeholder="u1 / u2 / u3 / u4"></div>
+      <div class="form-group"><label>ประเภท</label>
+        <select id="feeType"><option value="tuition">tuition — ค่าเล่าเรียน</option><option value="dormitory">dormitory — หอพัก</option><option value="health">health — ประกันสุขภาพ</option><option value="activity">activity — กิจกรรม</option><option value="sport">sport — กีฬา</option><option value="fine">fine — ค่าปรับ</option><option value="internet">internet — อินเทอร์เน็ต</option><option value="parking">parking — จอดรถ</option><option value="other">other — อื่นๆ</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>ชื่อรายการ *</label><input type="text" id="feeLbl" placeholder="เช่น ค่าเล่าเรียน ภาคต้น 2567"></div>
+    <div class="form-row">
+      <div class="form-group"><label>จำนวนเงิน (บาท) *</label><input type="number" id="feeAmt" placeholder="เช่น 22500" min="1"></div>
+      <div class="form-group"><label>กำหนดชำระ *</label><input type="date" id="feeDue" value="${new Date(Date.now()+30*86400000).toISOString().slice(0,10)}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>ภาคการศึกษา</label><input type="text" id="feeSem" placeholder="1/2567"></div>
+      <div class="form-group"><label>หมายเหตุ</label><input type="text" id="feeNote" placeholder="ข้อมูลเพิ่มเติม"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="closeModal()" style="flex:1">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveNewFee()" style="flex:1">✅ บันทึก</button>
+    </div>`;
+}
+
+async function saveNewFee() {
+  const body = { userId:document.getElementById('feeUserId').value.trim(), type:document.getElementById('feeType').value, label:document.getElementById('feeLbl').value.trim(), amount:parseFloat(document.getElementById('feeAmt').value), due:document.getElementById('feeDue').value, semester:document.getElementById('feeSem').value, note:document.getElementById('feeNote').value };
+  if(!body.userId||!body.label||!body.amount) return alert('กรุณากรอก User ID, ชื่อรายการ และจำนวนเงิน');
+  try { await API('/api/admin/fees',{method:'POST',body:JSON.stringify(body)}); closeModal(); alert('✅ เพิ่มรายการสำเร็จ'); renderFees(); }
+  catch(e){ alert('❌ '+e.message); }
+}
+
+function openEditFeeModal(fee) {
+  openModal('✏️ แก้ไขรายการ', `
+    <div class="form-group"><label>ชื่อรายการ</label><input type="text" id="editLbl" value="${escH(fee.label)}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>จำนวนเงิน</label><input type="number" id="editAmt" value="${fee.amount}"></div>
+      <div class="form-group"><label>กำหนดชำระ</label><input type="date" id="editDue" value="${fee.due||''}"></div>
+    </div>
+    <div class="form-group"><label>สถานะ</label>
+      <select id="editStatus"><option value="pending" ${fee.status==='pending'?'selected':''}>รอชำระ</option><option value="overdue" ${fee.status==='overdue'?'selected':''}>เกินกำหนด</option><option value="paid" ${fee.status==='paid'?'selected':''}>ชำระแล้ว</option></select>
+    </div>
+    <div class="form-group"><label>หมายเหตุ</label><input type="text" id="editNote" value="${escH(fee.note||'')}"></div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="closeModal()" style="flex:1">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveEditFee('${fee.id}')" style="flex:1">💾 บันทึก</button>
+    </div>`);
+}
+
+async function saveEditFee(id) {
+  const body = { label:document.getElementById('editLbl').value, amount:parseFloat(document.getElementById('editAmt').value), due:document.getElementById('editDue').value, status:document.getElementById('editStatus').value, note:document.getElementById('editNote').value };
+  try { await API('/api/admin/fees/'+id,{method:'PUT',body:JSON.stringify(body)}); closeModal(); alert('✅ บันทึกสำเร็จ'); renderFees(); }
+  catch(e){ alert('❌ '+e.message); }
+}
+
+function openMerchantModal() {
+  openModal('+ เพิ่ม Merchant', `
+    <div class="form-group"><label>ชื่อ Merchant *</label><input type="text" id="mName" placeholder="ชื่อร้าน/หน่วยงาน"></div>
+    <div class="form-row">
+      <div class="form-group"><label>หมวดหมู่</label>
+        <select id="mCat"><option value="food">food</option><option value="service">service</option><option value="store">store</option><option value="health">health</option><option value="sport">sport</option><option value="other">other</option></select>
+      </div>
+      <div class="form-group"><label>MDR (%)</label><input type="number" id="mMdr" value="1.5" min="0" max="5" step="0.5"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-gray" onclick="closeModal()" style="flex:1">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMerchant()" style="flex:1">✅ บันทึก</button>
+    </div>`);
+}
+
+async function saveMerchant() {
+  const body={name:document.getElementById('mName').value.trim(),category:document.getElementById('mCat').value,mdr:parseFloat(document.getElementById('mMdr').value),status:'active'};
+  if(!body.name) return alert('กรุณาระบุชื่อ');
+  try { await API('/api/admin/merchants',{method:'POST',body:JSON.stringify(body)}); closeModal(); renderMerchants(); }
+  catch(e){ alert('❌ '+e.message); }
+}
+
+init();
 </script>
 </body>
 </html>
