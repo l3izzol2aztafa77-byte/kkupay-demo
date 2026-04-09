@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KKU Pay — Student Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --kku: #4f2d7f;
+    --kku2: #7b47b8;
+    --gold: #f5a623;
+    --bg: #f4f6fb;
+    --white: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #e5e7eb;
+    --card: #ffffff;
+    --shadow: 0 2px 12px rgba(79,45,127,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Login ── */
+  #loginPage { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--kku) 0%, var(--kku2) 100%); }
+  .login-card { background: var(--white); border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .login-logo { text-align: center; margin-bottom: 24px; }
+  .login-logo .logo-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--kku), var(--kku2)); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  .login-logo h1 { font-size: 26px; font-weight: 800; color: var(--kku); }
+  .login-logo p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; transition: .2s; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--kku); box-shadow: 0 0 0 3px rgba(79,45,127,0.1); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: .2s; width: 100%; }
+  .btn-primary { background: linear-gradient(135deg, var(--kku), var(--kku2)); color: white; }
+  .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--kku); color: var(--kku); }
+  .btn-outline:hover { background: rgba(79,45,127,0.06); }
+  .btn-green { background: var(--success); color: white; }
+  .btn-green:hover { opacity: .9; }
+  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; }
+  .demo-hints { background: #f3f0ff; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; }
+  .demo-hints b { color: var(--kku); }
+  .error-msg { color: var(--danger); font-size: 13px; margin-top: 8px; text-align: center; }
+
+  /* ── App Layout ── */
+  #app { display: none; }
+  .sidebar { width: 240px; background: linear-gradient(180deg, var(--kku) 0%, #3b1f5e 100%); min-height: 100vh; position: fixed; left: 0; top: 0; padding: 24px 0; z-index: 100; }
+  .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo h2 { color: white; font-size: 20px; font-weight: 800; }
+  .sidebar-logo p { color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 2px; }
+  .sidebar-nav { padding: 16px 0; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer; transition: .2s; border-left: 3px solid transparent; }
+  .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--gold); }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-user { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-user .uname { color: white; font-size: 13px; font-weight: 600; }
+  .sidebar-user .urole { color: rgba(255,255,255,0.5); font-size: 11px; }
+  .main-content { margin-left: 240px; padding: 32px; min-height: 100vh; }
+
+  /* ── Cards ── */
+  .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
+  .card-sm { padding: 16px 20px; }
+  .page-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  /* ── Stat cards ── */
+  .stat-card { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--text); margin: 6px 0; }
+  .stat-sub { font-size: 12px; color: var(--muted); }
+
+  /* ── Wallet card ── */
+  .wallet-card { background: linear-gradient(135deg, var(--kku) 0%, var(--kku2) 100%); border-radius: 20px; padding: 28px; color: white; position: relative; overflow: hidden; }
+  .wallet-card::after { content: ''; position: absolute; right: -30px; top: -30px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.06); }
+  .wallet-label { font-size: 13px; opacity: .8; margin-bottom: 8px; }
+  .wallet-amount { font-size: 36px; font-weight: 800; }
+  .wallet-sub { font-size: 12px; opacity: .7; margin-top: 4px; }
+  .wallet-id { font-size: 12px; opacity: .6; margin-top: 16px; font-family: monospace; }
+
+  /* ── Fee items ── */
+  .fee-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg); border-radius: 12px; margin-bottom: 10px; border: 1.5px solid var(--border); transition: .2s; }
+  .fee-item:hover { border-color: var(--kku); }
+  .fee-item.paid { opacity: .5; }
+  .fee-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; flex-shrink: 0; }
+  .fee-desc { flex: 1; }
+  .fee-desc .fname { font-size: 14px; font-weight: 600; }
+  .fee-desc .fdue { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .fee-right { text-align: right; }
+  .fee-amount { font-size: 16px; font-weight: 700; color: var(--kku); }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-success { background: #d1fae5; color: #065f46; }
+  .badge-warn { background: #fef3c7; color: #92400e; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--bg); padding: 10px 14px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; text-align: left; }
+  td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  /* ── Payment flow ── */
+  .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  .method-card { border: 2px solid var(--border); border-radius: 14px; padding: 18px 12px; text-align: center; cursor: pointer; transition: .2s; }
+  .method-card:hover { border-color: var(--kku); background: #f9f5ff; }
+  .method-card.selected { border-color: var(--kku); background: #f3f0ff; }
+  .method-icon { font-size: 28px; margin-bottom: 8px; }
+  .method-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .method-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .qr-container { text-align: center; padding: 20px; }
+  .qr-container img { border-radius: 12px; border: 1px solid var(--border); padding: 8px; }
+  .qr-amount { font-size: 28px; font-weight: 800; color: var(--kku); margin: 12px 0 4px; }
+  .qr-desc { font-size: 13px; color: var(--muted); }
+  .qr-countdown { font-size: 12px; color: var(--danger); margin-top: 8px; }
+  .card-form input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: monospace; margin-bottom: 12px; outline: none; }
+  .card-form input:focus { border-color: var(--kku); }
+  .success-box { text-align: center; padding: 32px 20px; }
+  .success-icon { font-size: 56px; margin-bottom: 12px; }
+  .success-title { font-size: 20px; font-weight: 800; color: var(--success); margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: var(--muted); }
+  .step-indicator { display: flex; gap: 6px; margin-bottom: 24px; }
+  .step { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+  .step.done { background: var(--kku); }
+  .step.active { background: var(--kku2); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* Spinner */
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 9999; animation: slideUp .3s ease; box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 500; display: flex; align-items: center; justify-content: center; }
+  .modal { background: white; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+  .hidden { display: none !important; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .justify-between { justify-content: space-between; }
+  .mt-2 { margin-top: 8px; }
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+  .mb-4 { margin-bottom: 16px; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .font-bold { font-weight: 700; }
+  .text-muted { color: var(--muted); }
+  .text-purple { color: var(--kku); }
+  .text-green { color: var(--success); }
+  .text-right { text-align: right; }
+  .w-full { width: 100%; }
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main-content { margin-left: 0; padding: 16px; }
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+    .method-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <path d="M18 4L6 10v8c0 7.5 5.1 14.5 12 16.5 6.9-2 12-9 12-16.5V10L18 4z" fill="white" opacity=".9"/>
+          <path d="M14 18l3 3 6-6" stroke="#4f2d7f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>KKU Pay</h1>
+      <p>ระบบชำระเงินดิจิทัล มหาวิทยาลัยขอนแก่น</p>
+    </div>
+
+    <div class="demo-hints">
+      <b>🎓 Demo Accounts:</b><br>
+      นักศึกษา: somchai@kku.ac.th / demo1234<br>
+      Admin: admin@kkupay.co.th / admin1234
+    </div>
+
+    <div class="form-group">
+      <label>อีเมล KKU</label>
+      <input type="email" id="loginEmail" placeholder="student@kku.ac.th" value="somchai@kku.ac.th">
+    </div>
+    <div class="form-group">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" value="demo1234">
+    </div>
+    <div id="loginError" class="error-msg"></div>
+    <button class="btn btn-primary mt-2" onclick="doLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      เข้าสู่ระบบ
+    </button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🛡️ KKU Pay</h2>
+      <p>Student Portal</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        ภาพรวม
+      </div>
+      <div class="nav-item" onclick="showPage('payment')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        ชำระเงิน
+      </div>
+      <div class="nav-item" onclick="showPage('wallet')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+        Wallet
+      </div>
+      <div class="nav-item" onclick="showPage('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        ประวัติธุรกรรม
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="uname" id="sidebarName">Loading...</div>
+      <div class="urole" id="sidebarRole">นักศึกษา</div>
+      <button class="btn btn-outline mt-2" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2);font-size:12px;padding:6px 12px;width:auto;" onclick="doLogout()">ออกจากระบบ</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- ── Dashboard Page ── -->
+    <div id="page-dashboard">
+      <div class="page-title">🏠 ภาพรวมบัญชี</div>
+
+      <div class="grid-3 mb-4">
+        <div class="wallet-card" style="grid-column: span 3;">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="wallet-label">💳 KKU Wallet Balance</div>
+              <div class="wallet-amount" id="dashWalletBalance">฿ 0.00</div>
+              <div class="wallet-sub">ยอดเงินคงเหลือใน KKU Wallet</div>
+              <div class="wallet-id" id="dashStudentId">รหัสนักศึกษา: —</div>
+            </div>
+            <div style="text-align:right;">
+              <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,.4);width:auto;" onclick="showPage('wallet')">+ เติมเงิน</button>
+              <div style="font-size:12px;opacity:.6;margin-top:8px;" id="dashFaculty"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-4 mb-4">
+        <div class="stat-card">
+          <div class="stat-label">📚 รายการค้างชำระ</div>
+          <div class="stat-value text-purple" id="dashPendingCount">—</div>
+          <div class="stat-sub">รายการ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">💰 ยอดค้างชำระรวม</div>
+          <div class="stat-value" id="dashPendingAmt">—</div>
+          <div class="stat-sub">บาท</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">✅ ชำระแล้วทั้งหมด</div>
+          <div class="stat-value text-green" id="dashPaidCount">—</div>
+          <div class="stat-sub">รายการ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📄 ธุรกรรมล่าสุด</div>
+          <div class="stat-value" id="dashTxnCount">—</div>
+          <div class="stat-sub">รายการ</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title">📋 รายการค้างชำระ</div>
+          <div id="dashFeeList"></div>
+          <button class="btn btn-primary mt-4" onclick="showPage('payment')">ชำระเงินตอนนี้</button>
+        </div>
+        <div class="card">
+          <div class="section-title">🕒 ธุรกรรมล่าสุด</div>
+          <div id="dashRecentTxn"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Payment Page ── -->
+    <div id="page-payment" class="hidden">
+      <div class="page-title">💳 ชำระเงิน</div>
+      <div class="grid-2">
+        <!-- Left: Select fee -->
+        <div class="card">
+          <div class="section-title">เลือกรายการที่ต้องการชำระ</div>
+          <div id="payFeeList"></div>
+          <hr class="divider">
+          <div class="section-title">หรือระบุจำนวนเงินเอง</div>
+          <div class="form-group">
+            <label>จำนวนเงิน (บาท)</label>
+            <input type="number" id="customAmount" placeholder="0.00" min="1">
+          </div>
+          <div class="form-group">
+            <label>รายละเอียด</label>
+            <input type="text" id="customDesc" placeholder="ระบุรายละเอียด">
+          </div>
+          <button class="btn btn-outline" onclick="selectCustomAmount()">เลือกรายการนี้ →</button>
+        </div>
+
+        <!-- Right: Payment flow -->
+        <div class="card">
+          <div id="payFlowSelectMethod" class="hidden">
+            <div class="step-indicator">
+              <div class="step done"></div><div class="step active"></div><div class="step"></div>
+            </div>
+            <div class="section-title">เลือกช่องทางชำระเงิน</div>
+            <div id="selectedFeeInfo" style="background:#f3f0ff;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:14px;"></div>
+            <div class="method-grid">
+              <div class="method-card" onclick="selectMethod('promptpay')">
+                <div class="method-icon">📱</div>
+                <div class="method-name">PromptPay</div>
+                <div class="method-desc">QR Code</div>
+              </div>
+              <div class="method-card" onclick="selectMethod('card')">
+                <div class="method-icon">💳</div>
+                <div class="method-name">บัตรเครดิต</div>
+                <div class="method-desc">Visa / MC / JCB</div>
+              </div>
+              <div class="method-card" onclick="selectMethod('wallet')">
+                <div class="method-icon">👛</div>
+                <div class="method-name">KKU Wallet</div>
+                <div class="method-desc">ยอดเงินคงเหลือ: <span id="methodWalletBal">฿0</span></div>
+              </div>
+              <div class="method-card" onclick="selectMethod('banking')">
+                <div class="method-icon">🏦</div>
+                <div class="method-name">Internet Banking</div>
+                <div class="method-desc">KBank, SCB, KTB</div>
+              </div>
+              <div class="method-card" onclick="selectMethod('ewallet')">
+                <div class="method-icon">🐰</div>
+                <div class="method-name">e-Wallet</div>
+                <div class="method-desc">TrueMoney, Rabbit Pay</div>
+              </div>
+              <div class="method-card" onclick="selectMethod('counter')">
+                <div class="method-icon">🏪</div>
+                <div class="method-name">Counter Service</div>
+                <div class="method-desc">7-Eleven / Tesco</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PromptPay QR -->
+          <div id="payFlowQR" class="hidden">
+            <div class="step-indicator">
+              <div class="step done"></div><div class="step done"></div><div class="step active"></div>
+            </div>
+            <div class="section-title">สแกน PromptPay QR Code</div>
+            <div class="qr-container">
+              <img id="qrImage" src="" width="220" alt="QR Code">
+              <div class="qr-amount" id="qrAmount"></div>
+              <div class="qr-desc" id="qrDesc"></div>
+              <div class="qr-countdown" id="qrCountdown">⏱ หมดอายุใน: 15:00</div>
+            </div>
+            <div style="background:#f0fdf4;border-radius:10px;padding:12px;font-size:12px;color:#065f46;margin-bottom:16px;">
+              ✅ สแกน QR ด้วยแอป Mobile Banking หรือ PromptPay ใดก็ได้<br>
+              ✅ ระบบจะยืนยันการชำระเงินอัตโนมัติ
+            </div>
+            <button class="btn btn-green w-full" onclick="confirmPayment()">
+              ✅ จำลองการชำระเงินสำเร็จ (Demo)
+            </button>
+            <button class="btn btn-outline mt-2 w-full" onclick="showMethodSelect()">← เปลี่ยนช่องทาง</button>
+          </div>
+
+          <!-- Card Payment -->
+          <div id="payFlowCard" class="hidden">
+            <div class="step-indicator">
+              <div class="step done"></div><div class="step done"></div><div class="step active"></div>
+            </div>
+            <div class="section-title">กรอกข้อมูลบัตรเครดิต / เดบิต</div>
+            <div style="background:#fef3c7;border-radius:10px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:16px;">
+              🔒 ข้อมูลบัตรถูกเข้ารหัสด้วย TLS 1.3 — ไม่มีการจัดเก็บข้อมูลบัตร<br>
+              <b>Test Card:</b> 4242 4242 4242 4242 | 12/27 | 123
+            </div>
+            <div class="card-form">
+              <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">หมายเลขบัตร</label>
+              <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)">
+              <div class="flex gap-2">
+                <div style="flex:1">
+                  <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">หมดอายุ</label>
+                  <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div style="flex:1">
+                  <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">CVV</label>
+                  <input type="text" id="cardCVV" placeholder="123" maxlength="3">
+                </div>
+              </div>
+              <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">ชื่อบนบัตร</label>
+              <input type="text" id="cardName" placeholder="SOMCHAI JAIDEE">
+            </div>
+            <button class="btn btn-primary w-full" onclick="processCardPayment()" id="cardPayBtn">
+              🔒 ชำระเงิน <span id="cardPayAmt"></span>
+            </button>
+            <button class="btn btn-outline mt-2 w-full" onclick="showMethodSelect()">← เปลี่ยนช่องทาง</button>
+          </div>
+
+          <!-- Banking/eWallet/Counter - demo redirect -->
+          <div id="payFlowOther" class="hidden">
+            <div class="step-indicator">
+              <div class="step done"></div><div class="step done"></div><div class="step active"></div>
+            </div>
+            <div class="section-title" id="otherTitle">ช่องทางนี้</div>
+            <div id="otherContent"></div>
+            <button class="btn btn-outline mt-4 w-full" onclick="showMethodSelect()">← เปลี่ยนช่องทาง</button>
+          </div>
+
+          <!-- Success -->
+          <div id="payFlowSuccess" class="hidden">
+            <div class="step-indicator">
+              <div class="step done"></div><div class="step done"></div><div class="step done"></div>
+            </div>
+            <div class="success-box">
+              <div class="success-icon">✅</div>
+              <div class="success-title">ชำระเงินสำเร็จ!</div>
+              <div class="success-sub" id="successDesc"></div>
+              <div style="background:#f3f0ff;border-radius:12px;padding:16px;margin:16px 0;text-align:left;">
+                <div class="flex justify-between text-sm"><span class="text-muted">ยอดชำระ</span><span class="font-bold text-purple" id="successAmt"></span></div>
+                <div class="flex justify-between text-sm mt-2"><span class="text-muted">ช่องทาง</span><span id="successMethod"></span></div>
+                <div class="flex justify-between text-sm mt-2"><span class="text-muted">เลขอ้างอิง</span><span id="successRef"></span></div>
+              </div>
+              <button class="btn btn-primary w-full" id="receiptBtn" onclick="downloadReceipt()">📄 ดาวน์โหลด e-Receipt (PDF)</button>
+              <button class="btn btn-outline mt-2 w-full" onclick="resetPayment()">ชำระรายการอื่น</button>
+            </div>
+          </div>
+
+          <!-- Default: prompt to select -->
+          <div id="payFlowDefault">
+            <div style="text-align:center;padding:40px 20px;color:var(--muted);">
+              <div style="font-size:48px;margin-bottom:12px;">👈</div>
+              <div style="font-size:15px;font-weight:600;">เลือกรายการจากซ้ายมือ</div>
+              <div style="font-size:13px;margin-top:6px;">เลือกรายการค้างชำระหรือระบุยอดเงินเอง</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Wallet Page ── -->
+    <div id="page-wallet" class="hidden">
+      <div class="page-title">👛 KKU Wallet</div>
+      <div class="grid-2">
+        <div>
+          <div class="wallet-card mb-4">
+            <div class="wallet-label">💳 ยอดเงินคงเหลือ</div>
+            <div class="wallet-amount" id="walletBalance">฿ 0.00</div>
+            <div class="wallet-sub">Student Wallet — ใช้ได้ทุก service ใน campus</div>
+            <div class="wallet-id" id="walletStudentId"></div>
+          </div>
+          <div class="card">
+            <div class="section-title">เติมเงิน Wallet</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;" id="topupPresets">
+              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(100)">฿100</button>
+              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(300)">฿300</button>
+              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(500)">฿500</button>
+              <button class="btn btn-outline btn-sm" onclick="setTopupAmount(1000)">฿1,000</button>
+            </div>
+            <div class="form-group">
+              <label>จำนวนเงิน (บาท)</label>
+              <input type="number" id="topupAmount" placeholder="ระบุจำนวน" min="20" max="50000">
+            </div>
+            <div class="form-group">
+              <label>ช่องทางเติมเงิน</label>
+              <select id="topupMethod">
+                <option value="promptpay">📱 PromptPay QR</option>
+                <option value="card">💳 บัตรเครดิต/เดบิต</option>
+                <option value="banking">🏦 Internet Banking</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="doTopup()">เติมเงิน →</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">ประวัติการใช้งาน Wallet</div>
+          <div id="walletTxnList" style="max-height:480px;overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Topup QR Modal -->
+      <div id="topupModal" class="modal-overlay hidden">
+        <div class="modal">
+          <h3>📱 สแกน QR เพื่อเติมเงิน</h3>
+          <div class="qr-container">
+            <img id="topupQRImg" src="" width="220" alt="QR">
+            <div class="qr-amount" id="topupQRAmt"></div>
+            <div class="qr-desc">เติมเงิน KKU Wallet ผ่าน PromptPay</div>
+          </div>
+          <button class="btn btn-green w-full" onclick="confirmTopup()">✅ จำลองการโอนเงินสำเร็จ (Demo)</button>
+          <button class="btn btn-outline mt-2 w-full" onclick="document.getElementById('topupModal').classList.add('hidden')">ปิด</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── History Page ── -->
+    <div id="page-history" class="hidden">
+      <div class="page-title">📄 ประวัติธุรกรรม</div>
+      <div class="card">
+        <div class="flex justify-between items-center mb-4">
+          <div class="section-title" style="margin:0;">รายการทั้งหมด</div>
+          <div class="flex gap-2">
+            <select id="filterMethod" onchange="loadHistory()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+              <option value="">ทุกช่องทาง</option>
+              <option value="promptpay">PromptPay</option>
+              <option value="card">บัตรเครดิต</option>
+              <option value="wallet">Wallet</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>รายการ</th>
+                <th>ช่องทาง</th>
+                <th>สถานะ</th>
+                <th class="text-right">จำนวน (฿)</th>
+                <th>ใบเสร็จ</th>
+              </tr>
+            </thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = '';
+let token = localStorage.getItem('kkupay_token');
+let currentUser = null, currentWallet = null;
+let selectedFeeItem = null, selectedMethod = null;
+let currentPaymentId = null, currentReceiptId = null;
+let topupPaymentId = null;
+let qrTimer = null;
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+window.onload = () => {
+  if (token) loadApp();
+};
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  document.getElementById('loginError').textContent = '';
+
+  try {
+    const r = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    token = d.token;
+    localStorage.setItem('kkupay_token', token);
+    currentUser = d.user;
+    currentWallet = d.wallet;
+    if (currentUser.role === 'admin') {
+      window.location.href = '/admin.html';
+      return;
+    }
+    startApp();
+  } catch (e) {
+    document.getElementById('loginError').textContent = e.message;
+  }
+}
+
+async function loadApp() {
+  try {
+    const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) { doLogout(); return; }
+    const d = await r.json();
+    if (d.user.role === 'admin') { window.location.href = '/admin.html'; return; }
+    currentUser = d.user;
+    currentWallet = d.wallet;
+    startApp();
+  } catch { doLogout(); }
+}
+
+function startApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarRole').textContent = `${currentUser.faculty || ''} ปี ${currentUser.year || ''} | ${currentUser.student_id || ''}`;
+  loadDashboard();
+}
+
+function doLogout() {
+  localStorage.removeItem('kkupay_token');
+  token = null;
+  location.reload();
+}
+
+function showPage(name) {
+  ['dashboard','payment','wallet','history'].forEach(p => document.getElementById(`page-${p}`).classList.add('hidden'));
+  document.getElementById(`page-${name}`).classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach((el, i) => {
+    el.classList.toggle('active', el.getAttribute('onclick').includes(name));
+  });
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'payment') loadPaymentPage();
+  if (name === 'wallet') loadWalletPage();
+  if (name === 'history') loadHistory();
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [fees, payments, walletData] = await Promise.all([
+    apiFetch('/api/fees'), apiFetch('/api/payments?limit=5'), apiFetch('/api/wallet')
+  ]);
+
+  currentWallet = walletData.wallet;
+  const bal = walletData.wallet?.balance || 0;
+  document.getElementById('dashWalletBalance').textContent = `฿ ${fmt(bal)}`;
+  document.getElementById('dashStudentId').textContent = `รหัสนักศึกษา: ${currentUser.student_id || '—'}`;
+  document.getElementById('dashFaculty').textContent = `คณะ${currentUser.faculty || ''}`;
+
+  const pending = fees.filter(f => f.status === 'unpaid');
+  const paid = fees.filter(f => f.status === 'paid');
+  const pendingAmt = pending.reduce((s, f) => s + f.amount, 0);
+
+  document.getElementById('dashPendingCount').textContent = pending.length;
+  document.getElementById('dashPendingAmt').textContent = fmt(pendingAmt);
+  document.getElementById('dashPaidCount').textContent = paid.length;
+  document.getElementById('dashTxnCount').textContent = payments.length;
+
+  // Fee list
+  const feeHtml = fees.slice(0, 3).map(f => feeItemHtml(f, false)).join('');
+  document.getElementById('dashFeeList').innerHTML = feeHtml || '<p class="text-muted text-sm">ไม่มีรายการค้างชำระ 🎉</p>';
+
+  // Recent txns
+  const txnHtml = payments.slice(0, 4).map(p => `
+    <div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div class="text-sm font-bold">${p.description || '—'}</div>
+        <div class="text-xs text-muted">${fmtDate(p.created_at)} · ${methodLabel(p.payment_method)}</div>
+      </div>
+      <div class="text-right">
+        <div class="text-sm font-bold ${p.status==='success'?'text-green':''}">${p.status==='success'?'-':''} ฿${fmt(p.amount)}</div>
+        ${statusBadge(p.status)}
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('dashRecentTxn').innerHTML = txnHtml || '<p class="text-muted text-sm">ยังไม่มีธุรกรรม</p>';
+}
+
+// ── Payment Page ──────────────────────────────────────────────────────────────
+async function loadPaymentPage() {
+  const fees = await apiFetch('/api/fees');
+  const pending = fees.filter(f => f.status !== 'paid');
+  const html = pending.map(f => feeItemHtml(f, true)).join('');
+  document.getElementById('payFeeList').innerHTML = html || '<p class="text-muted text-sm">ไม่มีรายการค้างชำระ ✅</p>';
+
+  const wallet = await apiFetch('/api/wallet');
+  currentWallet = wallet.wallet;
+  document.getElementById('methodWalletBal').textContent = `฿${fmt(currentWallet?.balance || 0)}`;
+}
+
+function feeItemHtml(f, clickable) {
+  const icons = { tuition: '🎓', dormitory: '🏠', health: '💊', activity: '⚽', fine: '📚' };
+  const colors = { tuition: '#dbeafe', dormitory: '#fce7f3', health: '#d1fae5', activity: '#fef3c7', fine: '#fee2e2' };
+  return `
+    <div class="fee-item ${f.status==='paid'?'paid':''}" ${clickable && f.status!=='paid' ? `onclick="selectFeeItem('${f.id}','${f.description}',${f.amount})"` : ''} style="${clickable && f.status!=='paid'?'cursor:pointer;':''}" >
+      <div class="fee-icon" style="background:${colors[f.type]||'#f3f0ff'};">${icons[f.type]||'💰'}</div>
+      <div class="fee-desc">
+        <div class="fname">${f.description}</div>
+        <div class="fdue">กำหนดชำระ: ${f.due_date || '—'}</div>
+      </div>
+      <div class="fee-right">
+        <div class="fee-amount">฿${fmt(f.amount)}</div>
+        ${statusBadge(f.status==='unpaid'?'pending':f.status)}
+      </div>
+    </div>
+  `;
+}
+
+function selectFeeItem(id, desc, amount) {
+  selectedFeeItem = { id, desc, amount };
+  document.getElementById('selectedFeeInfo').innerHTML = `
+    <div class="font-bold">${desc}</div>
+    <div class="text-sm text-muted mt-2">จำนวนเงิน: <span class="font-bold text-purple">฿${fmt(amount)}</span></div>
+  `;
+  showMethodSelect();
+}
+
+function selectCustomAmount() {
+  const amount = parseFloat(document.getElementById('customAmount').value);
+  const desc = document.getElementById('customDesc').value || 'ชำระเงิน';
+  if (!amount || amount <= 0) { toast('กรุณาระบุจำนวนเงิน', 'error'); return; }
+  selectedFeeItem = { id: null, desc, amount };
+  document.getElementById('selectedFeeInfo').innerHTML = `
+    <div class="font-bold">${desc}</div>
+    <div class="text-sm text-muted mt-2">จำนวนเงิน: <span class="font-bold text-purple">฿${fmt(amount)}</span></div>
+  `;
+  showMethodSelect();
+}
+
+function showMethodSelect() {
+  hideAllFlows();
+  document.getElementById('payFlowSelectMethod').classList.remove('hidden');
+  document.getElementById('payFlowDefault').classList.add('hidden');
+}
+
+function hideAllFlows() {
+  ['payFlowDefault','payFlowSelectMethod','payFlowQR','payFlowCard','payFlowOther','payFlowSuccess'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+}
+
+async function selectMethod(method) {
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  selectedMethod = method;
+
+  if (method === 'promptpay') {
+    await createPromptPayPayment();
+  } else if (method === 'card') {
+    hideAllFlows();
+    document.getElementById('payFlowCard').classList.remove('hidden');
+    document.getElementById('cardPayAmt').textContent = `฿${fmt(selectedFeeItem.amount)}`;
+  } else if (method === 'wallet') {
+    await processWalletPayment();
+  } else {
+    hideAllFlows();
+    document.getElementById('payFlowOther').classList.remove('hidden');
+    const titles = { banking: '🏦 Internet Banking', ewallet: '🐰 e-Wallet', counter: '🏪 Counter Service' };
+    document.getElementById('otherTitle').textContent = titles[method] || method;
+    document.getElementById('otherContent').innerHTML = `
+      <div style="text-align:center;padding:24px;background:#f3f0ff;border-radius:12px;">
+        <div style="font-size:36px;margin-bottom:8px;">${method==='banking'?'🏦':method==='ewallet'?'🐰':'🏪'}</div>
+        <p style="font-size:14px;color:var(--muted);">ช่องทางนี้จะ redirect ไปยัง<br>หน้าชำระเงินของธนาคาร/ผู้ให้บริการ</p>
+        <button class="btn btn-primary mt-4" style="width:auto;" onclick="simulateOtherPayment()">จำลองการชำระเงินสำเร็จ (Demo)</button>
+      </div>
+    `;
+  }
+}
+
+async function createPromptPayPayment() {
+  hideAllFlows();
+  document.getElementById('payFlowQR').classList.remove('hidden');
+  document.getElementById('qrImage').src = '';
+  document.getElementById('qrAmount').textContent = `กำลังสร้าง QR...`;
+
+  try {
+    const r = await apiFetch('/api/payments/promptpay', 'POST', {
+      amount: selectedFeeItem.amount,
+      description: selectedFeeItem.desc,
+      fee_item_id: selectedFeeItem.id
+    });
+    currentPaymentId = r.payment_id;
+    document.getElementById('qrImage').src = r.qr_image;
+    document.getElementById('qrAmount').textContent = `฿ ${fmt(r.amount)}`;
+    document.getElementById('qrDesc').textContent = selectedFeeItem.desc;
+    startQRCountdown(r.expires_in || 900);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function startQRCountdown(seconds) {
+  if (qrTimer) clearInterval(qrTimer);
+  let s = seconds;
+  qrTimer = setInterval(() => {
+    s--;
+    const m = Math.floor(s/60), sec = s%60;
+    document.getElementById('qrCountdown').textContent = `⏱ หมดอายุใน: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    if (s <= 0) { clearInterval(qrTimer); document.getElementById('qrCountdown').textContent = '❌ QR หมดอายุแล้ว'; }
+  }, 1000);
+}
+
+async function confirmPayment() {
+  if (!currentPaymentId) return;
+  try {
+    const r = await apiFetch(`/api/payments/${currentPaymentId}/confirm`, 'POST', {});
+    if (qrTimer) clearInterval(qrTimer);
+    currentReceiptId = r.receipt_id;
+    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, 'PromptPay', r.payment.order_ref);
+    loadDashboard();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function processCardPayment() {
+  const btn = document.getElementById('cardPayBtn');
+  btn.innerHTML = '<span class="spinner"></span> กำลังชำระ...';
+  btn.disabled = true;
+  try {
+    const r = await apiFetch('/api/payments/card', 'POST', {
+      amount: selectedFeeItem.amount, description: selectedFeeItem.desc, fee_item_id: selectedFeeItem.id,
+      token: 'demo_card_token'
+    });
+    currentReceiptId = r.receipt_id;
+    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, 'บัตรเครดิต', r.order_ref);
+    loadDashboard();
+  } catch (e) { toast(e.message, 'error'); }
+  btn.innerHTML = `🔒 ชำระเงิน ฿${fmt(selectedFeeItem.amount)}`;
+  btn.disabled = false;
+}
+
+async function processWalletPayment() {
+  if (!currentWallet || currentWallet.balance < selectedFeeItem.amount) {
+    toast('ยอดเงินใน Wallet ไม่เพียงพอ', 'error');
+    showMethodSelect();
+    return;
+  }
+  try {
+    const r = await apiFetch('/api/payments/wallet', 'POST', {
+      amount: selectedFeeItem.amount, description: selectedFeeItem.desc, fee_item_id: selectedFeeItem.id
+    });
+    currentReceiptId = r.receipt_id;
+    currentWallet.balance = r.new_balance;
+    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, 'KKU Wallet', '');
+    loadDashboard();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function simulateOtherPayment() {
+  if (!currentPaymentId) {
+    // Create a mock payment first
+    const r = await apiFetch('/api/payments/card', 'POST', {
+      amount: selectedFeeItem.amount, description: selectedFeeItem.desc, fee_item_id: selectedFeeItem.id
+    });
+    currentReceiptId = r.receipt_id;
+    showSuccess(selectedFeeItem.amount, selectedFeeItem.desc, selectedMethod, r.order_ref);
+    loadDashboard();
+  }
+}
+
+function showSuccess(amount, desc, method, ref) {
+  hideAllFlows();
+  document.getElementById('payFlowSuccess').classList.remove('hidden');
+  document.getElementById('successDesc').textContent = desc;
+  document.getElementById('successAmt').textContent = `฿ ${fmt(amount)}`;
+  document.getElementById('successMethod').textContent = method;
+  document.getElementById('successRef').textContent = ref || '—';
+  toast('ชำระเงินสำเร็จ! ✅', 'success');
+}
+
+function downloadReceipt() {
+  if (!currentReceiptId) { toast('ไม่พบเลขใบเสร็จ', 'error'); return; }
+  window.open(`/api/receipts/${currentReceiptId}/pdf?token=${token}`, '_blank');
+  // Workaround: fetch with auth
+  const url = `/api/receipts/${currentReceiptId}/pdf`;
+  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => r.blob()).then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `receipt_${currentReceiptId}.pdf`;
+      a.click();
+    });
+}
+
+function resetPayment() {
+  selectedFeeItem = null; selectedMethod = null; currentPaymentId = null; currentReceiptId = null;
+  if (qrTimer) clearInterval(qrTimer);
+  hideAllFlows();
+  document.getElementById('payFlowDefault').classList.remove('hidden');
+  loadPaymentPage();
+}
+
+// ── Wallet Page ───────────────────────────────────────────────────────────────
+async function loadWalletPage() {
+  const data = await apiFetch('/api/wallet');
+  currentWallet = data.wallet;
+  const bal = data.wallet?.balance || 0;
+  document.getElementById('walletBalance').textContent = `฿ ${fmt(bal)}`;
+  document.getElementById('walletStudentId').textContent = `รหัสนักศึกษา: ${currentUser.student_id || '—'} | ${currentUser.name}`;
+
+  const txnHtml = data.transactions.map(t => `
+    <div class="flex justify-between items-center" style="padding:12px 0;border-bottom:1px solid var(--border);">
+      <div class="flex items-center gap-2">
+        <div style="width:36px;height:36px;border-radius:10px;background:${t.type==='credit'?'#d1fae5':'#fee2e2'};display:flex;align-items:center;justify-content:center;font-size:16px;">${t.type==='credit'?'⬆️':'⬇️'}</div>
+        <div>
+          <div class="text-sm font-bold">${t.description || (t.type==='credit'?'รับเงิน':'ใช้จ่าย')}</div>
+          <div class="text-xs text-muted">${fmtDate(t.created_at)}</div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="font-bold ${t.type==='credit'?'text-green':'text-danger'}">${t.type==='credit'?'+':'-'}฿${fmt(t.amount)}</div>
+        <div class="text-xs text-muted">คงเหลือ ฿${fmt(t.balance_after)}</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('walletTxnList').innerHTML = txnHtml || '<p class="text-muted text-sm">ยังไม่มีธุรกรรม</p>';
+}
+
+function setTopupAmount(amount) {
+  document.getElementById('topupAmount').value = amount;
+}
+
+async function doTopup() {
+  const amount = parseFloat(document.getElementById('topupAmount').value);
+  const method = document.getElementById('topupMethod').value;
+  if (!amount || amount < 20) { toast('ขั้นต่ำ ฿20', 'error'); return; }
+
+  if (method === 'promptpay') {
+    const r = await apiFetch('/api/wallet/topup', 'POST', { amount, method: 'promptpay' });
+    topupPaymentId = r.payment_id;
+    document.getElementById('topupQRImg').src = r.qr_image;
+    document.getElementById('topupQRAmt').textContent = `฿ ${fmt(amount)}`;
+    document.getElementById('topupModal').classList.remove('hidden');
+  } else {
+    const r = await apiFetch('/api/wallet/topup', 'POST', { amount, method });
+    toast(`เติมเงิน ฿${fmt(amount)} สำเร็จ! 💰`, 'success');
+    loadWalletPage();
+  }
+}
+
+async function confirmTopup() {
+  if (!topupPaymentId) return;
+  await apiFetch(`/api/wallet/topup/${topupPaymentId}/confirm`, 'POST', {});
+  document.getElementById('topupModal').classList.add('hidden');
+  toast('เติมเงินสำเร็จ! 💰', 'success');
+  loadWalletPage();
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const method = document.getElementById('filterMethod').value;
+  const url = `/api/payments?limit=50${method ? `&method=${method}` : ''}`;
+  const payments = await apiFetch(url);
+  const html = payments.map(p => `
+    <tr>
+      <td>${fmtDate(p.created_at)}</td>
+      <td>${p.description || '—'}</td>
+      <td>${methodLabel(p.payment_method)}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td class="text-right font-bold">฿${fmt(p.amount)}</td>
+      <td>${p.receipt_id ? `<button class="btn btn-outline btn-sm" onclick="downloadReceiptById('${p.receipt_id}')">📄 PDF</button>` : '—'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('historyTable').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--muted);">ยังไม่มีธุรกรรม</td></tr>';
+}
+
+function downloadReceiptById(receiptId) {
+  fetch(`/api/receipts/${receiptId}/pdf`, { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => r.blob()).then(blob => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `receipt_${receiptId}.pdf`; a.click();
+    });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function apiFetch(url, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'API Error');
+  return d;
+}
+
+function fmt(n) { return Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function statusBadge(status) {
+  const m = { success: ['badge-success','✅ สำเร็จ'], paid: ['badge-success','✅ ชำระแล้ว'], pending: ['badge-warn','⏳ รอชำระ'], failed: ['badge-danger','❌ ล้มเหลว'], processing: ['badge-blue','🔄 กำลังดำเนินการ'] };
+  const [cls, label] = m[status] || ['badge-blue', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function methodLabel(m) {
+  return { promptpay: '📱 PromptPay', card: '💳 บัตรเครดิต', wallet: '👛 Wallet', banking: '🏦 Internet Banking', ewallet: '🐰 e-Wallet', counter: '🏪 Counter' }[m] || m;
+}
+
+function toast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+</script>
+</body>
+</html>
