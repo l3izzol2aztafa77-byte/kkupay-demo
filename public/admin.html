@@ -496,9 +496,10 @@ async function renderSlipConfirm() {
           <td style="font-size:.76rem">${escH(p.feeLabel||'-')}</td>
           <td style="font-weight:700;color:var(--purple)">${fmtMoney(p.amount)}</td>
           <td style="font-size:.72rem">${p.slip ? `
-            <div>💰 ฿${p.slip.amount} | 📅 ${p.slip.transferDate||'-'}</div>
+            <div>💰 ฿${p.slip.amount} | 📅 ${(p.slip.transferDate||'-').replace('T',' ')}</div>
             <div style="color:var(--text2)">Ref: ${p.slip.refCode||'ไม่ระบุ'}</div>
             <div style="color:var(--text2)">จาก: ${p.slip.senderAccount||'-'}</div>
+            <button class="btn btn-sm btn-blue" style="margin-top:5px" onclick="viewSlipDetail(${JSON.stringify(p).replace(/"/g,'&quot;')})">🖼️ ดูสลิป</button>
           ` : '<span style="color:#aaa">ยังไม่มีสลิป</span>'}</td>
           <td>${statusBadge(p.status)}</td>
           <td class="action-btns" id="slipActions_${p.id}">
@@ -615,6 +616,70 @@ async function manualConfirmSlip(paymentId, action) {
   } catch(e) { alert('❌ ' + e.message); }
 }
 
+// ── ดูรายละเอียดสลิป ──
+function viewSlipDetail(p) {
+  const slip = p.slip || null;
+  const vr = p.verifyResult || null;
+  const checks = vr ? [
+    { label: 'จำนวนเงินตรงกัน', ok: vr.amountOk },
+    { label: 'วันที่/เวลาไม่เกิน 24 ชั่วโมง', ok: vr.timeOk },
+    { label: 'รหัสอ้างอิงถูกต้อง', ok: vr.refOk },
+    { label: 'ไม่ใช่สลิปซ้ำ (anti-replay)', ok: vr.noReplay },
+  ] : [];
+
+  const slipImg = slip && slip.imgBase64
+    ? `<div style="margin:12px 0;text-align:center">
+        <img src="${slip.imgBase64}" style="max-width:100%;max-height:320px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.18);cursor:zoom-in"
+          onclick="zoomImg('สลิปการโอนเงิน — ${escH(p.ref)}','${slip.imgBase64}')">
+        <div style="font-size:.72rem;color:var(--text2);margin-top:5px">คลิกเพื่อขยายรูป</div>
+       </div>`
+    : `<div style="padding:18px;text-align:center;background:#f8f9fa;border-radius:10px;color:#aaa;margin:12px 0">📭 ยังไม่มีรูปสลิปจากผู้ชำระ</div>`;
+
+  const checksHtml = checks.length
+    ? `<div style="margin:10px 0">
+        ${checks.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eee;font-size:.82rem">
+          <span style="font-size:1.1rem">${c.ok ? '✅' : '❌'}</span>
+          <span style="${c.ok ? 'color:#2e7d32' : 'color:var(--red)'}">${c.label}</span>
+        </div>`).join('')}
+       </div>`
+    : `<div style="font-size:.78rem;color:#aaa;padding:8px 0">ยังไม่ได้รัน Auto Verify</div>`;
+
+  const infoRows = [
+    ['รหัสการชำระ', p.id],
+    ['Order Ref', p.ref],
+    ['จำนวนเงินที่คาดหวัง', `฿${Number(p.amount).toLocaleString('th-TH',{minimumFractionDigits:2})}`],
+    ['ช่องทาง', p.method || 'Internet Banking'],
+    ['สถานะ', p.status],
+    ['วันที่สร้าง', fmtDate(p.createdAt)],
+  ];
+  if (slip) {
+    infoRows.push(
+      ['ยอดโอนในสลิป', slip.amount ? `฿${Number(slip.amount).toLocaleString('th-TH',{minimumFractionDigits:2})}` : '-'],
+      ['วัน/เวลาโอน', slip.transferDate || '-'],
+      ['รหัสอ้างอิงในสลิป', slip.refCode || '-'],
+      ['บัญชีต้นทาง', slip.senderAccount || '-'],
+    );
+  }
+
+  openModal(`🧾 รายละเอียดสลิป`, `
+    <table style="width:100%;font-size:.82rem;border-collapse:collapse;margin-bottom:12px">
+      ${infoRows.map(([l,v])=>`<tr>
+        <td style="padding:7px 10px;background:#f8f9fa;font-weight:600;width:42%;border-bottom:1px solid #eee">${escH(l)}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;word-break:break-all;font-family:monospace">${escH(String(v||'-'))}</td>
+      </tr>`).join('')}
+    </table>
+    <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">🖼️ รูปสลิป</div>
+    ${slipImg}
+    <div style="font-size:.82rem;font-weight:700;margin:10px 0 4px">🔍 ผลการตรวจสลิป</div>
+    ${checksHtml}
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="closeModal();autoVerifyAndConfirm('${p.id}','${escH(p.ref)}',${p.amount})" ${!slip?'disabled title="รอสลิปจากผู้ชำระ"':''} style="${!slip?'opacity:.45':''}">🤖 Auto Verify</button>
+      <button class="btn btn-sm btn-green" onclick="closeModal();manualConfirmSlip('${p.id}','approve')">✅ ยืนยัน</button>
+      <button class="btn btn-sm btn-red" onclick="closeModal();manualConfirmSlip('${p.id}','reject')">❌ ปฏิเสธ</button>
+      <button class="btn btn-sm btn-gray" onclick="closeModal()">ปิด</button>
+    </div>`);
+}
+
 // ── MERCHANT REGISTRATIONS (คำขอสมัครร้านค้า) ──
 async function renderMerchantRegistrations() {
   document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
@@ -635,13 +700,12 @@ async function renderMerchantRegistrations() {
           <td class="text-mono" style="font-size:.73rem">${escH(m.taxId||'-')}</td>
           <td style="font-size:.75rem">${escH(m.ownerName||m.contactName||'-')}<div style="color:var(--text2)">${escH(m.contactPhone||'-')}</div></td>
           <td style="font-size:.73rem">${escH(m.bankName||'-')}<div style="color:var(--text2)">${escH(m.bankAccount||'-')}</div></td>
-          <td style="font-size:.73rem">${m.documents?`
-            <div>${m.documents.idCard?'✅':'❌'} บัตรประชาชน</div>
-            <div>${m.documents.bankBook?'✅':'❌'} สมุดบัญชี</div>
-            <div>${m.documents.businessReg?'✅':'⬜'} ทะเบียนพาณิชย์</div>
-          `:'<span style="color:#aaa">-</span>'}</td>
+          <td style="font-size:.73rem">
+            <button class="btn btn-sm btn-blue" onclick="viewMerchantDocs(${JSON.stringify(m).replace(/"/g,'&quot;')})">📁 ดูเอกสาร</button>
+          </td>
           <td class="text-mono" style="font-size:.72rem">${fmtDate(m.createdAt)}</td>
           <td class="action-btns">
+            <button class="btn btn-sm btn-blue" onclick="viewMerchantDetail(${JSON.stringify(m).replace(/"/g,'&quot;')})">🔍 รายละเอียด</button>
             <button class="btn btn-sm btn-green" onclick="approveMerchant('${m.id}','${escH(m.name)}')">✅ อนุมัติ</button>
             <button class="btn btn-sm btn-red" onclick="rejectMerchant('${m.id}','${escH(m.name)}')">❌ ปฏิเสธ</button>
           </td>
@@ -664,6 +728,69 @@ async function renderMerchantRegistrations() {
       </table></div>
     </div>`;
   } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+// ── ดูเอกสาร merchant (รูปภาพ/ไฟล์) ──
+function viewMerchantDocs(m) {
+  const docs = m.documents || {};
+  const renderDoc = (label, val) => {
+    if (!val) return `<div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px"><span style="font-size:1.2rem">📄</span><div><div style="font-size:.82rem;font-weight:600">${escH(label)}</div><div style="font-size:.75rem;color:#aaa">ไม่มีเอกสาร</div></div></div>`;
+    // ถ้าเป็น base64 image → แสดงรูป
+    if (val.startsWith('data:image')) {
+      return `<div style="padding:10px 0;border-bottom:1px solid #eee">
+        <div style="font-size:.82rem;font-weight:600;margin-bottom:6px">📷 ${escH(label)}</div>
+        <img src="${val}" style="max-width:100%;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:zoom-in" onclick="zoomImg('${label}','${val}')">
+      </div>`;
+    }
+    // ถ้าเป็น URL หรือชื่อไฟล์
+    return `<div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.4rem">📎</span>
+      <div>
+        <div style="font-size:.82rem;font-weight:600">${escH(label)}</div>
+        <div style="font-size:.75rem;color:var(--blue);word-break:break-all">${escH(val)}</div>
+      </div>
+    </div>`;
+  };
+  openModal(`📁 เอกสารประกอบ — ${escH(m.name)}`, `
+    <div class="alert alert-info" style="font-size:.78rem">ตรวจสอบเอกสารก่อนพิจารณาอนุมัติ</div>
+    ${renderDoc('สำเนาบัตรประชาชนเจ้าของ *', docs.idCard)}
+    ${renderDoc('สำเนาสมุดบัญชีธนาคาร *', docs.bankBook)}
+    ${renderDoc('หนังสือรับรองบริษัท / ทะเบียนพาณิชย์', docs.businessReg)}
+    ${renderDoc('ใบทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20', docs.vatReg)}
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-sm btn-green" onclick="closeModal();approveMerchant('${m.id}','${escH(m.name)}')">✅ อนุมัติ</button>
+      <button class="btn btn-sm btn-red" onclick="closeModal();rejectMerchant('${m.id}','${escH(m.name)}')">❌ ปฏิเสธ</button>
+      <button class="btn btn-sm btn-gray" onclick="closeModal()">ปิด</button>
+    </div>`);
+}
+
+// ── ดูรายละเอียด merchant ทั้งหมด ──
+function viewMerchantDetail(m) {
+  openModal(`🔍 รายละเอียด — ${escH(m.name)}`, `
+    <table style="width:100%;font-size:.82rem;border-collapse:collapse">
+      ${[
+        ['รหัส', m.code], ['ชื่อกิจการ', m.name], ['ชื่อ EN', m.nameEn||'-'],
+        ['ประเภท', m.businessType||'-'], ['หมวดหมู่', m.category||'-'],
+        ['เลขผู้เสียภาษี', m.taxId||'-'],
+        ['เลขทะเบียน', m.registrationNumber||'-'],
+        ['ที่อยู่', m.address||'-'],
+        ['เจ้าของ', m.ownerName||'-'], ['บัตรประชาชน', m.ownerIdCard||'-'],
+        ['โทรเจ้าของ', m.ownerPhone||'-'], ['อีเมล', m.contactEmail||'-'],
+        ['ธนาคาร', m.bankName||'-'], ['เลขบัญชี', m.bankAccount||'-'],
+        ['ชื่อบัญชี', m.accountName||'-'], ['PromptPay', m.promptpayId||'-'],
+        ['สมัครเมื่อ', fmtDate(m.createdAt)],
+      ].map(([l,v])=>`<tr><td style="padding:7px 10px;background:#f8f9fa;font-weight:600;width:42%;border-bottom:1px solid #eee">${escH(l)}</td><td style="padding:7px 10px;border-bottom:1px solid #eee;word-break:break-all">${escH(String(v))}</td></tr>`).join('')}
+    </table>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-sm btn-blue" onclick="closeModal();viewMerchantDocs(${JSON.stringify(m).replace(/"/g,'&quot;')})">📁 ดูเอกสาร</button>
+      <button class="btn btn-sm btn-green" onclick="closeModal();approveMerchant('${m.id}','${escH(m.name)}')">✅ อนุมัติ</button>
+      <button class="btn btn-sm btn-red" onclick="closeModal();rejectMerchant('${m.id}','${escH(m.name)}')">❌ ปฏิเสธ</button>
+    </div>`);
+}
+
+// ── Zoom รูปภาพ ──
+function zoomImg(title, src) {
+  openModal(`🖼️ ${escH(title)}`, `<div style="text-align:center"><img src="${src}" style="max-width:100%;border-radius:10px"></div>`);
 }
 
 async function approveMerchant(id, name) {

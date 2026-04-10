@@ -862,6 +862,17 @@ function renderProfile() {
 }
 
 // ── NOTIFICATIONS ──
+// กำหนด page target จาก title/type ของแจ้งเตือน
+function getNotifTarget(n) {
+  const t = (n.title||'').toLowerCase() + (n.message||'').toLowerCase();
+  if (t.includes('ยืนยันการชำระ') || t.includes('ชำระแล้ว') || t.includes('ชำระเงินสำเร็จ')) return 'history';
+  if (t.includes('ค่าธรรมเนียม') || t.includes('ค้างชำระ') || t.includes('รอชำระ') || t.includes('กำหนดชำระ')) return 'fees';
+  if (t.includes('wallet') || t.includes('เติมเงิน') || t.includes('ยอดเงิน')) return 'wallet';
+  if (t.includes('คืนเงิน') || t.includes('refund')) return 'history';
+  if (t.includes('ปฏิเสธ') || t.includes('ไม่สามารถยืนยัน')) return 'fees';
+  return null; // broadcast ทั่วไป ไม่มี link
+}
+
 async function loadNotifications() {
   try {
     const { notifications } = await API('/api/notifications');
@@ -869,18 +880,33 @@ async function loadNotifications() {
     const badge = document.getElementById('notifBadge');
     if (unread.length) { badge.textContent=unread.length; badge.classList.remove('d-none'); }
     else badge.classList.add('d-none');
-    document.getElementById('notifList').innerHTML = notifications.length?notifications.map(n=>`
-    <div class="notif-item${n.read?'':' unread'}" onclick="markRead('${n.id}',this)">
-      <div class="ni-title">${n.type==='broadcast'?'📢':'🔔'} ${escHtml(n.title)}</div>
-      <div class="ni-msg">${escHtml(n.message)}</div>
-      <div class="ni-time">${fmtDate(n.createdAt)}</div>
-    </div>`).join(''):'<div style="padding:20px;text-align:center;color:#aaa;font-size:.85rem">ไม่มีการแจ้งเตือน</div>';
+    document.getElementById('notifList').innerHTML = notifications.length ? notifications.map(n => {
+      const target = getNotifTarget(n);
+      const linkHtml = target
+        ? `<div style="margin-top:5px"><span style="font-size:.72rem;color:var(--purple);font-weight:700;text-decoration:underline;cursor:pointer" onclick="event.stopPropagation();markReadAndNav('${n.id}','${target}',this.closest('.notif-item'))">→ ไปที่หน้า ${({fees:'ค่าธรรมเนียม',history:'ประวัติธุรกรรม',wallet:'KKU Wallet',dashboard:'หน้าหลัก'}[target]||target)}</span></div>`
+        : '';
+      return `
+      <div class="notif-item${n.read?'':' unread'}" onclick="markRead('${n.id}',this)">
+        <div class="ni-title">${n.type==='broadcast'?'📢':'🔔'} ${escHtml(n.title)}</div>
+        <div class="ni-msg">${escHtml(n.message)}</div>
+        ${linkHtml}
+        <div class="ni-time">${fmtDate(n.createdAt)}</div>
+      </div>`;
+    }).join('') : '<div style="padding:20px;text-align:center;color:#aaa;font-size:.85rem">ไม่มีการแจ้งเตือน</div>';
   } catch {}
 }
 
 async function markRead(id, el) {
   el.classList.remove('unread');
   await API('/api/notifications/read',{method:'POST',body:JSON.stringify({notifId:id})}).catch(()=>{});
+  loadNotifications();
+}
+
+async function markReadAndNav(id, page, el) {
+  if (el) el.classList.remove('unread');
+  await API('/api/notifications/read',{method:'POST',body:JSON.stringify({notifId:id})}).catch(()=>{});
+  document.getElementById('notifPanel').classList.remove('open');
+  showPage(page);
   loadNotifications();
 }
 
@@ -1061,11 +1087,153 @@ async function doBankingPay() {
     <div style="font-weight:700;font-size:.85rem;margin-bottom:8px;color:var(--text)">📋 ขั้นตอนการโอนเงิน</div>
     <ol class="steps-list">${r.steps.map((s,i)=>`<li data-n="${i+1}">${escHtml(s)}</li>`).join('')}</ol>
     <div class="alert alert-warn mt-14">⚠️ ${r.instruction}</div>
-    <div style="display:flex;gap:10px;margin-top:14px">
+
+    <!-- ── SLIP UPLOAD SECTION ── -->
+    <div style="border:2px dashed var(--purple);border-radius:14px;padding:16px;margin-top:16px;background:#faf5ff">
+      <div style="font-weight:700;font-size:.9rem;color:var(--purple);margin-bottom:10px">📎 แนบสลิปการโอนเพื่อยืนยันอัตโนมัติ</div>
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:12px">อัพโหลดสลิปเพื่อให้ระบบตรวจสอบและยืนยันการชำระเงินทันที ไม่ต้องรอ Admin</div>
+
+      <div class="form-group" style="margin-bottom:10px">
+        <label style="font-size:.8rem;font-weight:600">ยอดเงินที่โอน (บาท) <span style="color:var(--red)">*</span></label>
+        <input type="number" id="slip_amount" placeholder="${r.amount}" value="${r.amount}" step="0.01" style="font-size:.9rem">
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label style="font-size:.8rem;font-weight:600">วันที่/เวลาที่โอน <span style="color:var(--red)">*</span></label>
+        <input type="datetime-local" id="slip_date" style="font-size:.9rem">
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label style="font-size:.8rem;font-weight:600">เลขที่อ้างอิง (Ref จากสลิป)</label>
+        <input type="text" id="slip_ref" placeholder="เช่น 202504101234 หรือ KKU-xxx" style="font-size:.9rem">
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label style="font-size:.8rem;font-weight:600">เลขบัญชีผู้โอน (4 หลักสุดท้าย)</label>
+        <input type="text" id="slip_sender" placeholder="เช่น XXXX-1234" maxlength="20" style="font-size:.9rem">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:.8rem;font-weight:600">รูปสลิป (JPG/PNG)</label>
+        <input type="file" id="slip_img" accept="image/*" style="font-size:.83rem;padding:6px;border:1.5px solid var(--border);border-radius:8px;width:100%;background:#fff">
+        <div id="slip_preview" style="margin-top:8px;display:none;text-align:center">
+          <img id="slip_img_preview" style="max-width:100%;max-height:180px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+        </div>
+      </div>
+
+      <div id="slip_upload_result" class="d-none" style="margin-bottom:10px"></div>
+      <button class="btn btn-primary" onclick="doUploadSlip('${r.paymentId}','${r.ref1}')" style="width:100%;background:var(--green)">
+        <span id="slip_spinner" class="d-none"><span class="spinner"></span></span>
+        🔍 ส่งสลิปตรวจสอบ & ยืนยันอัตโนมัติ
+      </button>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:12px">
       <button class="btn btn-gray" onclick="renderBankingSelect()" style="flex:1">← เลือกธนาคารอื่น</button>
-      <button class="btn btn-green" onclick="closePayModal();showPage('fees')" style="flex:1">✅ รับทราบ</button>
+      <button class="btn btn-gray" onclick="closePayModal();showPage('fees')" style="flex:1">ปิด (ยืนยันทีหลัง)</button>
     </div>`;
   } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderBankingSelect()">← กลับ</button>`; }
+}
+
+// ── SLIP IMAGE PREVIEW ──
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.id === 'slip_img') {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const preview = document.getElementById('slip_preview');
+      const img = document.getElementById('slip_img_preview');
+      if (preview && img) { img.src = ev.target.result; preview.style.display = 'block'; }
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// ── UPLOAD SLIP + AUTO-CONFIRM ──
+async function doUploadSlip(paymentId, orderId) {
+  const amtEl = document.getElementById('slip_amount');
+  const dateEl = document.getElementById('slip_date');
+  const refEl = document.getElementById('slip_ref');
+  const senderEl = document.getElementById('slip_sender');
+  const imgEl = document.getElementById('slip_img');
+  const resultEl = document.getElementById('slip_upload_result');
+  const spinner = document.getElementById('slip_spinner');
+
+  if (!amtEl.value || parseFloat(amtEl.value) <= 0) {
+    resultEl.className = 'alert alert-err'; resultEl.textContent = '❌ กรุณาระบุยอดเงินที่โอน'; resultEl.classList.remove('d-none'); return;
+  }
+  if (!dateEl.value) {
+    resultEl.className = 'alert alert-err'; resultEl.textContent = '❌ กรุณาระบุวันที่/เวลาที่โอน'; resultEl.classList.remove('d-none'); return;
+  }
+
+  spinner.classList.remove('d-none');
+  resultEl.classList.add('d-none');
+
+  try {
+    // อ่านรูปสลิปเป็น base64 (ถ้ามี)
+    let imgBase64 = null;
+    if (imgEl.files[0]) {
+      imgBase64 = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(imgEl.files[0]);
+      });
+    }
+
+    // ส่ง slip ข้อมูล
+    const slipData = {
+      amount: parseFloat(amtEl.value),
+      transferDate: dateEl.value,
+      refCode: refEl.value.trim() || orderId,
+      senderAccount: senderEl.value.trim(),
+      imgBase64,
+    };
+    await API('/api/payments/upload-slip', { method:'POST', body: JSON.stringify({ paymentId, slipData }) });
+
+    // แสดง loading ตรวจสอบ 5 วินาที
+    resultEl.className = 'alert alert-info';
+    resultEl.innerHTML = `
+      <div style="font-weight:700;margin-bottom:8px">🔍 กำลังตรวจสอบสลิป...</div>
+      <div style="background:#e0e0e0;border-radius:20px;height:10px;overflow:hidden;margin-bottom:6px">
+        <div id="autobar" style="height:100%;background:linear-gradient(90deg,var(--purple),#7b1fa2);border-radius:20px;width:0%;transition:width 4.5s linear"></div>
+      </div>
+      <div id="autoStep" style="font-size:.75rem;color:var(--text2)">ตรวจสอบยอดเงิน...</div>`;
+    resultEl.classList.remove('d-none');
+
+    setTimeout(() => { const b = document.getElementById('autobar'); if(b) b.style.width='100%'; }, 50);
+    const steps = ['ตรวจสอบยอดเงิน...','ตรวจสอบวันที่โอน...','ตรวจสอบ Ref Code...','ตรวจสอบ Duplicate...','สรุปผล...'];
+    let si = 0;
+    const iv = setInterval(() => { const el = document.getElementById('autoStep'); if(el && si < steps.length) el.textContent = steps[si++]; else clearInterval(iv); }, 900);
+
+    // เรียก auto-confirm API
+    const verifyRes = await API('/api/admin/auto-confirm', { method:'POST', body: JSON.stringify({ paymentId }) });
+    await new Promise(r => setTimeout(r, 5000));
+    clearInterval(iv);
+
+    const vr = verifyRes.verifyResult;
+    if (vr.ok) {
+      // ผ่าน — confirm ทันที
+      await API('/api/admin/confirm-payment', { method:'POST', body: JSON.stringify({ paymentId, action:'approve', note:'Auto-confirmed by slip upload' }) });
+      resultEl.className = 'alert alert-success';
+      resultEl.innerHTML = `
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px">✅</div>
+        <div style="font-weight:700;text-align:center;margin-bottom:6px">ยืนยันการชำระเงินสำเร็จ!</div>
+        <div style="font-size:.8rem;text-align:center;color:#2e7d32">ระบบตรวจสอบสลิปผ่านแล้ว สถานะเปลี่ยนเป็น "ชำระแล้ว" เรียบร้อย</div>`;
+      // refresh fees หลัง 2 วิ
+      setTimeout(() => { closePayModal(); showPage('fees'); loadNotifications(); }, 2500);
+    } else {
+      // ไม่ผ่าน — แสดงเหตุผลและรอ admin
+      const failChecks = vr.checks ? vr.checks.filter(c => !c.pass).map(c => `• ${c.name}: ${c.detail}`).join('\n') : '';
+      resultEl.className = 'alert alert-warn';
+      resultEl.innerHTML = `
+        <div style="font-weight:700;margin-bottom:6px">⚠️ ระบบตรวจสอบพบปัญหา</div>
+        <div style="font-size:.8rem;white-space:pre-line;margin-bottom:8px">${escHtml(failChecks)}</div>
+        <div style="font-size:.78rem;color:#e65100">รายการถูกส่งให้ Admin ตรวจสอบ จะได้รับแจ้งเตือนเมื่อยืนยันแล้ว</div>`;
+    }
+  } catch(e) {
+    resultEl.className = 'alert alert-err';
+    resultEl.textContent = '❌ ' + e.message;
+    resultEl.classList.remove('d-none');
+  } finally {
+    spinner.classList.add('d-none');
+  }
 }
 
 function copyText(t){ navigator.clipboard.writeText(t).then(()=>alert('คัดลอกแล้ว: '+t)); }
