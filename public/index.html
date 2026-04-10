@@ -197,29 +197,215 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     <h1>🎓 KKU Pay</h1>
     <p>ระบบชำระเงินออนไลน์ มหาวิทยาลัยขอนแก่น</p>
   </div>
-  <div class="form-group">
-    <label>ชื่อผู้ใช้ / Username</label>
-    <input type="text" id="lgUser" placeholder="กรอกชื่อผู้ใช้" autocomplete="username">
+
+  <!-- แท็บ: Login / สมัครร้านค้า -->
+  <div id="loginTabs" style="display:flex;gap:0;margin-bottom:18px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
+    <button id="tabLogin" onclick="switchLoginTab('login')" style="flex:1;padding:10px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer">🔑 เข้าสู่ระบบ</button>
+    <button id="tabReg" onclick="switchLoginTab('register')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:var(--text);font-weight:700;font-size:.88rem;cursor:pointer">🏪 สมัครร้านค้า</button>
   </div>
-  <div class="form-group">
-    <label>รหัสผ่าน / Password</label>
-    <input type="password" id="lgPass" placeholder="กรอกรหัสผ่าน" autocomplete="current-password">
+
+  <!-- ─── Login Form ─── -->
+  <div id="loginForm">
+    <div class="form-group">
+      <label>ชื่อผู้ใช้ / Username</label>
+      <input type="text" id="lgUser" placeholder="กรอกชื่อผู้ใช้" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>รหัสผ่าน / Password</label>
+      <input type="password" id="lgPass" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="lgErr" class="alert alert-err d-none"></div>
+    <button class="btn btn-primary" onclick="doLogin()">
+      <span id="lgSpinner" class="d-none"><span class="spinner"></span></span>
+      เข้าสู่ระบบ
+    </button>
+    <div class="demo-hints">
+      <p>👤 บัญชีทดสอบ (Demo Accounts):</p>
+      <ul>
+        <li>🎓 <b>somchai</b> / password123 — วิศวกรรมศาสตร์ ชั้นปี 3</li>
+        <li>🎓 <b>wannisa</b> / password123 — วิทยาศาสตร์ ชั้นปี 4</li>
+        <li>🎓 <b>pichai</b> / password123 — แพทยศาสตร์ ชั้นปี 1</li>
+        <li>🎓 <b>maneeratana</b> / password123 — พยาบาลศาสตร์ ชั้นปี 2</li>
+        <li>🔑 <b>admin</b> / admin1234 — ผู้ดูแลระบบ → <a href="/admin.html">Admin Panel</a></li>
+      </ul>
+    </div>
   </div>
-  <div id="lgErr" class="alert alert-err d-none"></div>
-  <button class="btn btn-primary" onclick="doLogin()">
-    <span id="lgSpinner" class="d-none"><span class="spinner"></span></span>
-    เข้าสู่ระบบ
-  </button>
-  <div class="demo-hints">
-    <p>👤 บัญชีทดสอบ (Demo Accounts):</p>
-    <ul>
-      <li>🎓 <b>somchai</b> / password123 — วิศวกรรมศาสตร์ ชั้นปี 3</li>
-      <li>🎓 <b>wannisa</b> / password123 — วิทยาศาสตร์ ชั้นปี 4</li>
-      <li>🎓 <b>pichai</b> / password123 — แพทยศาสตร์ ชั้นปี 1</li>
-      <li>🎓 <b>maneeratana</b> / password123 — พยาบาลศาสตร์ ชั้นปี 2</li>
-      <li>🔑 <b>admin</b> / admin1234 — ผู้ดูแลระบบ → <a href="/admin.html">Admin Panel</a></li>
-    </ul>
+
+  <!-- ─── Merchant Registration Form ─── -->
+  <div id="registerForm" style="display:none">
+    <div class="alert alert-info" style="font-size:.8rem">
+      📋 ข้อมูลนี้จะถูกตรวจสอบโดยเจ้าหน้าที่ตามข้อกำหนดของ ธปท. และ พ.ร.บ.ระบบการชำระเงิน พ.ศ. 2560
+    </div>
+
+    <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">🏢 ข้อมูลกิจการ</legend>
+      <div class="form-group"><label>ประเภทกิจการ <span style="color:var(--red)">*</span></label>
+        <select id="rg_businessType">
+          <option value="individual">บุคคลธรรมดา / ร้านค้าทั่วไป</option>
+          <option value="registered_partnership">ห้างหุ้นส่วนจดทะเบียน</option>
+          <option value="company">บริษัทจำกัด / บริษัทมหาชนจำกัด</option>
+          <option value="cooperative">สหกรณ์</option>
+          <option value="foundation">มูลนิธิ / สมาคม</option>
+          <option value="government">หน่วยงานของรัฐ / มหาวิทยาลัย</option>
+        </select>
+      </div>
+      <div class="form-group"><label>ชื่อกิจการ (ไทย) <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_businessName" placeholder="เช่น ร้านอาหารสมชาย / บริษัท XYZ จำกัด">
+      </div>
+      <div class="form-group"><label>ชื่อกิจการ (อังกฤษ)</label>
+        <input type="text" id="rg_businessNameEn" placeholder="e.g. Somchai Restaurant / XYZ Co., Ltd.">
+      </div>
+      <div class="form-group"><label>เลขประจำตัวผู้เสียภาษี (13 หลัก) <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_taxId" placeholder="x-xxxx-xxxxx-xx-x" maxlength="17">
+        <small style="color:var(--text2);font-size:.73rem">บุคคลธรรมดาใช้เลขบัตรประชาชน 13 หลัก</small>
+      </div>
+      <div class="form-group"><label>เลขทะเบียนพาณิชย์ / ทะเบียนบริษัท</label>
+        <input type="text" id="rg_registrationNumber" placeholder="ถ้ามี — ใส่เลขที่ใบทะเบียน">
+      </div>
+      <div class="form-group"><label>วันที่จดทะเบียน</label>
+        <input type="date" id="rg_registeredAt">
+      </div>
+      <div class="form-group"><label>หมวดหมู่ร้านค้า <span style="color:var(--red)">*</span></label>
+        <select id="rg_category">
+          <option value="food">อาหาร / เครื่องดื่ม</option>
+          <option value="service">บริการ (ถ่ายเอกสาร / ซักรีด ฯลฯ)</option>
+          <option value="store">ร้านค้าทั่วไป / สะดวกซื้อ</option>
+          <option value="health">สุขภาพ / เวชภัณฑ์</option>
+          <option value="sport">กีฬา / สันทนาการ</option>
+          <option value="education">การศึกษา / หนังสือ</option>
+          <option value="beauty">ความงาม / แฟชั่น</option>
+          <option value="other">อื่น ๆ</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">📍 ที่อยู่กิจการ</legend>
+      <div class="form-group"><label>เลขที่ / หมู่บ้าน / อาคาร <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_address" placeholder="เลขที่ ชั้น อาคาร ถนน หมู่">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>ตำบล/แขวง <span style="color:var(--red)">*</span></label>
+          <input type="text" id="rg_subDistrict" placeholder="ตำบล / แขวง">
+        </div>
+        <div class="form-group"><label>อำเภอ/เขต <span style="color:var(--red)">*</span></label>
+          <input type="text" id="rg_district" placeholder="อำเภอ / เขต">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>จังหวัด <span style="color:var(--red)">*</span></label>
+          <input type="text" id="rg_province" placeholder="จังหวัด">
+        </div>
+        <div class="form-group"><label>รหัสไปรษณีย์ <span style="color:var(--red)">*</span></label>
+          <input type="text" id="rg_postalCode" placeholder="5 หลัก" maxlength="5">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">👤 ข้อมูลเจ้าของ / ผู้ติดต่อ</legend>
+      <div class="form-group"><label>ชื่อ-นามสกุล เจ้าของกิจการ <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_ownerName" placeholder="ชื่อ-นามสกุล ตามบัตรประชาชน">
+      </div>
+      <div class="form-group"><label>เลขบัตรประชาชนเจ้าของ (13 หลัก) <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_ownerIdCard" placeholder="x-xxxx-xxxxx-xx-x" maxlength="17">
+        <small style="color:var(--text2);font-size:.73rem">ใช้เพื่อยืนยันตัวตน (KYC) ตาม พ.ร.บ.ป้องกันและปราบปรามการฟอกเงิน</small>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>เบอร์โทรศัพท์เจ้าของ <span style="color:var(--red)">*</span></label>
+          <input type="text" id="rg_ownerPhone" placeholder="0XX-XXX-XXXX">
+        </div>
+        <div class="form-group"><label>อีเมลเจ้าของ</label>
+          <input type="text" id="rg_ownerEmail" placeholder="email@example.com">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>เบอร์ติดต่อร้าน</label>
+          <input type="text" id="rg_contactPhone" placeholder="ถ้าต่างจากเจ้าของ">
+        </div>
+        <div class="form-group"><label>อีเมลร้านค้า</label>
+          <input type="text" id="rg_contactEmail" placeholder="อีเมลหน้าร้าน (ถ้ามี)">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">🏦 บัญชีธนาคารสำหรับรับเงิน</legend>
+      <div class="form-group"><label>ธนาคาร <span style="color:var(--red)">*</span></label>
+        <select id="rg_bankCode">
+          <option value="kbank">ธนาคารกสิกรไทย (KBank)</option>
+          <option value="scb">ธนาคารไทยพาณิชย์ (SCB)</option>
+          <option value="ktb">ธนาคารกรุงไทย (KTB)</option>
+          <option value="bbl">ธนาคารกรุงเทพ (BBL)</option>
+          <option value="ttb">ธนาคารทีทีบี (TTB)</option>
+          <option value="gsb">ธนาคารออมสิน (GSB)</option>
+          <option value="baac">ธ.ก.ส. (BAAC)</option>
+          <option value="bay">ธนาคารกรุงศรีอยุธยา (BAY)</option>
+          <option value="uob">ธนาคารยูโอบี (UOB)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>เลขบัญชี <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_bankAccount" placeholder="xxx-x-xxxxx-x">
+      </div>
+      <div class="form-group"><label>ชื่อบัญชี (ตามสมุดบัญชี) <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_accountName" placeholder="ชื่อ-นามสกุล หรือ ชื่อนิติบุคคล">
+      </div>
+      <div class="form-group"><label>PromptPay ID (เบอร์โทร หรือเลขประจำตัว 13 หลัก)</label>
+        <input type="text" id="rg_promptpayId" placeholder="0XXXXXXXXX หรือ เลข 13 หลัก">
+      </div>
+      <small style="color:var(--text2);font-size:.73rem">บัญชีต้องเป็นชื่อเดียวกับเจ้าของกิจการ หรือนิติบุคคลที่จดทะเบียน ตามประกาศ ธปท.</small>
+    </fieldset>
+
+    <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">📎 เอกสารประกอบ (ชื่อไฟล์)</legend>
+      <div class="alert alert-warn" style="font-size:.78rem">
+        ⚠️ กรุณาเตรียมเอกสารต้นฉบับหรือสำเนาถ่ายเอกสารรับรองสำเนาถูกต้อง ส่งให้เจ้าหน้าที่ตรวจสอบหลังสมัคร
+      </div>
+      <div class="form-group"><label>📄 สำเนาหนังสือรับรองบริษัท / ทะเบียนพาณิชย์</label>
+        <input type="text" id="rg_docBusinessReg" placeholder="ชื่อไฟล์ หรือ link (เช่น business_reg.pdf)">
+      </div>
+      <div class="form-group"><label>🪪 สำเนาบัตรประจำตัวประชาชนเจ้าของ <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_docIdCard" placeholder="idcard_copy.pdf">
+      </div>
+      <div class="form-group"><label>🏦 สำเนาหน้าสมุดบัญชีธนาคาร <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_docBankBook" placeholder="bankbook_copy.pdf">
+      </div>
+      <div class="form-group"><label>📋 ใบทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (ถ้ามี)</label>
+        <input type="text" id="rg_docVatReg" placeholder="vat_registration.pdf (เฉพาะผู้จด VAT)">
+      </div>
+    </fieldset>
+
+    <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">🔐 ข้อมูลบัญชีผู้ใช้งาน</legend>
+      <div class="form-group"><label>ชื่อผู้ใช้งาน (Username) <span style="color:var(--red)">*</span></label>
+        <input type="text" id="rg_username" placeholder="ตั้งชื่อผู้ใช้งาน (ตัวเล็ก a-z, 0-9)">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>รหัสผ่าน <span style="color:var(--red)">*</span></label>
+          <input type="password" id="rg_password" placeholder="อย่างน้อย 8 ตัวอักษร">
+        </div>
+        <div class="form-group"><label>ยืนยันรหัสผ่าน <span style="color:var(--red)">*</span></label>
+          <input type="password" id="rg_password2" placeholder="ใส่รหัสผ่านอีกครั้ง">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;font-size:.8rem;cursor:pointer">
+        <input type="checkbox" id="rg_consent" style="width:auto;margin-top:3px">
+        <span>ข้าพเจ้ารับรองว่าข้อมูลที่กรอกเป็นความจริงทุกประการ และยินยอมให้มหาวิทยาลัยขอนแก่นตรวจสอบข้อมูล KYC ตาม พ.ร.บ. ป้องกันและปราบปรามการฟอกเงิน พ.ศ. 2542 และกฎหมายที่เกี่ยวข้อง</span>
+      </label>
+    </div>
+
+    <div id="rgErr" class="alert alert-err d-none"></div>
+    <div id="rgSuccess" class="alert alert-success d-none"></div>
+    <button class="btn btn-primary" onclick="doRegisterMerchant()" style="background:var(--green)">
+      <span id="rgSpinner" class="d-none"><span class="spinner"></span></span>
+      🏪 ส่งใบสมัครลงทะเบียนร้านค้า
+    </button>
+    <p style="font-size:.72rem;color:var(--text2);margin-top:10px;text-align:center">เจ้าหน้าที่จะตรวจสอบและแจ้งผลภายใน 1–3 วันทำการ</p>
   </div>
+
 </div>
 </div>
 
@@ -377,14 +563,88 @@ async function doLogin() {
     if (!d.ok) throw new Error(j.error);
     token = j.token; me = j.user;
     localStorage.setItem('kkupay_token', token);
-    if (me.role !== 'student') { window.location.href='/admin.html'; return; }
+    if (['admin','finance','support'].includes(me.role)) {
+      // ย้าย token ไปยัง key ที่ admin.html ใช้ด้วย เพื่อให้กลับมา login ทั่วไปได้
+      localStorage.setItem('kkupay_admin_token', token);
+      window.location.href='/admin.html'; return;
+    }
+    if (me.role === 'merchant') { window.location.href='/admin.html'; return; }
     wallet = await API('/api/wallet').then(r=>r.wallet);
     showApp(); loadNotifications(); showPage('dashboard');
   } catch(e) { err.textContent = e.message; err.classList.remove('d-none'); }
   finally { sp.classList.add('d-none'); }
 }
 
-function doLogout(){ localStorage.removeItem('kkupay_token'); token=null; me=null; wallet=null; showLogin(); }
+function doLogout(){ localStorage.removeItem('kkupay_token'); localStorage.removeItem('kkupay_admin_token'); token=null; me=null; wallet=null; showLogin(); }
+
+// ── Tab switch: Login / Register ──
+function switchLoginTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('tabLogin').style.background = isLogin ? 'var(--purple)' : '#f5f5f5';
+  document.getElementById('tabLogin').style.color = isLogin ? '#fff' : 'var(--text)';
+  document.getElementById('tabReg').style.background = isLogin ? '#f5f5f5' : 'var(--green)';
+  document.getElementById('tabReg').style.color = isLogin ? 'var(--text)' : '#fff';
+}
+
+// ── Merchant Registration ──
+async function doRegisterMerchant() {
+  const err = document.getElementById('rgErr');
+  const suc = document.getElementById('rgSuccess');
+  const sp = document.getElementById('rgSpinner');
+  err.classList.add('d-none'); suc.classList.add('d-none');
+
+  const v = id => (document.getElementById(id)?.value || '').trim();
+
+  // Validate
+  if (!v('rg_businessName')) return showRgErr('กรุณาระบุชื่อกิจการ');
+  if (!/^\d{13}$/.test(v('rg_taxId').replace(/-/g,''))) return showRgErr('เลขประจำตัวผู้เสียภาษี / เลขบัตรประชาชน ต้องมี 13 หลัก');
+  if (!v('rg_address') || !v('rg_subDistrict') || !v('rg_district') || !v('rg_province') || !v('rg_postalCode')) return showRgErr('กรุณากรอกที่อยู่กิจการให้ครบถ้วน');
+  if (!v('rg_ownerName')) return showRgErr('กรุณาระบุชื่อเจ้าของกิจการ');
+  if (!/^\d{13}$/.test(v('rg_ownerIdCard').replace(/-/g,''))) return showRgErr('เลขบัตรประชาชนเจ้าของต้องมี 13 หลัก');
+  if (!v('rg_ownerPhone')) return showRgErr('กรุณาระบุเบอร์โทรศัพท์เจ้าของ');
+  if (!v('rg_bankAccount') || !v('rg_accountName')) return showRgErr('กรุณากรอกข้อมูลบัญชีธนาคารให้ครบ');
+  if (!v('rg_docIdCard') || !v('rg_docBankBook')) return showRgErr('กรุณาระบุชื่อไฟล์สำเนาบัตรประชาชน และสำเนาสมุดบัญชี');
+  if (!v('rg_username')) return showRgErr('กรุณาตั้งชื่อผู้ใช้งาน');
+  if (v('rg_password').length < 8) return showRgErr('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+  if (v('rg_password') !== v('rg_password2')) return showRgErr('รหัสผ่านไม่ตรงกัน');
+  if (!document.getElementById('rg_consent').checked) return showRgErr('กรุณายอมรับเงื่อนไขการใช้งาน');
+
+  sp.classList.remove('d-none');
+  try {
+    const body = {
+      businessName: v('rg_businessName'), businessNameEn: v('rg_businessNameEn'),
+      businessType: v('rg_businessType'), category: v('rg_category'),
+      taxId: v('rg_taxId'), registrationNumber: v('rg_registrationNumber'),
+      registeredAt: v('rg_registeredAt'),
+      address: v('rg_address'), subDistrict: v('rg_subDistrict'),
+      district: v('rg_district'), province: v('rg_province'), postalCode: v('rg_postalCode'),
+      ownerName: v('rg_ownerName'), ownerIdCard: v('rg_ownerIdCard'),
+      ownerPhone: v('rg_ownerPhone'), ownerEmail: v('rg_ownerEmail'),
+      contactPhone: v('rg_contactPhone'), contactEmail: v('rg_contactEmail'),
+      bankCode: v('rg_bankCode'), bankAccount: v('rg_bankAccount'),
+      accountName: v('rg_accountName'), promptpayId: v('rg_promptpayId'),
+      username: v('rg_username'), password: v('rg_password'),
+      docBusinessReg: v('rg_docBusinessReg'), docIdCard: v('rg_docIdCard'),
+      docBankBook: v('rg_docBankBook'), docVatReg: v('rg_docVatReg'),
+    };
+    const r = await fetch('/api/merchant/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    suc.textContent = `✅ ${j.message} (รหัสร้านค้า: ${j.merchantCode})`;
+    suc.classList.remove('d-none');
+    // clear form
+    ['rg_businessName','rg_businessNameEn','rg_taxId','rg_registrationNumber','rg_address','rg_subDistrict','rg_district','rg_province','rg_postalCode','rg_ownerName','rg_ownerIdCard','rg_ownerPhone','rg_ownerEmail','rg_contactPhone','rg_contactEmail','rg_bankAccount','rg_accountName','rg_promptpayId','rg_username','rg_password','rg_password2','rg_docBusinessReg','rg_docIdCard','rg_docBankBook','rg_docVatReg'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('rg_consent').checked = false;
+  } catch(e) { showRgErr(e.message); }
+  finally { sp.classList.add('d-none'); }
+}
+function showRgErr(msg) {
+  const err = document.getElementById('rgErr');
+  err.textContent = '❌ ' + msg;
+  err.classList.remove('d-none');
+}
 
 // ── PAGES ──
 function showPage(page) {

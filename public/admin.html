@@ -136,12 +136,14 @@ textarea{resize:vertical;min-height:70px}
 <div class="tabs-wrap">
   <div class="tab active" onclick="showTab('overview')">📊 ภาพรวม</div>
   <div class="tab" onclick="showTab('transactions')">💳 ธุรกรรมทั้งหมด</div>
+  <div class="tab" onclick="showTab('slipconfirm')">🧾 ยืนยันสลิป</div>
   <div class="tab" onclick="showTab('students')">🎓 นักศึกษา</div>
   <div class="tab" onclick="showTab('fees')">📋 จัดการค่าธรรมเนียม</div>
   <div class="tab" onclick="showTab('refunds')">🔄 คืนเงิน</div>
   <div class="tab" onclick="showTab('settlement')">📑 Settlement</div>
   <div class="tab" onclick="showTab('audit')">🔍 Audit Log</div>
   <div class="tab" onclick="showTab('merchants')">🏪 Merchants</div>
+  <div class="tab" onclick="showTab('merchantregs')">📋 สมัครร้านค้า</div>
   <div class="tab" onclick="showTab('notify')">📢 ประกาศ</div>
   <div class="tab" onclick="showTab('apidocs')">📖 API Docs</div>
 </div>
@@ -204,19 +206,27 @@ async function doLogin(){
     showApp(); showTab('overview');
   }catch(e){ err.textContent=e.message; err.classList.remove('d-none'); }
 }
-function doLogout(){ localStorage.removeItem('kkupay_admin_token'); token=null; me=null; showLogin(); }
+function doLogout(){
+  // clear ทั้งสอง token key เพื่อให้กลับไป login ทั่วไปได้สะดวก
+  localStorage.removeItem('kkupay_admin_token');
+  localStorage.removeItem('kkupay_token');
+  token=null; me=null; showLogin();
+}
 
 // ── TABS ──
 function showTab(t) {
-  document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.remove('active'); if(['overview','transactions','students','fees','refunds','settlement','audit','merchants','notify','apidocs'][i]===t) el.classList.add('active'); });
+  const tabOrder = ['overview','transactions','slipconfirm','students','fees','refunds','settlement','audit','merchants','merchantregs','notify','apidocs'];
+  document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.remove('active'); if(tabOrder[i]===t) el.classList.add('active'); });
   if(t==='overview') renderOverview();
   else if(t==='transactions') renderTransactions();
+  else if(t==='slipconfirm') renderSlipConfirm();
   else if(t==='students') renderStudents();
   else if(t==='fees') renderFees();
   else if(t==='refunds') renderRefunds();
   else if(t==='settlement') renderSettlement();
   else if(t==='audit') renderAudit();
   else if(t==='merchants') renderMerchants();
+  else if(t==='merchantregs') renderMerchantRegistrations();
   else if(t==='notify') renderNotify();
   else if(t==='apidocs') renderApiDocs();
 }
@@ -458,6 +468,219 @@ async function doRefund() {
     alert('✅ คืนเงินสำเร็จ');
     renderRefunds();
   } catch(e) { alert('❌ '+e.message); }
+}
+
+// ── SLIP CONFIRM (ยืนยันสลิป + Auto-Verify) ──
+async function renderSlipConfirm() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳ กำลังโหลดรายการ...</div>';
+  try {
+    const { payments } = await API('/api/admin/pending-slips');
+    window._pendingSlips = payments;
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🧾 รายการรอยืนยันสลิป (${payments.length} รายการ)</div>
+        <button class="btn btn-sm btn-green" onclick="renderSlipConfirm()">🔄 รีเฟรช</button>
+      </div>
+      <div class="alert alert-info" style="font-size:.8rem">
+        ℹ️ ระบบ Auto-Verify ตรวจสอบ: (1) ยอดเงินตรง (2) วันที่โอนไม่เกิน 24 ชม. (3) Ref Code (4) ไม่ซ้ำกับสลิปที่ใช้แล้ว — กด "Auto Verify" เพื่อให้ระบบตรวจสอบพร้อมดีเลย์ 5 วินาที
+      </div>
+      ${payments.length === 0 ? '<div class="alert alert-success">✅ ไม่มีรายการรอยืนยัน</div>' : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่</th><th>Ref</th><th>นักศึกษา</th><th>วิธีชำระ</th><th>รายการ</th><th>ยอดเงิน</th><th>ข้อมูลสลิป</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+        <tbody>${payments.map(p => `<tr id="slipRow_${p.id}">
+          <td class="text-mono">${fmtDate(p.createdAt)}</td>
+          <td class="text-mono" style="font-size:.7rem">${escH(p.ref)}</td>
+          <td><b>${escH(p.studentName||'-')}</b><div style="font-size:.7rem;color:var(--text2)">${escH(p.studentId||'-')}</div></td>
+          <td>${methodLabel(p.method)}</td>
+          <td style="font-size:.76rem">${escH(p.feeLabel||'-')}</td>
+          <td style="font-weight:700;color:var(--purple)">${fmtMoney(p.amount)}</td>
+          <td style="font-size:.72rem">${p.slip ? `
+            <div>💰 ฿${p.slip.amount} | 📅 ${p.slip.transferDate||'-'}</div>
+            <div style="color:var(--text2)">Ref: ${p.slip.refCode||'ไม่ระบุ'}</div>
+            <div style="color:var(--text2)">จาก: ${p.slip.senderAccount||'-'}</div>
+          ` : '<span style="color:#aaa">ยังไม่มีสลิป</span>'}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td class="action-btns" id="slipActions_${p.id}">
+            <button class="btn btn-sm btn-primary" onclick="autoVerifyAndConfirm('${p.id}','${escH(p.ref)}',${p.amount})" ${!p.slip?'disabled title="รอสลิปจากผู้ชำระ"':''} style="${!p.slip?'opacity:.45':''}">🤖 Auto Verify</button>
+            <button class="btn btn-sm btn-green" onclick="manualConfirmSlip('${p.id}','approve')">✅ ยืนยัน</button>
+            <button class="btn btn-sm btn-red" onclick="manualConfirmSlip('${p.id}','reject')">❌ ปฏิเสธ</button>
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div>`}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">📘 วิธีป้องกันสลิปปลอม — แนวปฏิบัติ</div></div>
+      <div class="alert alert-warn" style="font-size:.81rem">
+        <b>🛡️ 4 วิธีที่ระบบใช้ + แนะนำเพิ่มสำหรับ Production:</b>
+      </div>
+      <div style="font-size:.82rem;line-height:1.9">
+        <b>✅ ที่ระบบทำอยู่แล้ว (Demo):</b><br>
+        1. <b>ตรวจยอดเงิน</b> — ต้องตรงกับ payment.amount ± 0 บาท<br>
+        2. <b>ตรวจวันที่โอน</b> — ต้องไม่เกิน 24 ชั่วโมงหลังสร้างรายการ (ป้องกันสลิปเก่า)<br>
+        3. <b>ตรวจ Ref Code</b> — เปรียบเทียบกับ orderId ของระบบ<br>
+        4. <b>Duplicate Check</b> — ตรวจ refCode ซ้ำกับรายการอื่นในระบบ<br>
+        <br>
+        <b>🔧 แนะนำเพิ่มสำหรับ Production:</b><br>
+        5. <b>Slip Verify API</b> — เชื่อม SlipOK.com หรือ PromptPay Official API อ่านข้อมูลจากสลิปโดยตรง (เลขอ้างอิง, ยอด, เวลา, บัญชีปลายทาง)<br>
+        6. <b>OCR + AI</b> — ใช้ Google Vision / Tesseract อ่านตัวเลขจากรูปสลิป เปรียบเทียบกับที่ผู้ใช้กรอก<br>
+        7. <b>PromptPay Inquiry</b> — เรียก API ธนาคารตรวจสอบว่ามีธุรกรรมจริงตรงกับ ref หรือไม่<br>
+      </div>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+async function autoVerifyAndConfirm(paymentId, ref, amount) {
+  const actionsEl = document.getElementById(`slipActions_${paymentId}`);
+  const rowEl = document.getElementById(`slipRow_${paymentId}`);
+  if (!actionsEl) return;
+
+  // แสดง loading bar
+  actionsEl.innerHTML = `
+    <div style="width:100%;min-width:180px">
+      <div style="font-size:.75rem;color:var(--purple);font-weight:700;margin-bottom:6px">🔍 กำลังตรวจสอบสลิป...</div>
+      <div style="background:#e0e0e0;border-radius:20px;height:8px;overflow:hidden">
+        <div id="verifyBar_${paymentId}" style="height:100%;background:linear-gradient(90deg,var(--purple),#7b1fa2);border-radius:20px;width:0%;transition:width 4.5s linear"></div>
+      </div>
+      <div id="verifyStep_${paymentId}" style="font-size:.7rem;color:var(--text2);margin-top:4px">เชื่อมต่อระบบตรวจสอบ...</div>
+    </div>`;
+
+  // เริ่ม progress bar
+  setTimeout(() => {
+    const bar = document.getElementById(`verifyBar_${paymentId}`);
+    if (bar) bar.style.width = '100%';
+  }, 50);
+
+  const steps = ['ตรวจสอบยอดเงิน...', 'ตรวจสอบวันที่โอน...', 'ตรวจสอบ Ref Code...', 'ตรวจสอบ Duplicate...', 'ประมวลผลสุดท้าย...'];
+  let si = 0;
+  const stepInterval = setInterval(() => {
+    const el = document.getElementById(`verifyStep_${paymentId}`);
+    if (el && si < steps.length) el.textContent = steps[si++];
+    else clearInterval(stepInterval);
+  }, 900);
+
+  try {
+    // เรียก API verify
+    const result = await API('/api/admin/auto-confirm', { method:'POST', body: JSON.stringify({ paymentId }) });
+    clearInterval(stepInterval);
+
+    // รอให้ progress bar เต็ม (5 วิ)
+    await new Promise(r => setTimeout(r, 5000));
+
+    const vr = result.verifyResult;
+    const checksHtml = vr.checks ? vr.checks.map(c =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed #eee">
+        <span style="font-size:1rem">${c.pass?'✅':'❌'}</span>
+        <div><b>${escH(c.name)}</b><div style="font-size:.72rem;color:var(--text2)">${escH(c.detail)}</div></div>
+      </div>`
+    ).join('') : '';
+
+    if (vr.ok) {
+      // ผ่าน auto-verify → confirm อัตโนมัติ
+      await API('/api/admin/confirm-payment', { method:'POST', body: JSON.stringify({ paymentId, action:'approve', note:'Auto-verified by system' }) });
+      if (rowEl) {
+        rowEl.style.background = '#e8f5e9';
+        actionsEl.innerHTML = `<span style="color:#2e7d32;font-weight:700;font-size:.82rem">✅ ยืนยันอัตโนมัติแล้ว</span>`;
+      }
+      openModal('🤖 Auto-Verify ผ่าน — ยืนยันแล้ว', `
+        <div class="alert alert-success">✅ ระบบยืนยันการชำระเงินอัตโนมัติ Ref: ${escH(ref)} ฿${fmtMoney(amount)}</div>
+        <b>ผลการตรวจสอบ:</b>${checksHtml}
+        <div class="alert alert-success mt-8" style="font-size:.82rem">สถานะเปลี่ยนเป็น "ชำระแล้ว" เรียบร้อย ผู้ชำระได้รับแจ้งเตือนแล้ว</div>`);
+    } else {
+      // ไม่ผ่าน → แสดง ผลและให้ admin ตัดสินใจ
+      actionsEl.innerHTML = `
+        <button class="btn btn-sm btn-green" onclick="manualConfirmSlip('${paymentId}','approve')">✅ ยืนยันแทน</button>
+        <button class="btn btn-sm btn-red" onclick="manualConfirmSlip('${paymentId}','reject')">❌ ปฏิเสธ</button>`;
+      openModal('⚠️ Auto-Verify ไม่ผ่าน — ต้องตัดสินใจเอง', `
+        <div class="alert alert-warn">⚠️ ระบบตรวจสอบไม่ผ่าน Ref: ${escH(ref)} กรุณาตรวจสอบด้วยตนเอง</div>
+        <b>ผลการตรวจสอบ:</b>${checksHtml}
+        <div class="alert alert-info mt-8" style="font-size:.8rem">กรุณาตรวจสอบสลิปต้นฉบับก่อนกด "ยืนยันแทน"</div>`);
+    }
+  } catch(e) {
+    clearInterval(stepInterval);
+    actionsEl.innerHTML = `
+      <button class="btn btn-sm btn-green" onclick="manualConfirmSlip('${paymentId}','approve')">✅ ยืนยัน</button>
+      <button class="btn btn-sm btn-red" onclick="manualConfirmSlip('${paymentId}','reject')">❌ ปฏิเสธ</button>`;
+    alert('❌ ' + e.message);
+  }
+}
+
+async function manualConfirmSlip(paymentId, action) {
+  const note = action === 'reject' ? prompt('เหตุผลการปฏิเสธ:') : 'Manually confirmed by admin';
+  if (action === 'reject' && note === null) return;
+  try {
+    await API('/api/admin/confirm-payment', { method:'POST', body: JSON.stringify({ paymentId, action, note: note||'' }) });
+    renderSlipConfirm();
+  } catch(e) { alert('❌ ' + e.message); }
+}
+
+// ── MERCHANT REGISTRATIONS (คำขอสมัครร้านค้า) ──
+async function renderMerchantRegistrations() {
+  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  try {
+    const { merchants } = await API('/api/admin/merchants');
+    const pending = merchants.filter(m => m.status === 'pending');
+    const others = merchants.filter(m => m.status !== 'pending');
+    document.getElementById('tabContent').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">📋 คำขอสมัครร้านค้า รอพิจารณา (${pending.length} รายการ)</div></div>
+      ${pending.length === 0 ? '<div class="alert alert-success">✅ ไม่มีคำขอรอพิจารณา</div>' : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>รหัส</th><th>ชื่อกิจการ</th><th>ประเภท</th><th>เลขผู้เสียภาษี</th><th>เจ้าของ</th><th>บัญชี</th><th>เอกสาร</th><th>วันสมัคร</th><th>จัดการ</th></tr></thead>
+        <tbody>${pending.map(m=>`<tr>
+          <td class="text-mono" style="font-size:.72rem">${escH(m.code)}</td>
+          <td><b>${escH(m.name)}</b><div style="font-size:.7rem;color:var(--text2)">${escH(m.nameEn||'')}</div></td>
+          <td style="font-size:.75rem">${escH(m.businessType||m.category)}</td>
+          <td class="text-mono" style="font-size:.73rem">${escH(m.taxId||'-')}</td>
+          <td style="font-size:.75rem">${escH(m.ownerName||m.contactName||'-')}<div style="color:var(--text2)">${escH(m.contactPhone||'-')}</div></td>
+          <td style="font-size:.73rem">${escH(m.bankName||'-')}<div style="color:var(--text2)">${escH(m.bankAccount||'-')}</div></td>
+          <td style="font-size:.73rem">${m.documents?`
+            <div>${m.documents.idCard?'✅':'❌'} บัตรประชาชน</div>
+            <div>${m.documents.bankBook?'✅':'❌'} สมุดบัญชี</div>
+            <div>${m.documents.businessReg?'✅':'⬜'} ทะเบียนพาณิชย์</div>
+          `:'<span style="color:#aaa">-</span>'}</td>
+          <td class="text-mono" style="font-size:.72rem">${fmtDate(m.createdAt)}</td>
+          <td class="action-btns">
+            <button class="btn btn-sm btn-green" onclick="approveMerchant('${m.id}','${escH(m.name)}')">✅ อนุมัติ</button>
+            <button class="btn btn-sm btn-red" onclick="rejectMerchant('${m.id}','${escH(m.name)}')">❌ ปฏิเสธ</button>
+          </td>
+        </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📂 ร้านค้าที่อนุมัติแล้ว / ปฏิเสธ (${others.length} รายการ)</div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>รหัส</th><th>ชื่อกิจการ</th><th>ประเภท</th><th>สถานะ</th><th>หมายเหตุ</th></tr></thead>
+        <tbody>${others.length?others.map(m=>`<tr>
+          <td class="text-mono" style="font-size:.72rem">${escH(m.code)}</td>
+          <td><b>${escH(m.name)}</b></td>
+          <td style="font-size:.75rem">${escH(m.category||'-')}</td>
+          <td>${statusBadge(m.status)}</td>
+          <td style="font-size:.75rem">${escH(m.statusNote||'-')}</td>
+        </tr>`).join(''):'<tr><td colspan="5" class="text-center" style="color:#aaa;padding:18px">ไม่มีข้อมูล</td></tr>'}
+        </tbody>
+      </table></div>
+    </div>`;
+  } catch(e) { document.getElementById('tabContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+async function approveMerchant(id, name) {
+  if (!confirm(`อนุมัติร้านค้า "${name}" ?`)) return;
+  try {
+    await API(`/api/admin/merchants/${id}/status`, { method:'PUT', body: JSON.stringify({ status:'active', note:'อนุมัติโดย Admin' }) });
+    renderMerchantRegistrations();
+  } catch(e) { alert('❌ ' + e.message); }
+}
+
+async function rejectMerchant(id, name) {
+  const note = prompt(`เหตุผลการปฏิเสธร้านค้า "${name}":`);
+  if (note === null) return;
+  try {
+    await API(`/api/admin/merchants/${id}/status`, { method:'PUT', body: JSON.stringify({ status:'rejected', note: note||'ไม่ผ่านการตรวจสอบ' }) });
+    renderMerchantRegistrations();
+  } catch(e) { alert('❌ ' + e.message); }
 }
 
 // ── SETTLEMENT ──
