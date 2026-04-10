@@ -104,6 +104,8 @@ textarea{resize:vertical;min-height:70px}
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 .ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
+
+@keyframes spin{to{transform:rotate(360deg)}}
 .ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
@@ -197,7 +199,8 @@ function showLogin(){ document.getElementById('loginPage').style.display='flex';
 function showApp(){
   document.getElementById('loginPage').style.display='none'; document.getElementById('app').style.display='block';
   document.getElementById('topUser').textContent = me.name;
-  document.getElementById('topRole').textContent = {admin:'<span class="ic" data-lucide="shield" style="width:13px;height:13px"></span> Admin',finance:'<span class="ic" data-lucide="banknote" style="width:13px;height:13px"></span> Finance',support:'<span class="ic" data-lucide="headphones" style="width:13px;height:13px"></span> Support'}[me.role]||me.role;
+  document.getElementById('topRole').innerHTML = {admin:'<span class="ic" data-lucide="shield" style="width:13px;height:13px"></span> Admin',finance:'<span class="ic" data-lucide="banknote" style="width:13px;height:13px"></span> Finance',support:'<span class="ic" data-lucide="headphones" style="width:13px;height:13px"></span> Support'}[me.role]||me.role;
+  if (window.lucide) lucide.createIcons();
 }
 async function doLogin(){
   const u=document.getElementById('lgUser').value.trim(), p=document.getElementById('lgPass').value;
@@ -238,7 +241,7 @@ function showTab(t) {
 
 // ── OVERVIEW ──
 async function renderOverview() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳ กำลังโหลด...</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:28px;height:28px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px"></div><div style="font-size:.85rem;color:var(--text2)">กำลังโหลด...</div></div>';
   try {
     const s = await API('/api/admin/stats');
     document.getElementById('tabContent').innerHTML = `
@@ -280,7 +283,7 @@ async function renderOverview() {
 
 // ── TRANSACTIONS ──
 async function renderTransactions() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳ กำลังโหลด...</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:28px;height:28px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px"></div><div style="font-size:.85rem;color:var(--text2)">กำลังโหลด...</div></div>';
   try {
     const { transactions } = await API('/api/admin/transactions');
     window._adminTx = transactions;
@@ -354,7 +357,7 @@ function exportCSV() {
 
 // ── STUDENTS ──
 async function renderStudents() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const { users } = await API('/api/admin/users');
     document.getElementById('tabContent').innerHTML = `
@@ -387,7 +390,7 @@ function filterStudents(){ const q=document.getElementById('stuSearch').value.to
 
 // ── FEES MANAGEMENT ──
 async function renderFees() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const { fees } = await API('/api/admin/fees');
     window._adminFees = fees;
@@ -430,7 +433,7 @@ async function deleteFee(id, label) {
 
 // ── REFUNDS ──
 async function renderRefunds() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const { refunds } = await API('/api/admin/refunds');
     document.getElementById('tabContent').innerHTML = `
@@ -477,7 +480,7 @@ async function doRefund() {
 
 // ── SLIP CONFIRM (ยืนยันสลิป + Auto-Verify) ──
 async function renderSlipConfirm() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳ กำลังโหลดรายการ...</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:28px;height:28px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px"></div><div style="font-size:.85rem;color:var(--text2)">กำลังโหลดรายการ...</div></div>';
   try {
     const { payments } = await API('/api/admin/pending-slips');
     window._pendingSlips = payments;
@@ -687,7 +690,7 @@ function viewSlipDetail(p) {
 
 // ── MERCHANT REGISTRATIONS (คำขอสมัครร้านค้า) ──
 async function renderMerchantRegistrations() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const { merchants } = await API('/api/admin/merchants');
     const pending = merchants.filter(m => m.status === 'pending');
@@ -817,7 +820,7 @@ async function rejectMerchant(id, name) {
 
 // ── SETTLEMENT ──
 async function renderSettlement() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const today = new Date().toISOString().slice(0,10);
     const [settle, recon] = await Promise.all([ API('/api/admin/settlement?date='+today), API('/api/admin/reconciliation') ]);
@@ -872,7 +875,7 @@ async function loadSettlement(date){ try{ const s=await API('/api/admin/settleme
 
 // ── AUDIT LOG ──
 async function renderAudit() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const { logs } = await API('/api/admin/audit-log');
     document.getElementById('tabContent').innerHTML = `
@@ -900,7 +903,7 @@ function filterAudit(){ const q=document.getElementById('auditSearch').value.toL
 
 // ── MERCHANTS ──
 async function renderMerchants() {
-  document.getElementById('tabContent').innerHTML='<div class="text-center mt-14">⏳</div>';
+  document.getElementById('tabContent').innerHTML='<div style="text-align:center;padding:40px"><div style="display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   try {
     const { merchants } = await API('/api/admin/merchants');
     window._merchants = merchants;
@@ -1005,7 +1008,7 @@ function renderApiDocs() {
 
 async function testApi(method, path, body) {
   const resultEl = event.target.nextElementSibling;
-  resultEl.innerHTML = '⏳ กำลังเรียก...';
+  resultEl.innerHTML = '<span style="color:var(--text2)">กำลังเรียก...</span>';
   const realPath = path.replace(':id', 'test');
   try {
     const r = await API(realPath, { method, body: method!=='GET'&&body ? body : undefined });

@@ -668,7 +668,7 @@ function showPage(page) {
 
 // ── DASHBOARD ──
 async function renderDashboard() {
-  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  document.getElementById('pageContent').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังโหลด...</div></div>';
   try {
     const [feesData, txData] = await Promise.all([ API('/api/fees'), API('/api/transactions') ]);
     const fees = feesData.fees;
@@ -712,7 +712,7 @@ async function renderDashboard() {
 
 // ── FEES PAGE ──
 async function renderFees() {
-  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  document.getElementById('pageContent').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังโหลด...</div></div>';
   try {
     const { fees } = await API('/api/fees');
     const groups = { pending:fees.filter(f=>f.status==='pending'), overdue:fees.filter(f=>f.status==='overdue'), processing:fees.filter(f=>f.status==='processing'), paid:fees.filter(f=>f.status==='paid') };
@@ -746,7 +746,7 @@ async function renderFees() {
 
 // ── WALLET PAGE ──
 async function renderWallet() {
-  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  document.getElementById('pageContent').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังโหลด...</div></div>';
   try {
     const { wallet: w, transactions } = await API('/api/wallet');
     wallet = w;
@@ -803,7 +803,7 @@ async function doTopup(method) {
 
 // ── HISTORY ──
 async function renderHistory() {
-  document.getElementById('pageContent').innerHTML='<div class="text-center mt-20">⏳ กำลังโหลด...</div>';
+  document.getElementById('pageContent').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังโหลด...</div></div>';
   try {
     const { transactions } = await API('/api/transactions');
     document.getElementById('pageContent').innerHTML = `
@@ -960,7 +960,7 @@ function selectMethod(m) {
 
 // ── PROMPTPAY ──
 async function renderPromptPay() {
-  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้าง QR Code...</div>';
+  document.getElementById('payModalBody').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังสร้าง QR Code...</div></div>';
   try {
     const r = await API('/api/payments/promptpay',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount})});
     document.getElementById('payModalBody').innerHTML = `
@@ -1077,7 +1077,7 @@ function selectBank(code) {
 }
 async function doBankingPay() {
   if (!selectedBank) return;
-  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้างรายการโอน...</div>';
+  document.getElementById('payModalBody').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังสร้างรายการโอน...</div></div>';
   try {
     const r = await API('/api/payments/banking',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount,bankCode:selectedBank})});
     document.getElementById('payModalBody').innerHTML = `
@@ -1275,7 +1275,7 @@ function selectEwallet(code) {
 }
 async function doEwalletPay() {
   if (!selectedEwallet) return;
-  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้าง QR...</div>';
+  document.getElementById('payModalBody').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังสร้าง QR...</div></div>';
   try {
     const r = await API('/api/payments/ewallet',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount,provider:selectedEwallet})});
     document.getElementById('payModalBody').innerHTML = `
@@ -1297,7 +1297,7 @@ async function doEwalletPay() {
 
 // ── COUNTER SERVICE ──
 async function renderCounter() {
-  document.getElementById('payModalBody').innerHTML='<div class="text-center mt-20">⏳ กำลังสร้างบาร์โค้ด...</div>';
+  document.getElementById('payModalBody').innerHTML='<div style="text-align:center;padding:30px"><div style="display:inline-block;width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:.82rem;color:var(--text2);margin-top:8px">กำลังสร้างบาร์โค้ด...</div></div>';
   try {
     const r = await API('/api/payments/counter',{method:'POST',body:JSON.stringify({feeId:currentFee.id,amount:currentFee.amount})});
     document.getElementById('payModalBody').innerHTML = `
