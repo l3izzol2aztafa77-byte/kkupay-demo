@@ -188,20 +188,26 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 .d-none{display:none!important}
 .flex{display:flex}.gap-8{gap:8px}.items-center{align-items:center}.justify-between{justify-content:space-between}.flex-wrap{flex-wrap:wrap}
 </style>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* Lucide icon helper */
+.ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
+.ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+</style>
 </head>
 <body>
 <!-- ══════════════ LOGIN ══════════════ -->
 <div id="loginPage">
 <div class="login-card">
   <div class="login-logo">
-    <h1>🎓 KKU Pay</h1>
+    <h1><span class="ic" data-lucide="graduation-cap" style="width:24px;height:24px"></span> KKU Pay</h1>
     <p>ระบบชำระเงินออนไลน์ มหาวิทยาลัยขอนแก่น</p>
   </div>
 
   <!-- แท็บ: Login / สมัครร้านค้า -->
   <div id="loginTabs" style="display:flex;gap:0;margin-bottom:18px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
-    <button id="tabLogin" onclick="switchLoginTab('login')" style="flex:1;padding:10px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer">🔑 เข้าสู่ระบบ</button>
-    <button id="tabReg" onclick="switchLoginTab('register')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:var(--text);font-weight:700;font-size:.88rem;cursor:pointer">🏪 สมัครร้านค้า</button>
+    <button id="tabLogin" onclick="switchLoginTab('login')" style="flex:1;padding:10px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer"><span class="ic" data-lucide="log-in" style="width:16px;height:16px"></span> เข้าสู่ระบบ</button>
+    <button id="tabReg" onclick="switchLoginTab('register')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:var(--text);font-weight:700;font-size:.88rem;cursor:pointer"><span class="ic" data-lucide="store" style="width:16px;height:16px"></span> สมัครร้านค้า</button>
   </div>
 
   <!-- ─── Login Form ─── -->
@@ -238,7 +244,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </div>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">🏢 ข้อมูลกิจการ</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="building-2" style="width:13px;height:13px"></span> ข้อมูลกิจการ</legend>
       <div class="form-group"><label>ประเภทกิจการ <span style="color:var(--red)">*</span></label>
         <select id="rg_businessType">
           <option value="individual">บุคคลธรรมดา / ร้านค้าทั่วไป</option>
@@ -280,7 +286,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </fieldset>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">📍 ที่อยู่กิจการ</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="map-pin" style="width:13px;height:13px"></span> ที่อยู่กิจการ</legend>
       <div class="form-group"><label>เลขที่ / หมู่บ้าน / อาคาร <span style="color:var(--red)">*</span></label>
         <input type="text" id="rg_address" placeholder="เลขที่ ชั้น อาคาร ถนน หมู่">
       </div>
@@ -303,7 +309,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </fieldset>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">👤 ข้อมูลเจ้าของ / ผู้ติดต่อ</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="user" style="width:13px;height:13px"></span> ข้อมูลเจ้าของ / ผู้ติดต่อ</legend>
       <div class="form-group"><label>ชื่อ-นามสกุล เจ้าของกิจการ <span style="color:var(--red)">*</span></label>
         <input type="text" id="rg_ownerName" placeholder="ชื่อ-นามสกุล ตามบัตรประชาชน">
       </div>
@@ -330,7 +336,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </fieldset>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">🏦 บัญชีธนาคารสำหรับรับเงิน</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="landmark" style="width:13px;height:13px"></span> บัญชีธนาคารสำหรับรับเงิน</legend>
       <div class="form-group"><label>ธนาคาร <span style="color:var(--red)">*</span></label>
         <select id="rg_bankCode">
           <option value="kbank">ธนาคารกสิกรไทย (KBank)</option>
@@ -357,26 +363,26 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </fieldset>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">📎 เอกสารประกอบ (ชื่อไฟล์)</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="paperclip" style="width:13px;height:13px"></span> เอกสารประกอบ (ชื่อไฟล์)</legend>
       <div class="alert alert-warn" style="font-size:.78rem">
-        ⚠️ กรุณาเตรียมเอกสารต้นฉบับหรือสำเนาถ่ายเอกสารรับรองสำเนาถูกต้อง ส่งให้เจ้าหน้าที่ตรวจสอบหลังสมัคร
+        <span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> กรุณาเตรียมเอกสารต้นฉบับหรือสำเนาถ่ายเอกสารรับรองสำเนาถูกต้อง ส่งให้เจ้าหน้าที่ตรวจสอบหลังสมัคร
       </div>
-      <div class="form-group"><label>📄 สำเนาหนังสือรับรองบริษัท / ทะเบียนพาณิชย์</label>
+      <div class="form-group"><label><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> สำเนาหนังสือรับรองบริษัท / ทะเบียนพาณิชย์</label>
         <input type="text" id="rg_docBusinessReg" placeholder="ชื่อไฟล์ หรือ link (เช่น business_reg.pdf)">
       </div>
       <div class="form-group"><label>🪪 สำเนาบัตรประจำตัวประชาชนเจ้าของ <span style="color:var(--red)">*</span></label>
         <input type="text" id="rg_docIdCard" placeholder="idcard_copy.pdf">
       </div>
-      <div class="form-group"><label>🏦 สำเนาหน้าสมุดบัญชีธนาคาร <span style="color:var(--red)">*</span></label>
+      <div class="form-group"><label><span class="ic" data-lucide="landmark" style="width:13px;height:13px"></span> สำเนาหน้าสมุดบัญชีธนาคาร <span style="color:var(--red)">*</span></label>
         <input type="text" id="rg_docBankBook" placeholder="bankbook_copy.pdf">
       </div>
-      <div class="form-group"><label>📋 ใบทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (ถ้ามี)</label>
+      <div class="form-group"><label><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> ใบทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (ถ้ามี)</label>
         <input type="text" id="rg_docVatReg" placeholder="vat_registration.pdf (เฉพาะผู้จด VAT)">
       </div>
     </fieldset>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px">🔐 ข้อมูลบัญชีผู้ใช้งาน</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="lock" style="width:13px;height:13px"></span> ข้อมูลบัญชีผู้ใช้งาน</legend>
       <div class="form-group"><label>ชื่อผู้ใช้งาน (Username) <span style="color:var(--red)">*</span></label>
         <input type="text" id="rg_username" placeholder="ตั้งชื่อผู้ใช้งาน (ตัวเล็ก a-z, 0-9)">
       </div>
@@ -414,7 +420,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 <!-- Sidebar -->
 <div class="sidebar">
   <div class="sidebar-logo">
-    <h2>🎓 KKU Pay</h2>
+    <h2><span class="ic" data-lucide="graduation-cap" style="width:22px;height:22px"></span> KKU Pay</h2>
     <p>ระบบชำระเงินออนไลน์ มข.</p>
   </div>
   <div class="sidebar-user">
@@ -423,11 +429,11 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     <div class="sid" id="sbFaculty" style="margin-top:2px;font-size:.7rem">—</div>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span>หน้าหลัก</div>
-    <div class="nav-item" onclick="showPage('fees')"><span class="icon">💳</span>รายการค่าธรรมเนียม</div>
-    <div class="nav-item" onclick="showPage('wallet')"><span class="icon">👛</span>KKU Wallet</div>
-    <div class="nav-item" onclick="showPage('history')"><span class="icon">📋</span>ประวัติธุรกรรม</div>
-    <div class="nav-item" onclick="showPage('profile')"><span class="icon">👤</span>ข้อมูลส่วนตัว</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon"><span class="ic" data-lucide="home" style="width:18px;height:18px"></span></span>หน้าหลัก</div>
+    <div class="nav-item" onclick="showPage('fees')"><span class="icon"><span class="ic" data-lucide="credit-card" style="width:18px;height:18px"></span></span>รายการค่าธรรมเนียม</div>
+    <div class="nav-item" onclick="showPage('wallet')"><span class="icon"><span class="ic" data-lucide="wallet" style="width:18px;height:18px"></span></span>KKU Wallet</div>
+    <div class="nav-item" onclick="showPage('history')"><span class="icon"><span class="ic" data-lucide="clipboard-list" style="width:18px;height:18px"></span></span>ประวัติธุรกรรม</div>
+    <div class="nav-item" onclick="showPage('profile')"><span class="icon"><span class="ic" data-lucide="user" style="width:18px;height:18px"></span></span>ข้อมูลส่วนตัว</div>
   </nav>
   <div class="sidebar-footer">
     <div class="balance">ยอดกระเป๋าเงิน</div>
@@ -445,7 +451,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </div>
     <div class="topbar-actions">
       <button class="notif-btn" onclick="toggleNotif()" title="การแจ้งเตือน">
-        🔔<span class="notif-badge d-none" id="notifBadge">0</span>
+        <span class="ic" data-lucide="bell" style="width:20px;height:20px"></span><span class="notif-badge d-none" id="notifBadge">0</span>
       </button>
       <button class="btn btn-gray btn-sm" onclick="doLogout()">ออกจากระบบ</button>
     </div>
@@ -456,8 +462,8 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 <!-- Notification Panel -->
 <div id="notifPanel">
   <div class="notif-head">
-    <span>🔔 การแจ้งเตือน</span>
-    <button style="background:none;border:none;cursor:pointer;color:#999;font-size:.8rem" onclick="toggleNotif()">✕ ปิด</button>
+    <span><span class="ic" data-lucide="bell" style="width:16px;height:16px"></span> การแจ้งเตือน</span>
+    <button style="background:none;border:none;cursor:pointer;color:#999;font-size:.8rem" onclick="toggleNotif()"><span class="ic" data-lucide="x" style="width:14px;height:14px"></span> ปิด</button>
   </div>
   <div id="notifList"></div>
 </div>
@@ -467,22 +473,22 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 <div class="modal-overlay" id="payModal">
 <div class="modal">
   <div class="modal-header">
-    <h3>💳 ชำระเงิน</h3>
-    <button class="modal-close" onclick="closePayModal()">✕</button>
+    <h3><span class="ic" data-lucide="credit-card" style="width:18px;height:18px"></span> ชำระเงิน</h3>
+    <button class="modal-close" onclick="closePayModal()"><span class="ic" data-lucide="x" style="width:16px;height:16px"></span></button>
   </div>
   <div class="modal-body" id="payModalBody"></div>
 </div>
 </div>
 
 <!-- ══════════════ CHAT ══════════════ -->
-<button id="chatBtn" onclick="toggleChat()" title="แชทสอบถาม">💬</button>
+<button id="chatBtn" onclick="toggleChat()" title="แชทสอบถาม"><span class="ic" data-lucide="message-circle" style="width:20px;height:20px"></span></button>
 <div id="chatWindow">
   <div class="chat-head">
     <div>
-      <div class="ch-info">🤖 KKU Pay Support</div>
+      <div class="ch-info"><span class="ic" data-lucide="bot" style="width:14px;height:14px"></span> KKU Pay Support</div>
       <div class="ch-sub">ออนไลน์ตลอด 24 ชั่วโมง</div>
     </div>
-    <button onclick="toggleChat()">✕</button>
+    <button onclick="toggleChat()"><span class="ic" data-lucide="x" style="width:13px;height:13px"></span></button>
   </div>
   <div class="chat-quick-btns">
     <button onclick="sendQuick('ค่าเล่าเรียน')">ค่าเล่าเรียน</button>
@@ -496,7 +502,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
   </div>
   <div class="chat-input-wrap">
     <input type="text" id="chatInput" placeholder="พิมพ์ข้อความ..." onkeydown="if(event.key==='Enter')sendChat()">
-    <button onclick="sendChat()">➤</button>
+    <button onclick="sendChat()"><span class="ic" data-lucide="send" style="width:16px;height:16px"></span></button>
   </div>
 </div>
 
@@ -672,20 +678,20 @@ async function renderDashboard() {
     const txns = txData.transactions.slice(0,5);
     document.getElementById('pageContent').innerHTML = `
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-icon">👛</div><div class="stat-val">${fmtMoney(wallet?.balance||0)}</div><div class="stat-lbl">ยอดคงเหลือ KKU Wallet</div></div>
-      <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" style="color:var(--red)">${fmtMoney(pendingTotal)}</div><div class="stat-lbl">ค่าธรรมเนียมรอชำระ (${pending.length} รายการ)</div></div>
-      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" style="color:var(--green)">${fmtMoney(paidTotal)}</div><div class="stat-lbl">ชำระแล้วภาคนี้</div></div>
-      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val">${fees.length}</div><div class="stat-lbl">รายการทั้งหมด</div></div>
+      <div class="stat-card"><div class="stat-icon"><span class="ic" data-lucide="wallet" style="width:36px;height:36px"></span></div><div class="stat-val">${fmtMoney(wallet?.balance||0)}</div><div class="stat-lbl">ยอดคงเหลือ KKU Wallet</div></div>
+      <div class="stat-card"><div class="stat-icon"><span class="ic" data-lucide="clock" style="width:36px;height:36px"></span></div><div class="stat-val" style="color:var(--red)">${fmtMoney(pendingTotal)}</div><div class="stat-lbl">ค่าธรรมเนียมรอชำระ (${pending.length} รายการ)</div></div>
+      <div class="stat-card"><div class="stat-icon"><span class="ic" data-lucide="circle-check" style="width:36px;height:36px"></span></div><div class="stat-val" style="color:var(--green)">${fmtMoney(paidTotal)}</div><div class="stat-lbl">ชำระแล้วภาคนี้</div></div>
+      <div class="stat-card"><div class="stat-icon"><span class="ic" data-lucide="clipboard-list" style="width:36px;height:36px"></span></div><div class="stat-val">${fees.length}</div><div class="stat-lbl">รายการทั้งหมด</div></div>
     </div>
-    ${pending.length>0?`<div class="alert alert-warn">⚠️ คุณมี <b>${pending.length} รายการ</b> รอชำระ รวม <b>${fmtMoney(pendingTotal)}</b> กรุณาชำระก่อนวันครบกำหนด</div>`:'<div class="alert alert-success">✅ ไม่มีรายการค้างชำระ</div>'}
+    ${pending.length>0?`<div class="alert alert-warn"><span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> คุณมี <b>${pending.length} รายการ</b> รอชำระ รวม <b>${fmtMoney(pendingTotal)}</b> กรุณาชำระก่อนวันครบกำหนด</div>`:'<div class="alert alert-success">✅ ไม่มีรายการค้างชำระ</div>'}
     <div class="card">
-      <div class="card-header"><div class="card-title">📋 รายการที่ต้องชำระ</div><button class="btn btn-gray btn-sm" onclick="showPage('fees')">ดูทั้งหมด →</button></div>
+      <div class="card-header"><div class="card-title"><span class="ic" data-lucide="clipboard-list" style="width:16px;height:16px"></span> รายการที่ต้องชำระ</div><button class="btn btn-gray btn-sm" onclick="showPage('fees')">ดูทั้งหมด →</button></div>
       ${pending.slice(0,4).map(f=>`
       <div class="fee-item${f.status==='overdue'?' overdue':''}" onclick="openPayModal(${JSON.stringify(f).replace(/"/g,'&quot;')})">
         <div>
           <div style="font-weight:700;font-size:.88rem">${escHtml(f.label)}</div>
           <div style="font-size:.75rem;color:var(--text2);margin-top:3px">รหัส: ${escHtml(f.code)} | กำหนด: ${escHtml(f.due)} | ${escHtml(f.semester)}</div>
-          ${f.note?`<div style="font-size:.72rem;color:#888;margin-top:2px">📌 ${escHtml(f.note)}</div>`:''}
+          ${f.note?`<div style="font-size:.72rem;color:#888;margin-top:2px"><span class="ic" data-lucide="pin" style="width:12px;height:12px"></span> ${escHtml(f.note)}</div>`:''}
         </div>
         <div style="text-align:right">
           <div style="font-size:1.1rem;font-weight:800;color:var(--purple)">${fmtMoney(f.amount)}</div>
@@ -694,7 +700,7 @@ async function renderDashboard() {
       </div>`).join('')}
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-title">🕑 ธุรกรรมล่าสุด</div><button class="btn btn-gray btn-sm" onclick="showPage('history')">ดูทั้งหมด →</button></div>
+      <div class="card-header"><div class="card-title"><span class="ic" data-lucide="clock" style="width:16px;height:16px"></span> ธุรกรรมล่าสุด</div><button class="btn btn-gray btn-sm" onclick="showPage('history')">ดูทั้งหมด →</button></div>
       <div class="table-wrap">
         <table><thead><tr><th>วันที่</th><th>วิธีชำระ</th><th>จำนวน</th><th>สถานะ</th></tr></thead>
         <tbody>${txns.length?txns.map(t=>`<tr><td>${fmtDate(t.createdAt)}</td><td>${methodLabel(t.method)}</td><td style="font-weight:700;color:var(--purple)">${fmtMoney(t.amount)}</td><td>${statusBadge(t.status)}</td></tr>`).join(''):'<tr><td colspan="4" class="text-center" style="color:#aaa;padding:20px">ยังไม่มีธุรกรรม</td></tr>'}</tbody>
@@ -718,7 +724,7 @@ async function renderFees() {
         <div style="flex:1">
           <div style="font-weight:700;font-size:.9rem">${escHtml(f.label)}</div>
           <div style="font-size:.75rem;color:var(--text2);margin-top:4px">📌 ${escHtml(f.code)} | ภาค ${escHtml(f.semester)} | กำหนด ${escHtml(f.due)}</div>
-          ${f.note?`<div style="font-size:.73rem;color:#888;margin-top:2px">🏫 ${escHtml(f.note)}</div>`:''}
+          ${f.note?`<div style="font-size:.73rem;color:#888;margin-top:2px"><span class="ic" data-lucide="school" style="width:12px;height:12px"></span> ${escHtml(f.note)}</div>`:''}
           ${f.paidAt?`<div style="font-size:.72rem;color:var(--green);margin-top:2px">✅ ชำระเมื่อ ${fmtDate(f.paidAt)}</div>`:''}
         </div>
         <div style="text-align:right;min-width:120px">
@@ -730,10 +736,10 @@ async function renderFees() {
     </div>`;
     document.getElementById('pageContent').innerHTML =
       (groups.overdue.length?'<div class="alert alert-err">🚨 มีรายการเกินกำหนดชำระ '+groups.overdue.length+' รายการ กรุณาชำระโดยด่วน!</div>':'') +
-      renderGroup('รายการเกินกำหนด ⚠️','🚨',groups.overdue) +
-      renderGroup('รอชำระ','⏳',groups.pending) +
-      renderGroup('กำลังดำเนินการ','⏱️',groups.processing,false) +
-      renderGroup('ชำระแล้ว','✅',groups.paid,false) ||
+      renderGroup('รายการเกินกำหนด','<span class="ic" data-lucide="triangle-alert" style="width:16px;height:16px"></span>',groups.overdue) +
+      renderGroup('รอชำระ','<span class="ic" data-lucide="clock" style="width:16px;height:16px"></span>',groups.pending) +
+      renderGroup('กำลังดำเนินการ','<span class="ic" data-lucide="timer" style="width:16px;height:16px"></span>',groups.processing,false) +
+      renderGroup('ชำระแล้ว','<span class="ic" data-lucide="circle-check" style="width:16px;height:16px"></span>',groups.paid,false) ||
       '<div class="alert alert-success text-center">✅ ไม่มีรายการค้างชำระ</div>';
   } catch(e) { document.getElementById('pageContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
@@ -752,7 +758,7 @@ async function renderWallet() {
       <div class="bal-updated">อัพเดทล่าสุด: ${fmtDate(w.updatedAt)}</div>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-title">💰 เติมเงิน KKU Wallet</div></div>
+      <div class="card-header"><div class="card-title"><span class="ic" data-lucide="banknote" style="width:16px;height:16px"></span> เติมเงิน KKU Wallet</div></div>
       <div class="alert alert-info">💡 สามารถใช้ยอดใน Wallet ชำระค่าธรรมเนียมได้ทันที ไม่มีค่าธรรมเนียมเพิ่มเติม</div>
       <div class="topup-presets">
         ${[100,200,500,1000,2000,5000].map(a=>`<div class="topup-preset" onclick="selectTopup(${a})">${fmtMoney(a)}</div>`).join('')}
@@ -761,12 +767,12 @@ async function renderWallet() {
         <input type="number" id="topupInput" placeholder="หรือพิมพ์จำนวนเงิน (20–50,000 บาท)" min="20" max="50000" style="flex:1">
       </div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-primary" onclick="doTopup('card')" style="flex:1">💳 เติมผ่านบัตร</button>
-        <button class="btn" style="flex:1;background:#138f2d;color:#fff" onclick="doTopup('promptpay')">📱 เติมผ่าน PromptPay</button>
+        <button class="btn btn-primary" onclick="doTopup('card')" style="flex:1"><span class="ic" data-lucide="credit-card" style="width:16px;height:16px"></span> เติมผ่านบัตร</button>
+        <button class="btn" style="flex:1;background:#138f2d;color:#fff" onclick="doTopup('promptpay')"><span class="ic" data-lucide="smartphone" style="width:14px;height:14px"></span> เติมผ่าน PromptPay</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-title">📝 ประวัติการเคลื่อนไหว Wallet</div></div>
+      <div class="card-header"><div class="card-title"><span class="ic" data-lucide="list" style="width:16px;height:16px"></span> ประวัติการเคลื่อนไหว Wallet</div></div>
       <div class="table-wrap">
         <table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th></tr></thead>
         <tbody>${transactions.length?transactions.map(t=>`<tr>
@@ -803,7 +809,7 @@ async function renderHistory() {
     document.getElementById('pageContent').innerHTML = `
     <div class="card">
       <div class="card-header">
-        <div class="card-title">📋 ประวัติธุรกรรมทั้งหมด (${transactions.length} รายการ)</div>
+        <div class="card-title"><span class="ic" data-lucide="clipboard-list" style="width:16px;height:16px"></span> ประวัติธุรกรรมทั้งหมด (${transactions.length} รายการ)</div>
         <select id="txFilter" onchange="filterTx()" style="width:auto;padding:7px 12px;font-size:.82rem">
           <option value="">— ทุกวิธี —</option>
           <option value="promptpay">PromptPay</option>
@@ -830,7 +836,7 @@ function renderTxRows(txns){ return txns.length?txns.map(t=>`<tr>
   <td>${methodLabel(t.method)}</td>
   <td style="font-weight:700;color:var(--purple)">${fmtMoney(t.amount)}</td>
   <td>${statusBadge(t.status)}</td>
-  <td>${t.status==='success'?`<button class="btn btn-gray btn-sm" onclick="dlReceipt('${t.id}')">📄 PDF</button>`:'-'}</td>
+  <td>${t.status==='success'?`<button class="btn btn-gray btn-sm" onclick="dlReceipt('${t.id}')"><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> PDF</button>`:'-'}</td>
 </tr>`).join(''):'<tr><td colspan="6" class="text-center" style="color:#aaa;padding:20px">ไม่พบรายการ</td></tr>'; }
 
 function filterTx(){ const f=document.getElementById('txFilter').value; document.getElementById('txBody').innerHTML=renderTxRows(f?window._allTx.filter(t=>t.method===f):window._allTx); }
@@ -844,7 +850,7 @@ function renderProfile() {
   if (!me) return;
   document.getElementById('pageContent').innerHTML = `
   <div class="card">
-    <div class="card-header"><div class="card-title">👤 ข้อมูลส่วนตัว</div></div>
+    <div class="card-header"><div class="card-title"><span class="ic" data-lucide="user" style="width:16px;height:16px"></span> ข้อมูลส่วนตัว</div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       ${[['ชื่อ-สกุล (ภาษาไทย)',me.name],['ชื่อ-สกุล (ภาษาอังกฤษ)',me.nameEn||'-'],['รหัสนักศึกษา',me.studentId],['ชั้นปี','ปีที่ '+me.year],['คณะ',me.faculty],['สาขาวิชา',me.program||'-'],['Email',me.email||'-'],['เบอร์โทร',me.phone||'-']].map(([l,v])=>`
       <div style="background:#faf5ff;border-radius:10px;padding:14px">
@@ -854,10 +860,10 @@ function renderProfile() {
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-title">🔐 ความปลอดภัย</div></div>
-    <div class="alert alert-info">🔒 ระบบจะออกจากบัญชีอัตโนมัติเมื่อครบ 8 ชั่วโมง</div>
-    <div class="alert alert-info">📧 หากต้องการเปลี่ยนรหัสผ่าน ติดต่อกองทะเบียน โทร 043-009-700 ต่อ 42111</div>
-    <button class="btn btn-red" onclick="doLogout()">🚪 ออกจากระบบ</button>
+    <div class="card-header"><div class="card-title"><span class="ic" data-lucide="lock" style="width:16px;height:16px"></span> ความปลอดภัย</div></div>
+    <div class="alert alert-info"><span class="ic" data-lucide="lock" style="width:14px;height:14px"></span> ระบบจะออกจากบัญชีอัตโนมัติเมื่อครบ 8 ชั่วโมง</div>
+    <div class="alert alert-info"><span class="ic" data-lucide="mail" style="width:14px;height:14px"></span> หากต้องการเปลี่ยนรหัสผ่าน ติดต่อกองทะเบียน โทร 043-009-700 ต่อ 42111</div>
+    <button class="btn btn-red" onclick="doLogout()"><span class="ic" data-lucide="log-out" style="width:14px;height:14px"></span> ออกจากระบบ</button>
   </div>`;
 }
 
@@ -887,7 +893,7 @@ async function loadNotifications() {
         : '';
       return `
       <div class="notif-item${n.read?'':' unread'}" onclick="markRead('${n.id}',this)">
-        <div class="ni-title">${n.type==='broadcast'?'📢':'🔔'} ${escHtml(n.title)}</div>
+        <div class="ni-title">${n.type==='broadcast'?'<span class="ic" data-lucide="megaphone" style="width:14px;height:14px"></span>':'<span class="ic" data-lucide="bell" style="width:14px;height:14px"></span>'} ${escHtml(n.title)}</div>
         <div class="ni-msg">${escHtml(n.message)}</div>
         ${linkHtml}
         <div class="ni-time">${fmtDate(n.createdAt)}</div>
@@ -933,12 +939,12 @@ function renderMethodSelect() {
   </div>
   <div style="font-weight:700;margin-bottom:12px;font-size:.9rem">เลือกวิธีชำระเงิน</div>
   <div class="method-grid">
-    <div class="method-card" onclick="selectMethod('promptpay')"><div class="m-icon">📱</div><div class="m-name">PromptPay QR</div><div class="m-desc">สแกนผ่านแอปธนาคาร</div></div>
-    <div class="method-card" onclick="selectMethod('card')"><div class="m-icon">💳</div><div class="m-name">บัตรเครดิต/เดบิต</div><div class="m-desc">Visa / MasterCard / JCB</div></div>
-    <div class="method-card" onclick="selectMethod('wallet')"><div class="m-icon">👛</div><div class="m-name">KKU Wallet</div><div class="m-desc">ยอดคงเหลือ ${fmtMoney(wallet?.balance||0)}</div></div>
-    <div class="method-card" onclick="selectMethod('banking')"><div class="m-icon">🏦</div><div class="m-name">Internet Banking</div><div class="m-desc">โอนผ่านธนาคาร 7 แห่ง</div></div>
-    <div class="method-card" onclick="selectMethod('ewallet')"><div class="m-icon">📲</div><div class="m-name">e-Wallet</div><div class="m-desc">TrueMoney / LINE Pay / Shopee</div></div>
-    <div class="method-card" onclick="selectMethod('counter')"><div class="m-icon">🏪</div><div class="m-name">Counter Service</div><div class="m-desc">7-Eleven / Big C / Lotus's</div></div>
+    <div class="method-card" onclick="selectMethod('promptpay')"><div class="m-icon"><span class="ic" data-lucide="smartphone" style="width:30px;height:30px"></span></div><div class="m-name">PromptPay QR</div><div class="m-desc">สแกนผ่านแอปธนาคาร</div></div>
+    <div class="method-card" onclick="selectMethod('card')"><div class="m-icon"><span class="ic" data-lucide="credit-card" style="width:30px;height:30px"></span></div><div class="m-name">บัตรเครดิต/เดบิต</div><div class="m-desc">Visa / MasterCard / JCB</div></div>
+    <div class="method-card" onclick="selectMethod('wallet')"><div class="m-icon"><span class="ic" data-lucide="wallet" style="width:30px;height:30px"></span></div><div class="m-name">KKU Wallet</div><div class="m-desc">ยอดคงเหลือ ${fmtMoney(wallet?.balance||0)}</div></div>
+    <div class="method-card" onclick="selectMethod('banking')"><div class="m-icon"><span class="ic" data-lucide="landmark" style="width:30px;height:30px"></span></div><div class="m-name">Internet Banking</div><div class="m-desc">โอนผ่านธนาคาร 7 แห่ง</div></div>
+    <div class="method-card" onclick="selectMethod('ewallet')"><div class="m-icon"><span class="ic" data-lucide="tablet-smartphone" style="width:30px;height:30px"></span></div><div class="m-name">e-Wallet</div><div class="m-desc">TrueMoney / LINE Pay / Shopee</div></div>
+    <div class="method-card" onclick="selectMethod('counter')"><div class="m-icon"><span class="ic" data-lucide="store" style="width:30px;height:30px"></span></div><div class="m-name">Counter Service</div><div class="m-desc">7-Eleven / Big C / Lotus's</div></div>
   </div>`;
 }
 
@@ -964,14 +970,14 @@ async function renderPromptPay() {
       <div class="qr-ref">Ref: ${r.orderId}</div>
       <div class="qr-ref">PromptPay ID: ${r.promptpayId}</div>
     </div>
-    <div class="alert alert-info">📱 ${r.instruction}</div>
+    <div class="alert alert-info"><span class="ic" data-lucide="smartphone" style="width:14px;height:14px"></span> ${r.instruction}</div>
     <div style="text-align:center;font-size:.8rem;color:var(--text2)">⏱️ หมดอายุ: ${fmtDate(r.expiresAt)}</div>
     <div class="alert alert-warn mt-14">⏳ รอการยืนยันจากธนาคาร... (ระบบ demo จำลองหลังสแกน 8 วินาที)</div>
     <div style="display:flex;gap:10px;margin-top:14px">
       <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธีชำระ</button>
-      <button class="btn btn-green" onclick="checkPayStatus('${r.orderId}')" style="flex:1">🔄 ตรวจสอบสถานะ</button>
+      <button class="btn btn-green" onclick="checkPayStatus('${r.orderId}')" style="flex:1"><span class="ic" data-lucide="refresh-cw" style="width:14px;height:14px"></span> ตรวจสอบสถานะ</button>
     </div>`;
-  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderMethodSelect()">← กลับ</button>`; }
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderMethodSelect()"><span class="ic" data-lucide="arrow-left" style="width:14px;height:14px"></span> กลับ</button>`; }
 }
 
 // ── CARD ──
@@ -997,11 +1003,11 @@ function renderCardForm() {
     </div>
     <div class="form-group"><label>CVV / CVC</label><input type="password" id="cardCvv" placeholder="•••" maxlength="4"></div>
   </div>
-  <div class="alert alert-info">🔒 ข้อมูลบัตรถูกเข้ารหัสด้วย TLS 1.3 และผ่านมาตรฐาน PCI-DSS โดย Omise Payment</div>
-  <div class="alert alert-warn">⚠️ Demo: ใส่เลขบัตรอะไรก็ได้ (ระบบ sandbox)</div>
+  <div class="alert alert-info"><span class="ic" data-lucide="shield" style="width:14px;height:14px"></span> ข้อมูลบัตรถูกเข้ารหัสด้วย TLS 1.3 และผ่านมาตรฐาน PCI-DSS โดย Omise Payment</div>
+  <div class="alert alert-warn"><span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> Demo: ใส่เลขบัตรอะไรก็ได้ (ระบบ sandbox)</div>
   <div style="display:flex;gap:10px;margin-top:8px">
     <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
-    <button class="btn btn-primary" onclick="doCardPay()" style="flex:1">💳 ชำระ ${fmtMoney(currentFee.amount)}</button>
+    <button class="btn btn-primary" onclick="doCardPay()" style="flex:1"><span class="ic" data-lucide="credit-card" style="width:16px;height:16px"></span> ชำระ ${fmtMoney(currentFee.amount)}</button>
   </div>`;
 }
 
@@ -1051,7 +1057,7 @@ const BANKS = [
 ];
 function renderBankingSelect() {
   document.getElementById('payModalBody').innerHTML = `
-  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem">🏦 เลือกธนาคารที่ต้องการโอน</div>
+  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem"><span class="ic" data-lucide="landmark" style="width:16px;height:16px"></span> เลือกธนาคารที่ต้องการโอน</div>
   <div class="bank-grid">${BANKS.map(b=>`
     <div class="bank-card" id="bk-${b.code}" onclick="selectBank('${b.code}')" style="--bk:${b.color}">
       <div style="font-size:2rem">${b.emoji}</div>
@@ -1084,9 +1090,9 @@ async function doBankingPay() {
       <div class="banking-row"><span class="lbl">Ref2 (อ้างอิง 2)</span><span class="val">${escHtml(r.ref2)} <button class="copy-btn" onclick="copyText('${r.ref2}')">คัดลอก</button></span></div>
       <div class="banking-row"><span class="lbl">หมดอายุ</span><span class="val">${fmtDate(r.expiresAt)}</span></div>
     </div>
-    <div style="font-weight:700;font-size:.85rem;margin-bottom:8px;color:var(--text)">📋 ขั้นตอนการโอนเงิน</div>
+    <div style="font-weight:700;font-size:.85rem;margin-bottom:8px;color:var(--text)"><span class="ic" data-lucide="list-ordered" style="width:14px;height:14px"></span> ขั้นตอนการโอนเงิน</div>
     <ol class="steps-list">${r.steps.map((s,i)=>`<li data-n="${i+1}">${escHtml(s)}</li>`).join('')}</ol>
-    <div class="alert alert-warn mt-14">⚠️ ${r.instruction}</div>
+    <div class="alert alert-warn mt-14"><span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> ${r.instruction}</div>
 
     <!-- ── SLIP UPLOAD SECTION ── -->
     <div style="border:2px dashed var(--purple);border-radius:14px;padding:16px;margin-top:16px;background:#faf5ff">
@@ -1128,7 +1134,7 @@ async function doBankingPay() {
       <button class="btn btn-gray" onclick="renderBankingSelect()" style="flex:1">← เลือกธนาคารอื่น</button>
       <button class="btn btn-gray" onclick="closePayModal();showPage('fees')" style="flex:1">ปิด (ยืนยันทีหลัง)</button>
     </div>`;
-  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderBankingSelect()">← กลับ</button>`; }
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderBankingSelect()"><span class="ic" data-lucide="arrow-left" style="width:14px;height:14px"></span> กลับ</button>`; }
 }
 
 // ── SLIP IMAGE PREVIEW ──
@@ -1190,7 +1196,7 @@ async function doUploadSlip(paymentId, orderId) {
     // แสดง loading ตรวจสอบ 5 วินาที
     resultEl.className = 'alert alert-info';
     resultEl.innerHTML = `
-      <div style="font-weight:700;margin-bottom:8px">🔍 กำลังตรวจสอบสลิป...</div>
+      <div style="font-weight:700;margin-bottom:8px"><span class="ic" data-lucide="scan-search" style="width:14px;height:14px"></span> กำลังตรวจสอบสลิป...</div>
       <div style="background:#e0e0e0;border-radius:20px;height:10px;overflow:hidden;margin-bottom:6px">
         <div id="autobar" style="height:100%;background:linear-gradient(90deg,var(--purple),#7b1fa2);border-radius:20px;width:0%;transition:width 4.5s linear"></div>
       </div>
@@ -1223,7 +1229,7 @@ async function doUploadSlip(paymentId, orderId) {
       const failChecks = vr.checks ? vr.checks.filter(c => !c.pass).map(c => `• ${c.name}: ${c.detail}`).join('\n') : '';
       resultEl.className = 'alert alert-warn';
       resultEl.innerHTML = `
-        <div style="font-weight:700;margin-bottom:6px">⚠️ ระบบตรวจสอบพบปัญหา</div>
+        <div style="font-weight:700;margin-bottom:6px"><span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> ระบบตรวจสอบพบปัญหา</div>
         <div style="font-size:.8rem;white-space:pre-line;margin-bottom:8px">${escHtml(failChecks)}</div>
         <div style="font-size:.78rem;color:#e65100">รายการถูกส่งให้ Admin ตรวจสอบ จะได้รับแจ้งเตือนเมื่อยืนยันแล้ว</div>`;
     }
@@ -1246,7 +1252,7 @@ const EWALLETS = [
 ];
 function renderEwalletSelect() {
   document.getElementById('payModalBody').innerHTML = `
-  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem">📲 เลือก e-Wallet</div>
+  <div style="font-weight:700;margin-bottom:12px;font-size:.9rem"><span class="ic" data-lucide="smartphone" style="width:16px;height:16px"></span> เลือก e-Wallet</div>
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
   ${EWALLETS.map(e=>`
     <div class="fee-item" id="ew-${e.code}" onclick="selectEwallet('${e.code}')" style="cursor:pointer">
@@ -1279,14 +1285,14 @@ async function doEwalletPay() {
       <div class="qr-amount" style="color:${r.color}">${fmtMoney(r.amount)}</div>
       <div class="qr-ref">Ref: ${r.orderId}</div>
     </div>
-    <div class="alert alert-info">📲 ${r.instruction}</div>
+    <div class="alert alert-info"><span class="ic" data-lucide="smartphone" style="width:14px;height:14px"></span> ${r.instruction}</div>
     <div style="text-align:center;font-size:.8rem;color:var(--text2)">⏱️ หมดอายุ: ${fmtDate(r.expiresAt)}</div>
     <div class="alert alert-warn mt-14">⏳ รอการยืนยัน... (ระบบ demo จำลองหลัง 10 วินาที)</div>
     <div style="display:flex;gap:10px;margin-top:14px">
       <button class="btn btn-gray" onclick="renderEwalletSelect()" style="flex:1">← เลือก Wallet อื่น</button>
       <button class="btn btn-green" onclick="closePayModal();renderFees()" style="flex:1">✅ รับทราบ</button>
     </div>`;
-  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderEwalletSelect()">← กลับ</button>`; }
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderEwalletSelect()"><span class="ic" data-lucide="arrow-left" style="width:14px;height:14px"></span> กลับ</button>`; }
 }
 
 // ── COUNTER SERVICE ──
@@ -1304,7 +1310,7 @@ async function renderCounter() {
       <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>ค่าบริการ Counter</span><span style="font-weight:700;color:var(--text2)">${fmtMoney(r.serviceFee)}</span></div>
       <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #ddd"><span style="font-weight:700">รวมชำระ</span><span style="font-weight:800;color:var(--purple);font-size:1.1rem">${fmtMoney(r.total)}</span></div>
     </div>
-    <div style="font-weight:700;font-size:.85rem;margin-bottom:8px">🏪 จุดชำระเงิน</div>
+    <div style="font-weight:700;font-size:.85rem;margin-bottom:8px"><span class="ic" data-lucide="store" style="width:14px;height:14px"></span> จุดชำระเงิน</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
       ${r.locations.map(l=>`<div style="background:#f5f5f5;border-radius:8px;padding:8px;font-size:.78rem;text-align:center">${escHtml(l)}</div>`).join('')}
     </div>
@@ -1313,14 +1319,14 @@ async function renderCounter() {
       <button class="btn btn-gray" onclick="renderMethodSelect()" style="flex:1">← เปลี่ยนวิธี</button>
       <button class="btn btn-green" onclick="closePayModal();showPage('fees')" style="flex:1">✅ รับทราบ</button>
     </div>`;
-  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderMethodSelect()">← กลับ</button>`; }
+  } catch(e) { document.getElementById('payModalBody').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div><button class="btn btn-gray mt-14" onclick="renderMethodSelect()"><span class="ic" data-lucide="arrow-left" style="width:14px;height:14px"></span> กลับ</button>`; }
 }
 
 // ── SUCCESS ──
 function renderSuccess(orderId, amount, method, newBalance=null) {
   document.getElementById('payModalBody').innerHTML = `
   <div class="success-box">
-    <div class="success-icon">🎉</div>
+    <div class="success-icon"><span class="ic" data-lucide="circle-check" style="width:64px;height:64px"></span></div>
     <h3>ชำระเงินสำเร็จ!</h3>
     <p>รายการ <b>${escHtml(currentFee?.label||'')}</b></p>
     <p style="font-size:1.4rem;font-weight:800;color:var(--purple);margin:10px 0">${fmtMoney(amount)}</p>
@@ -1331,7 +1337,7 @@ function renderSuccess(orderId, amount, method, newBalance=null) {
   </div>
   <div style="display:flex;gap:10px;margin-top:8px">
     <button class="btn btn-gray" onclick="closePayModal();renderFees()" style="flex:1">✅ เสร็จสิ้น</button>
-    <button class="btn btn-primary" onclick="closePayModal();showPage('history')" style="flex:1">📋 ดูประวัติ</button>
+    <button class="btn btn-primary" onclick="closePayModal();showPage('history')" style="flex:1"><span class="ic" data-lucide="clipboard-list" style="width:14px;height:14px"></span> ดูประวัติ</button>
   </div>`;
 }
 
@@ -1378,6 +1384,27 @@ function sendQuick(msg) { document.getElementById('chatInput').value=msg; sendCh
 
 // ── START ──
 init();
+</script>
+<script>if(window.lucide){lucide.createIcons();}
+function reinitIcons() {
+  if (window.lucide) { lucide.createIcons(); }
+}
+</script>
+
+<script>
+// Re-init Lucide icons whenever page content is dynamically updated
+(function() {
+  var target = document.getElementById('pageContent') || document.body;
+  if (!target) return;
+  var mo = new MutationObserver(function() {
+    if (window.lucide) lucide.createIcons();
+  });
+  mo.observe(target, { childList: true, subtree: true });
+  // Also init on modal body changes
+  var mbo = document.getElementById('payModalBody');
+  if (mbo) mo.observe(mbo, { childList: true, subtree: false });
+  if (window.lucide) lucide.createIcons();
+})();
 </script>
 </body>
 </html>
