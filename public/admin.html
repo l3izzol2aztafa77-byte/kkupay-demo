@@ -241,22 +241,28 @@ function doLogout(){
   token=null; me=null; showLogin();
 }
 
+function reinitIcons() {
+  if (window.lucide) lucide.createIcons();
+}
+
 // ── TABS ──
 function showTab(t) {
   const tabOrder = ['overview','transactions','slipconfirm','students','fees','refunds','settlement','audit','merchants','merchantregs','notify','apidocs'];
   document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.remove('active'); if(tabOrder[i]===t) el.classList.add('active'); });
-  if(t==='overview') renderOverview();
-  else if(t==='transactions') renderTransactions();
-  else if(t==='slipconfirm') renderSlipConfirm();
-  else if(t==='students') renderStudents();
-  else if(t==='fees') renderFees();
-  else if(t==='refunds') renderRefunds();
-  else if(t==='settlement') renderSettlement();
-  else if(t==='audit') renderAudit();
-  else if(t==='merchants') renderMerchants();
-  else if(t==='merchantregs') renderMerchantRegistrations();
-  else if(t==='notify') renderNotify();
-  else if(t==='apidocs') renderApiDocs();
+  let p;
+  if(t==='overview') p=renderOverview();
+  else if(t==='transactions') p=renderTransactions();
+  else if(t==='slipconfirm') p=renderSlipConfirm();
+  else if(t==='students') p=renderStudents();
+  else if(t==='fees') p=renderFees();
+  else if(t==='refunds') p=renderRefunds();
+  else if(t==='settlement') p=renderSettlement();
+  else if(t==='audit') p=renderAudit();
+  else if(t==='merchants') p=renderMerchants();
+  else if(t==='merchantregs') p=renderMerchantRegistrations();
+  else if(t==='notify') p=renderNotify();
+  else if(t==='apidocs') { renderApiDocs(); reinitIcons(); return; }
+  if(p && p.then) p.then(reinitIcons).catch(()=>{});
 }
 
 // ── OVERVIEW ──
@@ -1146,18 +1152,10 @@ init();
 </script>
 
 <script>
-(function() {
-  function initIcons() { if (window.lucide) lucide.createIcons(); }
-  initIcons();
-  var mo = new MutationObserver(initIcons);
-  document.addEventListener('DOMContentLoaded', function() {
-    var tc = document.getElementById('tabContent');
-    if (tc) mo.observe(tc, { childList: true, subtree: true });
-    var modal = document.getElementById('modalBody');
-    if (modal) mo.observe(modal, { childList: true, subtree: true });
-    initIcons();
-  });
-})();
+// Init Lucide icons once on load — dynamic renders call ic() inline
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.lucide) lucide.createIcons();
+});
 </script>
 </body>
 </html>

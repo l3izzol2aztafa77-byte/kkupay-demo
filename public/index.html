@@ -678,11 +678,13 @@ function showPage(page) {
   const [t,s] = titles[page]||['—',''];
   document.getElementById('pageTitle').textContent = t;
   document.getElementById('pageSubtitle').textContent = s;
-  if (page==='dashboard') renderDashboard();
-  else if (page==='fees') renderFees();
-  else if (page==='wallet') renderWallet();
-  else if (page==='history') renderHistory();
-  else if (page==='profile') renderProfile();
+  let p;
+  if (page==='dashboard') p=renderDashboard();
+  else if (page==='fees') p=renderFees();
+  else if (page==='wallet') p=renderWallet();
+  else if (page==='history') p=renderHistory();
+  else if (page==='profile') { renderProfile(); reinitIcons(); return; }
+  if (p && p.then) p.then(reinitIcons).catch(()=>{});
 }
 
 // ── DASHBOARD ──
@@ -1404,26 +1406,13 @@ function sendQuick(msg) { document.getElementById('chatInput').value=msg; sendCh
 // ── START ──
 init();
 </script>
-<script>if(window.lucide){lucide.createIcons();}
-function reinitIcons() {
-  if (window.lucide) { lucide.createIcons(); }
-}
-</script>
-
 <script>
-// Re-init Lucide icons whenever page content is dynamically updated
-(function() {
-  var target = document.getElementById('pageContent') || document.body;
-  if (!target) return;
-  var mo = new MutationObserver(function() {
-    if (window.lucide) lucide.createIcons();
-  });
-  mo.observe(target, { childList: true, subtree: true });
-  // Also init on modal body changes
-  var mbo = document.getElementById('payModalBody');
-  if (mbo) mo.observe(mbo, { childList: true, subtree: false });
+function reinitIcons() {
   if (window.lucide) lucide.createIcons();
-})();
+}
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.lucide) lucide.createIcons();
+});
 </script>
 </body>
 </html>
