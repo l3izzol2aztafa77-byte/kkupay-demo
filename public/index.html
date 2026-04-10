@@ -518,10 +518,29 @@ let selectedEwallet = null;
 let topupAmt = 0;
 
 const API = async (path, opts={}) => {
-  const r = await fetch(path, { headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json', ...opts.headers }, ...opts });
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.error||'เกิดข้อผิดพลาด');
-  return j;
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 15000);
+  try {
+    const r = await fetch(path, {
+      signal: controller.signal,
+      headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json', ...opts.headers },
+      ...opts
+    });
+    clearTimeout(tid);
+    if (r.status === 401) {
+      localStorage.removeItem('kkupay_token');
+      localStorage.removeItem('kkupay_admin_token');
+      location.reload();
+      throw new Error('Session หมดอายุ กรุณา Login ใหม่');
+    }
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error||'เกิดข้อผิดพลาด');
+    return j;
+  } catch(e) {
+    clearTimeout(tid);
+    if (e.name === 'AbortError') throw new Error('การเชื่อมต่อหมดเวลา กรุณาลองใหม่');
+    throw e;
+  }
 };
 
 const fmtMoney = n => '฿'+parseFloat(n).toLocaleString('th-TH',{minimumFractionDigits:2});

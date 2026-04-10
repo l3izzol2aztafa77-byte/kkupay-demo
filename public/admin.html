@@ -175,10 +175,30 @@ let me = null;
 let revenueChart = null, methodChart = null;
 
 const API = async (path, opts={}) => {
-  const r = await fetch(path, { headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts.headers||{})}, ...opts });
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.error||'Error');
-  return j;
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  try {
+    const r = await fetch(path, {
+      signal: controller.signal,
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts.headers||{})},
+      ...opts
+    });
+    clearTimeout(tid);
+    if (r.status === 401) {
+      // Token expired or invalid — force re-login
+      localStorage.removeItem('kkupay_admin_token');
+      localStorage.removeItem('kkupay_token');
+      showLogin();
+      throw new Error('Session หมดอายุ กรุณา Login ใหม่');
+    }
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error||`Error ${r.status}`);
+    return j;
+  } catch(e) {
+    clearTimeout(tid);
+    if (e.name === 'AbortError') throw new Error('การเชื่อมต่อหมดเวลา (timeout) กรุณาลองใหม่');
+    throw e;
+  }
 };
 const fmtMoney = n => '฿'+parseFloat(n||0).toLocaleString('th-TH',{minimumFractionDigits:2});
 const fmtDate = s => { try{ return new Date(s).toLocaleString('th-TH'); }catch{ return s||'-'; } };
