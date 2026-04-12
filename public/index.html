@@ -270,12 +270,6 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 .ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
 .ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 </style>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<style>
-/* Lucide icon helper */
-.ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
-.ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
-</style>
 </head>
 <body>
 <!-- ══════════════ LOGIN ══════════════ -->
@@ -628,6 +622,11 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 </div>
 
 <script>
+// ── LUCIDE ICONS REFRESH ──
+function reinitIcons() {
+  if (window.lucide) window.lucide.createIcons();
+}
+
 // ── MOBILE SIDEBAR ──
 function toggleSidebar() {
   const sb = document.getElementById('mainSidebar');
