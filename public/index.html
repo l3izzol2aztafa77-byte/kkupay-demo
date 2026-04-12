@@ -187,6 +187,88 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 .text-center{text-align:center}.mt-8{margin-top:8px}.mt-14{margin-top:14px}.mt-20{margin-top:20px}
 .d-none{display:none!important}
 .flex{display:flex}.gap-8{gap:8px}.items-center{align-items:center}.justify-between{justify-content:space-between}.flex-wrap{flex-wrap:wrap}
+
+/* ── HAMBURGER BUTTON ── */
+#hamburgerBtn{display:none;position:fixed;top:14px;left:14px;z-index:300;background:var(--purple);border:none;border-radius:10px;width:42px;height:42px;cursor:pointer;color:#fff;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(74,0,114,.35)}
+#sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:149}
+
+/* ── MOBILE BOTTOM NAV ── */
+#mobileBottomNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1.5px solid var(--border);padding:0;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+#mobileBottomNav .bnav-inner{display:flex;justify-content:space-around;align-items:center;height:60px}
+#mobileBottomNav .bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:.62rem;color:var(--text2);font-weight:600;flex:1;padding:8px 0;transition:.15s}
+#mobileBottomNav .bnav-item:hover,#mobileBottomNav .bnav-item.active{color:var(--purple)}
+#mobileBottomNav .bnav-item.pay-btn{color:#fff;background:var(--purple);border-radius:50%;width:46px;height:46px;font-size:1.4rem;flex:0 0 46px;margin:0 auto;box-shadow:0 4px 14px rgba(74,0,114,.4);padding:0}
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+  /* Sidebar hidden by default on mobile */
+  .sidebar{transform:translateX(-240px);transition:transform .25s ease;z-index:150}
+  .sidebar.open{transform:translateX(0)}
+  /* Main area fills full width */
+  .main{margin-left:0;padding:70px 14px 80px}
+  /* Show hamburger */
+  #hamburgerBtn{display:flex}
+  /* Show overlay when sidebar open */
+  #sidebarOverlay.open{display:block}
+  /* Show bottom nav */
+  #mobileBottomNav{display:block}
+  /* Hide topbar logout on mobile (bottom nav handles nav) */
+  .topbar-actions .btn-gray{display:none}
+  /* Topbar compact */
+  .topbar{margin-bottom:14px;padding-left:42px}
+  .topbar-title h2{font-size:1.1rem}
+  /* Stat grid smaller min */
+  .stat-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+  /* Payment method grid: 2 col but smaller */
+  .method-grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .method-card{padding:10px 6px}
+  /* Bank grid */
+  .bank-grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+  /* Chat window — full width on mobile */
+  #chatWindow{width:calc(100vw - 24px);right:12px;bottom:72px;height:420px}
+  #chatBtn{bottom:70px;right:14px;width:50px;height:50px}
+  /* Notification panel — full width on mobile */
+  #notifPanel{width:calc(100vw - 24px);right:12px;top:58px}
+  /* Modal full width */
+  .modal{border-radius:14px 14px 0 0;max-height:92vh}
+  .modal-overlay{align-items:flex-end;padding:0}
+  /* Card padding tighter */
+  .card{padding:16px}
+  /* Login card full width */
+  .login-card{padding:28px 18px;border-radius:14px}
+  /* Form grids inline → stack */
+  div[style*="grid-template-columns:1fr 1fr"]{display:block!important}
+  div[style*="grid-template-columns:1fr 1fr"] .form-group{margin-bottom:10px}
+  /* Wallet hero smaller */
+  .wallet-hero .bal-val{font-size:2.2rem}
+  /* Topup presets wrappable */
+  .topup-presets{gap:6px}
+  .topup-preset{padding:7px 12px;font-size:.8rem}
+  /* Table scroll */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Sidebar footer hidden (info in bottom nav) */
+  .sidebar-footer{display:none}
+  /* Sidebar nav items larger touch targets */
+  .nav-item{padding:15px 20px;font-size:.95rem}
+  /* Barcode readable */
+  .barcode-visual{font-size:1.5rem;letter-spacing:.08em}
+  /* QR box compact */
+  .qr-box{padding:16px}
+  .qr-box img{max-width:180px}
+  .qr-box .qr-amount{font-size:1.5rem}
+}
+
+@media (max-width: 400px) {
+  .method-grid{grid-template-columns:1fr 1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .main{padding:65px 10px 78px}
+}
+</style>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* Lucide icon helper */
+.ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
+.ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 </style>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
@@ -417,11 +499,30 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 
 <!-- ══════════════ APP ══════════════ -->
 <div id="app">
+
+<!-- Hamburger Button (mobile only) -->
+<button id="hamburgerBtn" onclick="toggleSidebar()" aria-label="เมนู">
+  <span class="ic" data-lucide="menu" style="width:22px;height:22px"></span>
+</button>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
 <!-- Sidebar -->
+<<<<<<< Updated upstream
 <div class="sidebar">
   <div class="sidebar-logo">
     <h2><span class="ic" data-lucide="graduation-cap" style="width:22px;height:22px"></span> KKU Pay</h2>
     <p>ระบบชำระเงินออนไลน์ มข.</p>
+=======
+<div class="sidebar" id="mainSidebar">
+  <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <h2><span class="ic" data-lucide="graduation-cap" style="width:22px;height:22px"></span> KKU Pay</h2>
+      <p>ระบบชำระเงินออนไลน์ มข.</p>
+    </div>
+    <button onclick="closeSidebar()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;width:32px;height:32px;color:#fff;cursor:pointer;align-items:center;justify-content:center;display:none" id="sidebarCloseBtn"><span class="ic" data-lucide="x" style="width:18px;height:18px"></span></button>
+>>>>>>> Stashed changes
   </div>
   <div class="sidebar-user">
     <div class="name" id="sbName">—</div>
@@ -467,6 +568,33 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
   </div>
   <div id="notifList"></div>
 </div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<nav id="mobileBottomNav">
+  <div class="bnav-inner">
+    <button class="bnav-item active" id="bnav-dashboard" onclick="showPage('dashboard');setBnavActive('bnav-dashboard')">
+      <span class="ic" data-lucide="home" style="width:20px;height:20px"></span>
+      หน้าหลัก
+    </button>
+    <button class="bnav-item" id="bnav-fees" onclick="showPage('fees');setBnavActive('bnav-fees')">
+      <span class="ic" data-lucide="credit-card" style="width:20px;height:20px"></span>
+      ค่าธรรมเนียม
+    </button>
+    <button class="bnav-item" id="bnav-wallet" onclick="showPage('wallet');setBnavActive('bnav-wallet')">
+      <span class="ic" data-lucide="wallet" style="width:20px;height:20px"></span>
+      Wallet
+    </button>
+    <button class="bnav-item" id="bnav-history" onclick="showPage('history');setBnavActive('bnav-history')">
+      <span class="ic" data-lucide="clipboard-list" style="width:20px;height:20px"></span>
+      ประวัติ
+    </button>
+    <button class="bnav-item" id="bnav-profile" onclick="showPage('profile');setBnavActive('bnav-profile')">
+      <span class="ic" data-lucide="user" style="width:20px;height:20px"></span>
+      โปรไฟล์
+    </button>
+  </div>
+</nav>
+
 </div>
 
 <!-- ══════════════ PAYMENT MODAL ══════════════ -->
@@ -507,6 +635,37 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 </div>
 
 <script>
+// ── MOBILE SIDEBAR ──
+function toggleSidebar() {
+  const sb = document.getElementById('mainSidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  const cb = document.getElementById('sidebarCloseBtn');
+  const isOpen = sb.classList.contains('open');
+  if (isOpen) {
+    sb.classList.remove('open');
+    ov.classList.remove('open');
+    cb.style.display = 'none';
+  } else {
+    sb.classList.add('open');
+    ov.classList.add('open');
+    cb.style.display = 'flex';
+  }
+}
+function closeSidebar() {
+  const sb = document.getElementById('mainSidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  const cb = document.getElementById('sidebarCloseBtn');
+  sb.classList.remove('open');
+  ov.classList.remove('open');
+  if(cb) cb.style.display = 'none';
+}
+function setBnavActive(id) {
+  document.querySelectorAll('#mobileBottomNav .bnav-item').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  closeSidebar();
+}
+
 // ── STATE ──
 let token = localStorage.getItem('kkupay_token');
 let me = null;
@@ -674,6 +833,8 @@ function showRgErr(msg) {
 // ── PAGES ──
 function showPage(page) {
   document.querySelectorAll('.nav-item').forEach((el,i)=>{ el.classList.remove('active'); if(['dashboard','fees','wallet','history','profile'][i]===page) el.classList.add('active'); });
+  // Sync bottom nav
+  setBnavActive('bnav-'+page);
   const titles = { dashboard:['หน้าหลัก','ภาพรวมบัญชีและรายการที่รอชำระ'], fees:['รายการค่าธรรมเนียม','เลือกรายการเพื่อดำเนินการชำระเงิน'], wallet:['KKU Wallet','กระเป๋าเงินอิเล็กทรอนิกส์ภายในมหาวิทยาลัย'], history:['ประวัติธุรกรรม','บันทึกการชำระเงินทั้งหมด'], profile:['ข้อมูลส่วนตัว','ข้อมูลนักศึกษาและบัญชีผู้ใช้'] };
   const [t,s] = titles[page]||['—',''];
   document.getElementById('pageTitle').textContent = t;
@@ -685,6 +846,10 @@ function showPage(page) {
   else if (page==='history') p=renderHistory();
   else if (page==='profile') { renderProfile(); reinitIcons(); return; }
   if (p && p.then) p.then(reinitIcons).catch(()=>{});
+<<<<<<< Updated upstream
+=======
+  closeSidebar();
+>>>>>>> Stashed changes
 }
 
 // ── DASHBOARD ──

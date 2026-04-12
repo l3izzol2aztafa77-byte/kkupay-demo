@@ -100,6 +100,60 @@ textarea{resize:vertical;min-height:70px}
 .kpi-item .kpi-lbl{font-size:.72rem;color:var(--text2);margin-top:3px}
 .filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .filter-row input,.filter-row select{flex:1;min-width:140px}
+
+/* ── MOBILE RESPONSIVE (Admin) ── */
+@media (max-width: 768px) {
+  /* Topbar compact */
+  .topbar{padding:0 12px;height:50px}
+  .topbar-left h1{font-size:.92rem}
+  .topbar-left .env-tag{display:none}
+  .topbar-right .btn-gray:last-child{display:none} /* hide Student Portal link */
+  .user-pill{font-size:.72rem;padding:4px 10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Tabs scroll fine already — just reduce padding */
+  .tabs-wrap{padding:0 8px;top:50px}
+  .tab{padding:12px 10px;font-size:.75rem}
+  /* Content padding */
+  .content{padding:14px 12px}
+  /* Chart grid stack vertically */
+  .chart-grid{grid-template-columns:1fr!important;gap:12px}
+  .chart-box{height:200px}
+  /* KPI row — smaller min-width */
+  .kpi-item{min-width:100px;padding:10px}
+  .kpi-item .kpi-val{font-size:1.1rem}
+  /* Filter row — stack */
+  .filter-row{flex-direction:column;gap:8px}
+  .filter-row input,.filter-row select{min-width:100%;flex:none}
+  /* Stat grid smaller */
+  .stat-grid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .stat-val{font-size:1.2rem}
+  /* Card */
+  .card{padding:14px}
+  /* Modal bottom sheet */
+  .modal{border-radius:14px 14px 0 0;max-height:90vh}
+  .modal-overlay{align-items:flex-end;padding:0}
+  /* Action buttons wrap */
+  .action-btns{flex-wrap:wrap;gap:4px}
+  .action-btns .btn-sm{font-size:.72rem;padding:5px 9px}
+  /* Table font smaller */
+  td{font-size:.74rem;padding:7px 8px}
+  th{font-size:.72rem;padding:8px}
+  /* Login card */
+  .login-card{padding:28px 18px;border-radius:14px}
+}
+
+@media (max-width: 480px) {
+  .topbar-right{gap:6px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .kpi-row{gap:8px}
+  .kpi-item{min-width:80px}
+}
+</style>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+.ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 </style>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
