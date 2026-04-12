@@ -509,12 +509,6 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <!-- Sidebar -->
-<<<<<<< Updated upstream
-<div class="sidebar">
-  <div class="sidebar-logo">
-    <h2><span class="ic" data-lucide="graduation-cap" style="width:22px;height:22px"></span> KKU Pay</h2>
-    <p>ระบบชำระเงินออนไลน์ มข.</p>
-=======
 <div class="sidebar" id="mainSidebar">
   <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between">
     <div>
@@ -522,7 +516,6 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
       <p>ระบบชำระเงินออนไลน์ มข.</p>
     </div>
     <button onclick="closeSidebar()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;width:32px;height:32px;color:#fff;cursor:pointer;align-items:center;justify-content:center;display:none" id="sidebarCloseBtn"><span class="ic" data-lucide="x" style="width:18px;height:18px"></span></button>
->>>>>>> Stashed changes
   </div>
   <div class="sidebar-user">
     <div class="name" id="sbName">—</div>
@@ -846,10 +839,7 @@ function showPage(page) {
   else if (page==='history') p=renderHistory();
   else if (page==='profile') { renderProfile(); reinitIcons(); return; }
   if (p && p.then) p.then(reinitIcons).catch(()=>{});
-<<<<<<< Updated upstream
-=======
   closeSidebar();
->>>>>>> Stashed changes
 }
 
 // ── DASHBOARD ──
@@ -1523,61 +1513,4 @@ function renderSuccess(orderId, amount, method, newBalance=null) {
   </div>
   <div style="display:flex;gap:10px;margin-top:8px">
     <button class="btn btn-gray" onclick="closePayModal();renderFees()" style="flex:1">✅ เสร็จสิ้น</button>
-    <button class="btn btn-primary" onclick="closePayModal();showPage('history')" style="flex:1"><span class="ic" data-lucide="clipboard-list" style="width:14px;height:14px"></span> ดูประวัติ</button>
-  </div>`;
-}
-
-async function checkPayStatus(orderId) {
-  const { transactions } = await API('/api/transactions');
-  const tx = transactions.find(t => t.ref === orderId);
-  if (tx?.status === 'success') renderSuccess(orderId, tx.amount, 'PromptPay QR');
-  else alert('⏳ ยังรอยืนยัน กรุณารอสักครู่...');
-}
-
-// ── CHAT ──
-function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); if(document.getElementById('chatWindow').classList.contains('open')) loadChatHistory(); }
-
-async function loadChatHistory() {
-  try {
-    const { messages } = await API('/api/chat/history');
-    const box = document.getElementById('chatMsgs');
-    if (messages.length) { box.innerHTML=''; messages.forEach(m=>appendMsg(m.from,m.message,m.createdAt)); }
-    box.scrollTop = box.scrollHeight;
-  } catch {}
-}
-
-function appendMsg(from, text, time) {
-  const box = document.getElementById('chatMsgs');
-  const d = document.createElement('div');
-  d.className = 'msg msg-'+from;
-  d.innerHTML = escHtml(text).replace(/\n/g,'<br>') + `<div class="msg-time">${time?new Date(time).toLocaleTimeString('th-TH'):''}</div>`;
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
-}
-
-async function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  appendMsg('user', msg, new Date().toISOString());
-  try {
-    const r = await API('/api/chat',{method:'POST',body:JSON.stringify({message:msg})});
-    appendMsg('bot', r.botReply.message, r.botReply.createdAt);
-  } catch { appendMsg('bot','ขออภัย เกิดข้อผิดพลาด กรุณาลองใหม่'); }
-}
-function sendQuick(msg) { document.getElementById('chatInput').value=msg; sendChat(); }
-
-// ── START ──
-init();
-</script>
-<script>
-function reinitIcons() {
-  if (window.lucide) lucide.createIcons();
-}
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.lucide) lucide.createIcons();
-});
-</script>
-</body>
-</html>
+    <button class="btn btn-primary" onclick="closePayModal();showPage('history')" st
