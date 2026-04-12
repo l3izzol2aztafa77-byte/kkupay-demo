@@ -1182,34 +1182,4 @@ async function saveEditFee(id) {
 
 function openMerchantModal() {
   openModal('+ เพิ่ม Merchant', `
-    <div class="form-group"><label>ชื่อ Merchant *</label><input type="text" id="mName" placeholder="ชื่อร้าน/หน่วยงาน"></div>
-    <div class="form-row">
-      <div class="form-group"><label>หมวดหมู่</label>
-        <select id="mCat"><option value="food">food</option><option value="service">service</option><option value="store">store</option><option value="health">health</option><option value="sport">sport</option><option value="other">other</option></select>
-      </div>
-      <div class="form-group"><label>MDR (%)</label><input type="number" id="mMdr" value="1.5" min="0" max="5" step="0.5"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:14px">
-      <button class="btn btn-gray" onclick="closeModal()" style="flex:1">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="saveMerchant()" style="flex:1">✅ บันทึก</button>
-    </div>`);
-}
-
-async function saveMerchant() {
-  const body={name:document.getElementById('mName').value.trim(),category:document.getElementById('mCat').value,mdr:parseFloat(document.getElementById('mMdr').value),status:'active'};
-  if(!body.name) return alert('กรุณาระบุชื่อ');
-  try { await API('/api/admin/merchants',{method:'POST',body:JSON.stringify(body)}); closeModal(); renderMerchants(); }
-  catch(e){ alert('❌ '+e.message); }
-}
-
-init();
-</script>
-
-<script>
-// Init Lucide icons once on load — dynamic renders call ic() inline
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.lucide) lucide.createIcons();
-});
-</script>
-</body>
-</html>
+    <div class="form-group"><label>ชื่อ Merchant *</label><input type="text" id
