@@ -540,6 +540,22 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     <div class="nav-item" onclick="showPage('history')"><span class="icon"><span class="ic" data-lucide="clipboard-list" style="width:18px;height:18px"></span></span>ประวัติธุรกรรม</div>
     <div class="nav-item" onclick="showPage('profile')"><span class="icon"><span class="ic" data-lucide="user" style="width:18px;height:18px"></span></span>ข้อมูลส่วนตัว</div>
   </nav>
+
+  <!-- ── ปุ่ม จ่าย / รับ ใน Sidebar ── -->
+  <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)">
+    <div style="font-size:.68rem;color:rgba(255,255,255,.45);font-weight:700;letter-spacing:.05em;margin-bottom:8px">การโอนเงิน</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button onclick="showPage('wallet');setTimeout(()=>openSheet('sheetPay'),120)" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;cursor:pointer;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:.2s;font-size:.75rem;font-weight:700" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
+        <span class="ic" data-lucide="scan-line" style="width:20px;height:20px"></span>
+        จ่ายเงิน
+      </button>
+      <button onclick="showPage('wallet');setTimeout(()=>openSheet('sheetReceive'),120)" style="background:rgba(245,197,24,.15);border:1.5px solid rgba(245,197,24,.35);border-radius:12px;color:var(--gold);cursor:pointer;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:.2s;font-size:.75rem;font-weight:700" onmouseover="this.style.background='rgba(245,197,24,.28)'" onmouseout="this.style.background='rgba(245,197,24,.15)'">
+        <span class="ic" data-lucide="qr-code" style="width:20px;height:20px"></span>
+        รับเงิน
+      </button>
+    </div>
+  </div>
+
   <div class="sidebar-footer">
     <div class="balance">ยอดกระเป๋าเงิน</div>
     <div class="bal-amt" id="sbBalance">฿0.00</div>
