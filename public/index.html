@@ -209,11 +209,14 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 #sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:149}
 
 /* ── MOBILE BOTTOM NAV ── */
-#mobileBottomNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1.5px solid var(--border);padding:0;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
-#mobileBottomNav .bnav-inner{display:flex;justify-content:space-around;align-items:center;height:60px}
-#mobileBottomNav .bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:.62rem;color:var(--text2);font-weight:600;flex:1;padding:8px 0;transition:.15s}
+#mobileBottomNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1.5px solid var(--border);padding:0 0 env(safe-area-inset-bottom,0) 0;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+#mobileBottomNav .bnav-inner{display:flex;justify-content:space-around;align-items:center;height:64px}
+#mobileBottomNav .bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:.6rem;color:var(--text2);font-weight:600;flex:1;padding:6px 0 4px;transition:.15s;line-height:1.2}
 #mobileBottomNav .bnav-item:hover,#mobileBottomNav .bnav-item.active{color:var(--purple)}
-#mobileBottomNav .bnav-item.pay-btn{color:#fff;background:var(--purple);border-radius:50%;width:46px;height:46px;font-size:1.4rem;flex:0 0 46px;margin:0 auto;box-shadow:0 4px 14px rgba(74,0,114,.4);padding:0}
+/* ปุ่ม scan กลาง — โผล่เหนือ nav bar */
+#mobileBottomNav .bnav-scan-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:6px;position:relative;cursor:pointer;background:none;border:none}
+#mobileBottomNav .bnav-scan-bubble{position:absolute;top:-22px;width:54px;height:54px;background:var(--purple);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(74,0,114,.5);border:3px solid #fff}
+#mobileBottomNav .bnav-scan-label{font-size:.6rem;font-weight:800;color:var(--purple);margin-top:36px;line-height:1}
 
 /* ── MOBILE RESPONSIVE ── */
 @media (max-width: 768px) {
@@ -604,11 +607,11 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
       <span class="ic" data-lucide="wallet" style="width:20px;height:20px"></span>
       Wallet
     </button>
-    <button class="bnav-item" id="bnav-scan" onclick="showPage('scan');setBnavActive('bnav-scan')" style="position:relative">
-      <span style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:var(--purple);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(74,0,114,.5);border:3px solid #fff">
-        <span class="ic" data-lucide="scan-line" style="width:22px;height:22px;color:#fff"></span>
-      </span>
-      <span style="margin-top:14px;display:block;color:var(--purple);font-weight:800">สแกน</span>
+    <button class="bnav-scan-wrap" id="bnav-scan" onclick="showPage('scan');setBnavActive('bnav-scan')">
+      <div class="bnav-scan-bubble">
+        <span class="ic" data-lucide="scan-line" style="width:24px;height:24px;color:#fff"></span>
+      </div>
+      <span class="bnav-scan-label">สแกน</span>
     </button>
     <button class="bnav-item" id="bnav-history" onclick="showPage('history');setBnavActive('bnav-history')">
       <span class="ic" data-lucide="clipboard-list" style="width:20px;height:20px"></span>
@@ -1700,17 +1703,88 @@ function startInlineScan() {
   resetInlineScan();
   const video = document.getElementById('scanVideoInline');
   const status = document.getElementById('scanStatusInline');
+  const scanArea = document.getElementById('scanAreaInline');
   if (!video || !status) return;
+
+  // ตรวจสอบว่า browser รองรับ camera หรือเปล่า
+  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+  const hasCamera = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  if (!isSecure || !hasCamera) {
+    // Fallback: ใช้ input file แทน
+    scanArea.innerHTML = `
+      <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;border-radius:16px;padding:24px;text-align:center;gap:12px">
+        <div style="font-size:2.5rem">📷</div>
+        <div style="color:#fff;font-size:.85rem;font-weight:700">เปิดกล้องสแกน QR</div>
+        <div style="color:rgba(255,255,255,.6);font-size:.75rem">กดปุ่มด้านล่างเพื่อถ่ายภาพ QR Code จากร้านค้า</div>
+        <label style="background:var(--gold);color:#000;font-weight:800;padding:12px 24px;border-radius:12px;cursor:pointer;font-size:.9rem;margin-top:4px">
+          📸 เปิดกล้องถ่าย QR
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleQRImageFile(this)">
+        </label>
+        <div style="color:rgba(255,255,255,.4);font-size:.7rem">หรืออัปโหลดรูป QR จากแกลลอรี่</div>
+        <label style="color:rgba(255,255,255,.65);font-size:.75rem;text-decoration:underline;cursor:pointer">
+          เลือกจากรูปภาพ
+          <input type="file" accept="image/*" style="display:none" onchange="handleQRImageFile(this)">
+        </label>
+      </div>`;
+    status.textContent = '';
+    return;
+  }
+
   status.textContent = 'กำลังเปิดกล้อง...';
-  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } })
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+  })
     .then(stream => {
       inlineScanStream = stream;
       video.srcObject = stream;
       video.play();
-      status.textContent = '📷 ชี้กล้องไปที่ QR Code จากร้านค้า';
+      status.innerHTML = '📷 ชี้กล้องไปที่ QR Code ของร้านค้า';
       inlineScanTick();
     })
-    .catch(() => { status.textContent = '❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้อง'; });
+    .catch(err => {
+      console.error('Camera error:', err);
+      // Fallback เมื่อ permission denied
+      scanArea.innerHTML = `
+        <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;border-radius:16px;padding:24px;text-align:center;gap:10px">
+          <div style="font-size:2rem">⚠️</div>
+          <div style="color:#fff;font-size:.85rem;font-weight:700">กล้องถูกปิดกั้น</div>
+          <div style="color:rgba(255,255,255,.65);font-size:.75rem;line-height:1.5">กรุณาอนุญาตการใช้กล้องในเบราว์เซอร์<br>หรือใช้วิธีอัปโหลดรูปแทน</div>
+          <label style="background:var(--gold);color:#000;font-weight:800;padding:12px 24px;border-radius:12px;cursor:pointer;font-size:.88rem;margin-top:4px">
+            📸 ถ่าย / อัปโหลด QR
+            <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleQRImageFile(this)">
+          </label>
+          <button style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;padding:8px 16px;cursor:pointer;font-size:.78rem;margin-top:4px" onclick="startInlineScan()">🔄 ลองอีกครั้ง</button>
+        </div>`;
+      status.textContent = '';
+    });
+}
+
+async function handleQRImageFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('scanStatusInline');
+  if (status) status.textContent = '🔍 กำลังอ่าน QR Code...';
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    if (window.jsQR) {
+      const code = jsQR(imgData.data, imgData.width, imgData.height);
+      if (code) {
+        try {
+          const data = JSON.parse(code.data);
+          if (data.type === 'KKUPAY_QR') { showInlineConfirm(data); return; }
+        } catch {}
+      }
+    }
+    if (status) status.textContent = '❌ ไม่พบ QR Code ของ KKU Pay ในรูปนี้ กรุณาลองใหม่';
+  };
+  img.src = URL.createObjectURL(file);
 }
 
 function inlineScanTick() {
