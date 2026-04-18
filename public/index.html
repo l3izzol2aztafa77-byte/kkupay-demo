@@ -265,6 +265,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
 }
 </style>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
 /* Lucide icon helper */
 .ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex-shrink:0}
@@ -571,6 +572,12 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
       <span class="ic" data-lucide="wallet" style="width:20px;height:20px"></span>
       Wallet
     </button>
+    <button class="bnav-item" id="bnav-scan" onclick="showPage('scan');setBnavActive('bnav-scan')" style="position:relative">
+      <span style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:var(--purple);border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(74,0,114,.5);border:3px solid #fff">
+        <span class="ic" data-lucide="scan-line" style="width:22px;height:22px;color:#fff"></span>
+      </span>
+      <span style="margin-top:14px;display:block;color:var(--purple);font-weight:800">สแกน</span>
+    </button>
     <button class="bnav-item" id="bnav-history" onclick="showPage('history');setBnavActive('bnav-history')">
       <span class="ic" data-lucide="clipboard-list" style="width:20px;height:20px"></span>
       ประวัติ
@@ -827,7 +834,7 @@ function showPage(page) {
   document.querySelectorAll('.nav-item').forEach((el,i)=>{ el.classList.remove('active'); if(['dashboard','fees','wallet','history','profile'][i]===page) el.classList.add('active'); });
   // Sync bottom nav
   setBnavActive('bnav-'+page);
-  const titles = { dashboard:['หน้าหลัก','ภาพรวมบัญชีและรายการที่รอชำระ'], fees:['รายการค่าธรรมเนียม','เลือกรายการเพื่อดำเนินการชำระเงิน'], wallet:['KKU Wallet','กระเป๋าเงินอิเล็กทรอนิกส์ภายในมหาวิทยาลัย'], history:['ประวัติธุรกรรม','บันทึกการชำระเงินทั้งหมด'], profile:['ข้อมูลส่วนตัว','ข้อมูลนักศึกษาและบัญชีผู้ใช้'] };
+  const titles = { dashboard:['หน้าหลัก','ภาพรวมบัญชีและรายการที่รอชำระ'], fees:['รายการค่าธรรมเนียม','เลือกรายการเพื่อดำเนินการชำระเงิน'], wallet:['KKU Wallet','กระเป๋าเงินอิเล็กทรอนิกส์ภายในมหาวิทยาลัย'], history:['ประวัติธุรกรรม','บันทึกการชำระเงินทั้งหมด'], profile:['ข้อมูลส่วนตัว','ข้อมูลนักศึกษาและบัญชีผู้ใช้'], scan:['สแกน QR จ่ายเงิน','สแกน QR Code จากร้านค้าเพื่อชำระเงิน'] };
   const [t,s] = titles[page]||['—',''];
   document.getElementById('pageTitle').textContent = t;
   document.getElementById('pageSubtitle').textContent = s;
@@ -836,6 +843,7 @@ function showPage(page) {
   else if (page==='fees') p=renderFees();
   else if (page==='wallet') p=renderWallet();
   else if (page==='history') p=renderHistory();
+  else if (page==='scan') { renderScan(); reinitIcons(); return; }
   else if (page==='profile') { renderProfile(); reinitIcons(); return; }
   if (p && p.then) p.then(reinitIcons).catch(()=>{});
   closeSidebar();
@@ -1514,6 +1522,174 @@ function renderSuccess(orderId, amount, method, newBalance=null) {
     <button class="btn btn-gray" onclick="closePayModal();renderFees()" style="flex:1">✅ เสร็จสิ้น</button>
     <button class="btn btn-primary" onclick="closePayModal();showPage('history')" style="flex:1"><span class="ic" data-lucide="clipboard-list" style="width:14px;height:14px"></span> ดูประวัติ</button>
   </div>`;
+}
+
+// ── QR SCAN ──
+let scanStream = null;
+let scanAnimFrame = null;
+
+function renderScan() {
+  stopScan();
+  document.getElementById('pageContent').innerHTML = `
+  <div class="card" style="max-width:420px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:3rem">📷</div>
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--purple);margin-top:8px">สแกน QR จ่ายเงิน</h3>
+      <p style="font-size:.82rem;color:var(--text2);margin-top:4px">สแกน QR Code ที่ร้านค้าแสดงบนหน้าจอ</p>
+    </div>
+
+    <div id="scanArea" style="position:relative;width:100%;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:1">
+      <video id="scanVideo" style="width:100%;height:100%;object-fit:cover" playsinline autoplay muted></video>
+      <canvas id="scanCanvas" style="display:none"></canvas>
+      <!-- กรอบเล็ง -->
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <div style="width:65%;height:65%;border:3px solid var(--gold);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)"></div>
+      </div>
+    </div>
+
+    <div id="scanStatus" style="text-align:center;padding:12px;font-size:.85rem;color:var(--text2)">กำลังเปิดกล้อง...</div>
+
+    <button class="btn btn-gray" style="width:100%;margin-top:4px" onclick="stopScan();showPage('dashboard')">ยกเลิก</button>
+  </div>
+
+  <!-- หน้ายืนยันจ่ายเงิน (ซ่อนไว้ก่อน) -->
+  <div id="scanConfirm" class="card d-none" style="max-width:420px;margin:16px auto 0">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:2.5rem">🛒</div>
+      <h3 style="font-size:1.1rem;font-weight:800;color:var(--purple);margin-top:8px">ยืนยันการชำระเงิน</h3>
+    </div>
+    <div style="background:var(--gray);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.88rem">
+        <span style="color:var(--text2)">ร้านค้า</span>
+        <b id="cfmMerchant">—</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.88rem">
+        <span style="color:var(--text2)">รายการ</span>
+        <span id="cfmNote">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:1.2rem;font-weight:800;margin-top:8px;padding-top:8px;border-top:1.5px solid var(--border)">
+        <span style="color:var(--text2)">ยอดชำระ</span>
+        <span style="color:var(--purple)" id="cfmAmount">฿0.00</span>
+      </div>
+      <div style="margin-top:8px;font-size:.78rem;color:var(--text2);text-align:right">ยอดคงเหลือหลังจ่าย: <b id="cfmBalance">—</b></div>
+    </div>
+    <div id="cfmErr" class="alert alert-err d-none"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-gray" style="flex:1" onclick="document.getElementById('scanConfirm').classList.add('d-none');startScan()">← สแกนใหม่</button>
+      <button class="btn btn-primary" style="flex:1;background:var(--green)" id="cfmBtn" onclick="doQRPay()">
+        <span id="cfmSpinner" class="d-none"><span class="spinner"></span></span>
+        ✅ ยืนยันจ่ายเงิน
+      </button>
+    </div>
+  </div>
+
+  <!-- สำเร็จ -->
+  <div id="scanSuccess" class="card d-none" style="max-width:420px;margin:16px auto 0;text-align:center;padding:28px">
+    <div style="font-size:4rem">🎉</div>
+    <h3 style="font-size:1.2rem;font-weight:800;color:var(--green);margin:12px 0 6px">ชำระเงินสำเร็จ!</h3>
+    <p style="font-size:.88rem;color:var(--text2)" id="successDetail">—</p>
+    <p style="font-size:1rem;font-weight:800;color:var(--purple);margin:10px 0" id="successAmt">—</p>
+    <p style="font-size:.82rem;color:var(--text2)">ยอดคงเหลือ: <b id="successBal">—</b></p>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="showPage('dashboard')">กลับหน้าหลัก</button>
+  </div>
+  `;
+  reinitIcons();
+  startScan();
+}
+
+let currentQRRef = null;
+
+async function startScan() {
+  const video = document.getElementById('scanVideo');
+  const status = document.getElementById('scanStatus');
+  if (!status) return;
+  status.textContent = 'กำลังเปิดกล้อง...';
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+    video.srcObject = scanStream;
+    video.play();
+    status.textContent = '📷 ชี้กล้องไปที่ QR Code ของร้านค้า';
+    scanFrame();
+  } catch(e) {
+    status.textContent = '❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้องในเบราว์เซอร์';
+  }
+}
+
+function scanFrame() {
+  const video = document.getElementById('scanVideo');
+  const canvas = document.getElementById('scanCanvas');
+  if (!video || !canvas) return;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) {
+      try {
+        const data = JSON.parse(code.data);
+        if (data.type === 'KKUPAY_QR') {
+          stopScan();
+          showQRConfirm(data);
+          return;
+        }
+      } catch {}
+    }
+  }
+  scanAnimFrame = requestAnimationFrame(scanFrame);
+}
+
+function stopScan() {
+  if (scanStream) { scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame=null; }
+}
+
+async function showQRConfirm(data) {
+  // ดึงข้อมูล session จาก server ก่อนยืนยัน
+  try {
+    const info = await API('/api/qr/info', { method:'POST', body:JSON.stringify({ ref:data.ref }) });
+    currentQRRef = info.ref;
+    const walBal = wallet?.balance || 0;
+    document.getElementById('cfmMerchant').textContent = info.merchantName;
+    document.getElementById('cfmNote').textContent = info.note || '—';
+    document.getElementById('cfmAmount').textContent = '฿' + parseFloat(info.amount).toLocaleString('th-TH', {minimumFractionDigits:2});
+    document.getElementById('cfmBalance').textContent = '฿' + (walBal - info.amount).toLocaleString('th-TH', {minimumFractionDigits:2});
+    document.getElementById('cfmErr').classList.add('d-none');
+    document.getElementById('scanConfirm').classList.remove('d-none');
+    document.getElementById('scanArea')?.parentElement && (document.getElementById('scanArea').closest('.card').style.display='none');
+    reinitIcons();
+  } catch(e) {
+    alert('❌ ' + e.message);
+    startScan();
+  }
+}
+
+async function doQRPay() {
+  const btn = document.getElementById('cfmBtn');
+  const sp = document.getElementById('cfmSpinner');
+  const err = document.getElementById('cfmErr');
+  err.classList.add('d-none');
+  btn.disabled = true;
+  sp.classList.remove('d-none');
+  try {
+    const r = await API('/api/qr/pay', { method:'POST', body:JSON.stringify({ ref:currentQRRef }) });
+    // อัปเดต wallet balance
+    if (wallet) wallet.balance = r.newBalance;
+    updateSbBalance();
+    document.getElementById('scanConfirm').classList.add('d-none');
+    document.getElementById('scanSuccess').classList.remove('d-none');
+    document.getElementById('successDetail').textContent = 'ร้าน ' + r.merchantName;
+    document.getElementById('successAmt').textContent = '฿' + parseFloat(r.amount).toLocaleString('th-TH', {minimumFractionDigits:2});
+    document.getElementById('successBal').textContent = '฿' + parseFloat(r.newBalance).toLocaleString('th-TH', {minimumFractionDigits:2});
+    reinitIcons();
+  } catch(e) {
+    err.textContent = '❌ ' + e.message;
+    err.classList.remove('d-none');
+  } finally {
+    btn.disabled = false;
+    sp.classList.add('d-none');
+  }
 }
 
 // ── CHAT ──

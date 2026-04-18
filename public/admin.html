@@ -206,6 +206,7 @@ textarea{resize:vertical;min-height:70px}
   <div class="tab" onclick="showTab('merchants')"><span class="ic" data-lucide="store" style="width:15px;height:15px"></span> Merchants</div>
   <div class="tab" onclick="showTab('merchantregs')"><span class="ic" data-lucide="user-plus" style="width:15px;height:15px"></span> สมัครร้านค้า</div>
   <div class="tab" onclick="showTab('notify')"><span class="ic" data-lucide="megaphone" style="width:15px;height:15px"></span> ประกาศ</div>
+  <div class="tab" onclick="showTab('qrpos')"><span class="ic" data-lucide="scan-line" style="width:15px;height:15px"></span> QR รับเงิน</div>
   <div class="tab" onclick="showTab('apidocs')"><span class="ic" data-lucide="book-open" style="width:15px;height:15px"></span> API Docs</div>
 </div>
 
@@ -301,7 +302,7 @@ function reinitIcons() {
 
 // ── TABS ──
 function showTab(t) {
-  const tabOrder = ['overview','transactions','slipconfirm','students','fees','refunds','settlement','audit','merchants','merchantregs','notify','apidocs'];
+  const tabOrder = ['overview','transactions','slipconfirm','students','fees','refunds','settlement','audit','merchants','merchantregs','notify','qrpos','apidocs'];
   document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.remove('active'); if(tabOrder[i]===t) el.classList.add('active'); });
   let p;
   if(t==='overview') p=renderOverview();
@@ -315,6 +316,7 @@ function showTab(t) {
   else if(t==='merchants') p=renderMerchants();
   else if(t==='merchantregs') p=renderMerchantRegistrations();
   else if(t==='notify') p=renderNotify();
+  else if(t==='qrpos') { renderQRPOS(); reinitIcons(); return; }
   else if(t==='apidocs') { renderApiDocs(); reinitIcons(); return; }
   if(p && p.then) p.then(reinitIcons).catch(()=>{});
 }
@@ -1036,6 +1038,150 @@ async function doBroadcast() {
     document.getElementById('broadcastResult').innerHTML='<div class="alert alert-success">✅ ส่งประกาศสำเร็จ!</div>';
     document.getElementById('notifTitle').value=''; document.getElementById('notifMsg').value='';
   } catch(e) { document.getElementById('broadcastResult').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
+}
+
+// ── QR POS ──
+let qrPollingTimer = null;
+
+function renderQRPOS() {
+  stopQRPolling();
+  document.getElementById('tabContent').innerHTML = `
+  <div style="max-width:480px;margin:0 auto">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="ic" data-lucide="scan-line" style="width:18px;height:18px"></span> สร้าง QR รับเงิน</div>
+      </div>
+      <div class="alert alert-info" style="font-size:.82rem">
+        <span class="ic" data-lucide="info" style="width:14px;height:14px"></span>
+        QR จะหมดอายุใน <b>5 นาที</b> หลังสร้าง — ให้ลูกค้าสแกนจากหน้าจอร้านค้าเท่านั้น
+      </div>
+      <div class="form-row" style="margin-bottom:10px">
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">จำนวนเงิน (฿) <span style="color:var(--red)">*</span></label>
+          <input type="number" id="qrAmount" placeholder="0.00" min="1" step="0.01" style="font-size:1.2rem;font-weight:800;text-align:center">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">รายการ / หมายเหตุ</label>
+          <input type="text" id="qrNote" placeholder="เช่น ข้าวผัดกุ้ง + น้ำ">
+        </div>
+      </div>
+      <div id="qrGenErr" class="alert alert-err d-none"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="genQR()">
+        <span id="qrGenSpinner" class="d-none"><span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span></span>
+        <span class="ic" data-lucide="qr-code" style="width:16px;height:16px"></span> สร้าง QR Code
+      </button>
+    </div>
+
+    <!-- QR Display -->
+    <div id="qrDisplay" class="card d-none" style="text-align:center">
+      <div style="font-size:.9rem;font-weight:700;color:var(--purple);margin-bottom:4px" id="qrMerchantName">—</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--purple);margin:8px 0" id="qrDisplayAmt">฿0.00</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:12px" id="qrDisplayNote"></div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#e8eaf6);border-radius:14px;padding:16px;display:inline-block">
+        <img id="qrImg" src="" style="width:260px;height:260px;border-radius:10px" alt="QR Code">
+      </div>
+      <div style="margin-top:12px;font-size:.75rem;color:var(--text2)">Ref: <span id="qrRef" style="font-family:monospace">—</span></div>
+
+      <!-- Countdown -->
+      <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span class="ic" data-lucide="clock" style="width:14px;height:14px;color:var(--text2)"></span>
+        <span style="font-size:.8rem;color:var(--text2)">หมดอายุใน <b id="qrCountdown">5:00</b></span>
+      </div>
+
+      <!-- Status -->
+      <div id="qrStatusBox" style="margin-top:14px;padding:12px;border-radius:10px;background:#f8f9fa">
+        <div id="qrStatusText" style="font-size:.88rem;color:var(--text2)">
+          <span class="ic" data-lucide="loader" style="width:14px;height:14px"></span> รอลูกค้าสแกน QR...
+        </div>
+      </div>
+
+      <button class="btn btn-gray" style="width:100%;margin-top:12px" onclick="resetQRPOS()">
+        <span class="ic" data-lucide="refresh-cw" style="width:14px;height:14px"></span> สร้าง QR ใหม่
+      </button>
+    </div>
+  </div>
+  `;
+  reinitIcons();
+}
+
+let qrExpTime = 0;
+let qrCountdownTimer = null;
+let currentQRRefMerchant = null;
+
+async function genQR() {
+  const amount = document.getElementById('qrAmount').value;
+  const note = document.getElementById('qrNote').value;
+  const err = document.getElementById('qrGenErr');
+  const sp = document.getElementById('qrGenSpinner');
+  err.classList.add('d-none');
+  if (!amount || parseFloat(amount) <= 0) { err.textContent='กรุณาระบุจำนวนเงิน'; err.classList.remove('d-none'); return; }
+  sp.classList.remove('d-none');
+  try {
+    const r = await API('/api/qr/generate', { method:'POST', body:JSON.stringify({ amount:parseFloat(amount), note }) });
+    currentQRRefMerchant = r.ref;
+    document.getElementById('qrImg').src = r.qrImage;
+    document.getElementById('qrDisplayAmt').textContent = '฿' + parseFloat(r.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+    document.getElementById('qrDisplayNote').textContent = note || '';
+    document.getElementById('qrRef').textContent = r.ref;
+    document.getElementById('qrMerchantName').textContent = r.merchantName;
+    document.getElementById('qrDisplay').classList.remove('d-none');
+    reinitIcons();
+
+    // Countdown
+    qrExpTime = Date.now() + r.expiresIn * 1000;
+    if (qrCountdownTimer) clearInterval(qrCountdownTimer);
+    qrCountdownTimer = setInterval(() => {
+      const left = Math.max(0, qrExpTime - Date.now());
+      const m = Math.floor(left/60000);
+      const s = Math.floor((left%60000)/1000);
+      const el = document.getElementById('qrCountdown');
+      if (el) el.textContent = m+':'+(s<10?'0':'')+s;
+      if (left <= 0) { clearInterval(qrCountdownTimer); stopQRPolling(); }
+    }, 1000);
+
+    // Polling สถานะทุก 2 วิ
+    startQRPolling(r.ref);
+  } catch(e) {
+    err.textContent = '❌ ' + e.message;
+    err.classList.remove('d-none');
+  } finally { sp.classList.add('d-none'); }
+}
+
+function startQRPolling(ref) {
+  stopQRPolling();
+  qrPollingTimer = setInterval(async () => {
+    try {
+      const r = await API('/api/qr/status/'+ref);
+      const box = document.getElementById('qrStatusBox');
+      const txt = document.getElementById('qrStatusText');
+      if (!box || !txt) { stopQRPolling(); return; }
+      if (r.status === 'paid') {
+        stopQRPolling();
+        if (qrCountdownTimer) clearInterval(qrCountdownTimer);
+        box.style.background = '#e8f5e9';
+        txt.innerHTML = `<span style="color:#2e7d32;font-size:1.1rem;font-weight:800">✅ ได้รับเงินแล้ว!</span><br>
+          <span style="font-size:.82rem;color:var(--text2)">จาก: <b>${r.payerName||'ลูกค้า'}</b> | เวลา: ${r.paidAt?new Date(r.paidAt).toLocaleTimeString('th-TH'):''}</span>`;
+        reinitIcons();
+      } else if (r.status === 'expired') {
+        stopQRPolling();
+        box.style.background = '#ffebee';
+        txt.innerHTML = `<span style="color:var(--red)">⏰ QR หมดอายุแล้ว กรุณาสร้างใหม่</span>`;
+      }
+    } catch {}
+  }, 2000);
+}
+
+function stopQRPolling() {
+  if (qrPollingTimer) { clearInterval(qrPollingTimer); qrPollingTimer=null; }
+}
+
+function resetQRPOS() {
+  stopQRPolling();
+  if (qrCountdownTimer) clearInterval(qrCountdownTimer);
+  document.getElementById('qrDisplay').classList.add('d-none');
+  document.getElementById('qrAmount').value = '';
+  document.getElementById('qrNote').value = '';
+  document.getElementById('qrGenErr').classList.add('d-none');
 }
 
 // ── API DOCS ──

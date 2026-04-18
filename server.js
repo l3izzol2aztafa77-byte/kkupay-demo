@@ -667,6 +667,140 @@ app.get('/api/merchant/qr', isMerchant, async (req,res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+//  QR PAYMENT SYSTEM (Merchant → Student Wallet)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Merchant สร้าง QR session สำหรับรับเงิน
+app.post('/api/qr/generate', isMerchant, async (req,res) => {
+  const { amount, note } = req.body;
+  if (!amount || isNaN(amount) || parseFloat(amount) <= 0)
+    return res.status(400).json({ error:'กรุณาระบุจำนวนเงินที่ถูกต้อง' });
+  const m = dbFind('merchants', mm=>mm.id===req.user.merchantId);
+  if (!m) return res.status(404).json({ error:'ไม่พบร้านค้า' });
+
+  const ref = 'QR-' + Date.now() + '-' + Math.random().toString(36).slice(2,7).toUpperCase();
+  const payload = JSON.stringify({
+    type: 'KKUPAY_QR',
+    merchantId: m.id,
+    merchantName: m.name,
+    amount: parseFloat(amount),
+    ref,
+    note: note || '',
+    exp: Date.now() + 5 * 60 * 1000   // หมดอายุใน 5 นาที
+  });
+
+  // เก็บ QR session ใน db
+  if (!db.qrSessions) db.qrSessions = [];
+  db.qrSessions.push({
+    ref,
+    merchantId: m.id,
+    merchantName: m.name,
+    amount: parseFloat(amount),
+    note: note || '',
+    status: 'pending',   // pending | paid | expired
+    payerId: null,
+    payerName: null,
+    createdAt: new Date().toISOString(),
+    exp: Date.now() + 5 * 60 * 1000
+  });
+
+  const qrImg = await QRCode.toDataURL(payload, {
+    width: 320, margin: 2,
+    color: { dark: '#4a0072', light: '#ffffff' }
+  });
+
+  res.json({ success:true, ref, qrImage:qrImg, amount:parseFloat(amount), merchantName:m.name, expiresIn:300 });
+});
+
+// Student สแกน QR → ดูรายละเอียดก่อนจ่าย
+app.post('/api/qr/info', authenticate, (req,res) => {
+  const { ref } = req.body;
+  if (!db.qrSessions) return res.status(404).json({ error:'ไม่พบ QR นี้' });
+  const session = db.qrSessions.find(s=>s.ref===ref);
+  if (!session) return res.status(404).json({ error:'ไม่พบ QR นี้' });
+  if (session.status === 'paid') return res.status(400).json({ error:'QR นี้ถูกใช้ไปแล้ว' });
+  if (Date.now() > session.exp) {
+    session.status = 'expired';
+    return res.status(400).json({ error:'QR หมดอายุแล้ว กรุณาขอใหม่จากร้านค้า' });
+  }
+  res.json({ ref:session.ref, merchantName:session.merchantName, amount:session.amount, note:session.note });
+});
+
+// Student ยืนยันจ่ายเงิน
+app.post('/api/qr/pay', authenticate, (req,res) => {
+  const { ref } = req.body;
+  if (req.user.role !== 'student') return res.status(403).json({ error:'เฉพาะนักศึกษาเท่านั้น' });
+  if (!db.qrSessions) return res.status(404).json({ error:'ไม่พบ QR นี้' });
+
+  const session = db.qrSessions.find(s=>s.ref===ref);
+  if (!session) return res.status(404).json({ error:'ไม่พบ QR นี้' });
+  if (session.status === 'paid') return res.status(400).json({ error:'QR นี้ถูกใช้ไปแล้ว' });
+  if (Date.now() > session.exp) { session.status='expired'; return res.status(400).json({ error:'QR หมดอายุแล้ว' }); }
+
+  // ตรวจ wallet นักศึกษา
+  const wallet = dbFind('wallets', w=>w.userId===req.user.id);
+  if (!wallet) return res.status(404).json({ error:'ไม่พบ Wallet' });
+  if (wallet.balance < session.amount) return res.status(400).json({ error:`ยอดคงเหลือไม่พอ (มี ฿${wallet.balance.toFixed(2)} ต้องการ ฿${session.amount.toFixed(2)})` });
+
+  // หัก wallet นักศึกษา
+  dbUpdate('wallets', w=>w.userId===req.user.id, { balance: wallet.balance - session.amount });
+
+  // เพิ่ม settle balance ให้ร้านค้า
+  dbUpdate('merchants', m=>m.id===session.merchantId, {
+    totalSales: (dbFind('merchants',m=>m.id===session.merchantId)?.totalSales||0) + session.amount,
+    settleBalance: (dbFind('merchants',m=>m.id===session.merchantId)?.settleBalance||0) + session.amount,
+  });
+
+  // บันทึก payment
+  const payment = dbInsert('payments', {
+    id: uuidv4(),
+    userId: req.user.id,
+    ref: session.ref,
+    method: 'qr_merchant',
+    amount: session.amount,
+    status: 'success',
+    merchantId: session.merchantId,
+    merchantName: session.merchantName,
+    note: session.note,
+    createdAt: new Date().toISOString()
+  });
+
+  // อัปเดต QR session
+  session.status = 'paid';
+  session.payerId = req.user.id;
+  session.payerName = req.user.name;
+  session.paidAt = new Date().toISOString();
+
+  // แจ้งเตือนนักศึกษา
+  dbInsert('notifications', {
+    id: uuidv4(), userId: req.user.id, type:'payment',
+    title:'ชำระเงินสำเร็จ',
+    message:`จ่ายเงิน ฿${session.amount.toFixed(2)} ให้ ${session.merchantName} สำเร็จ`,
+    read:false, createdAt: new Date().toISOString()
+  });
+
+  addAudit(req.user.id, 'QR_PAY', `จ่ายเงิน QR ฿${session.amount} → ${session.merchantName} (ref:${session.ref})`, req.ip);
+
+  const newBalance = wallet.balance - session.amount;
+  res.json({ success:true, ref:session.ref, amount:session.amount, merchantName:session.merchantName, newBalance, paymentId:payment.id });
+});
+
+// Merchant polling ดูสถานะ QR
+app.get('/api/qr/status/:ref', isMerchant, (req,res) => {
+  if (!db.qrSessions) return res.json({ status:'pending' });
+  const session = db.qrSessions.find(s=>s.ref===req.params.ref);
+  if (!session) return res.status(404).json({ error:'ไม่พบ QR' });
+  if (Date.now() > session.exp && session.status==='pending') session.status='expired';
+  res.json({
+    status: session.status,
+    ref: session.ref,
+    amount: session.amount,
+    payerName: session.payerName || null,
+    paidAt: session.paidAt || null
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 //  GENERAL
 // ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/transactions', authenticate, (req,res) => {
