@@ -134,12 +134,28 @@ th{background:#f3e5f5;color:var(--purple);font-size:.8rem;font-weight:700;paddin
 td{padding:10px 12px;font-size:.83rem;border-bottom:1px solid var(--border)}
 tr:hover td{background:#faf5ff}
 /* ── WALLET ── */
-.wallet-hero{background:linear-gradient(135deg,#4a0072,#6a0dad);border-radius:16px;padding:28px;color:#fff;margin-bottom:20px;text-align:center}
-.wallet-hero .bal-lbl{font-size:.85rem;opacity:.7;margin-bottom:6px}
+.wallet-hero{background:linear-gradient(135deg,#4a0072,#6a0dad);border-radius:20px;padding:28px 24px 22px;color:#fff;margin-bottom:20px;text-align:center}
+.wallet-hero .bal-lbl{font-size:.82rem;opacity:.7;margin-bottom:6px}
 .wallet-hero .bal-val{font-size:2.8rem;font-weight:800;letter-spacing:1px}
-.wallet-hero .bal-updated{font-size:.72rem;opacity:.55;margin-top:6px}
-.topup-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.topup-preset{padding:8px 16px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.2s;background:#fff}
+.wallet-hero .bal-updated{font-size:.7rem;opacity:.5;margin-top:4px}
+/* action buttons row */
+.wallet-actions{display:flex;justify-content:center;gap:14px;margin-top:20px}
+.wal-act-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:#fff;font-size:.75rem;font-weight:700;min-width:64px}
+.wal-act-btn .wal-act-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:.15s}
+.wal-act-btn:hover .wal-act-icon{transform:scale(1.08)}
+.wal-act-btn.pay .wal-act-icon{background:rgba(255,255,255,.18)}
+.wal-act-btn.receive .wal-act-icon{background:rgba(255,255,255,.18)}
+.wal-act-btn.topup .wal-act-icon{background:rgba(255,255,255,.18)}
+.wal-act-btn.history .wal-act-icon{background:rgba(255,255,255,.18)}
+/* bottom sheet */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none}
+.sheet-overlay.open{display:block}
+.bottom-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;z-index:801;padding:20px 20px 36px;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1,.23,1)}
+.bottom-sheet.open{transform:translateY(0)}
+.sheet-handle{width:40px;height:4px;background:#e0e0e0;border-radius:4px;margin:0 auto 16px}
+.sheet-title{font-size:1.05rem;font-weight:800;color:var(--purple);text-align:center;margin-bottom:18px}
+.topup-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.topup-preset{padding:10px 6px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s;background:#fff;text-align:center}
 .topup-preset:hover,.topup-preset.selected{border-color:var(--purple);background:#f3e5f5;color:var(--purple)}
 /* ── CHAT ── */
 #chatBtn{position:fixed;bottom:28px;right:28px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;cursor:pointer;box-shadow:0 6px 20px rgba(74,0,114,.45);z-index:900;font-size:1.5rem;color:#fff;display:flex;align-items:center;justify-content:center;transition:.25s}
@@ -935,38 +951,137 @@ async function renderWallet() {
     wallet = w;
     document.getElementById('sbBalance').textContent = fmtMoney(w.balance);
     document.getElementById('pageContent').innerHTML = `
+    <!-- WALLET HERO -->
     <div class="wallet-hero">
       <div class="bal-lbl">ยอดคงเหลือ KKU Wallet</div>
       <div class="bal-val">${fmtMoney(w.balance)}</div>
       <div class="bal-updated">อัพเดทล่าสุด: ${fmtDate(w.updatedAt)}</div>
+
+      <!-- 4 ACTION BUTTONS แบบ app ธนาคาร -->
+      <div class="wallet-actions">
+        <button class="wal-act-btn pay" onclick="openSheet('sheetPay')">
+          <div class="wal-act-icon"><span class="ic" data-lucide="scan-line" style="width:24px;height:24px"></span></div>
+          จ่ายเงิน
+        </button>
+        <button class="wal-act-btn receive" onclick="openSheet('sheetReceive')">
+          <div class="wal-act-icon"><span class="ic" data-lucide="qr-code" style="width:24px;height:24px"></span></div>
+          รับเงิน
+        </button>
+        <button class="wal-act-btn topup" onclick="openSheet('sheetTopup')">
+          <div class="wal-act-icon"><span class="ic" data-lucide="plus-circle" style="width:24px;height:24px"></span></div>
+          เติมเงิน
+        </button>
+        <button class="wal-act-btn history" onclick="showPage('history')">
+          <div class="wal-act-icon"><span class="ic" data-lucide="clock" style="width:24px;height:24px"></span></div>
+          ประวัติ
+        </button>
+      </div>
     </div>
+
+    <!-- ประวัติ WALLET เร็วๆ -->
     <div class="card">
-      <div class="card-header"><div class="card-title"><span class="ic" data-lucide="banknote" style="width:16px;height:16px"></span> เติมเงิน KKU Wallet</div></div>
-      <div class="alert alert-info">💡 สามารถใช้ยอดใน Wallet ชำระค่าธรรมเนียมได้ทันที ไม่มีค่าธรรมเนียมเพิ่มเติม</div>
+      <div class="card-header">
+        <div class="card-title"><span class="ic" data-lucide="list" style="width:16px;height:16px"></span> รายการล่าสุด</div>
+        <button class="btn btn-gray btn-sm" onclick="showPage('history')">ดูทั้งหมด →</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>วันที่</th><th>รายการ</th><th>จำนวน</th></tr></thead>
+        <tbody>${transactions.length?transactions.slice(0,8).map(t=>`<tr>
+          <td style="font-size:.75rem;color:var(--text2)">${fmtDate(t.createdAt)}</td>
+          <td>${escHtml(t.desc||methodLabel(t.type)||'-')}</td>
+          <td style="font-weight:800;color:${t.type==='credit'?'var(--green)':'var(--red)'};white-space:nowrap">${t.type==='credit'?'+':'−'}${fmtMoney(t.amount)}</td>
+        </tr>`).join(''):'<tr><td colspan="3" class="text-center" style="color:#aaa;padding:20px">ยังไม่มีธุรกรรม</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ BOTTOM SHEET: จ่ายเงิน (สแกน QR) ══ -->
+    <div class="sheet-overlay" id="overlayPay" onclick="closeSheet('sheetPay')"></div>
+    <div class="bottom-sheet" id="sheetPay">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title"><span class="ic" data-lucide="scan-line" style="width:18px;height:18px"></span> สแกน QR จ่ายเงิน</div>
+
+      <div id="scanAreaInline" style="position:relative;width:100%;background:#111;border-radius:16px;overflow:hidden;aspect-ratio:1;max-width:340px;margin:0 auto">
+        <video id="scanVideoInline" style="width:100%;height:100%;object-fit:cover" playsinline autoplay muted></video>
+        <canvas id="scanCanvasInline" style="display:none"></canvas>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+          <div style="width:62%;height:62%;border:3px solid var(--gold);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)"></div>
+        </div>
+      </div>
+      <div id="scanStatusInline" style="text-align:center;padding:10px;font-size:.83rem;color:var(--text2)">กำลังเปิดกล้อง...</div>
+
+      <!-- ยืนยันจ่าย -->
+      <div id="inlineConfirm" class="d-none" style="margin-top:4px">
+        <div style="background:var(--gray);border-radius:14px;padding:18px;margin-bottom:14px">
+          <div style="text-align:center;margin-bottom:14px">
+            <div style="font-size:2rem">🛒</div>
+            <div style="font-weight:800;font-size:1rem;color:var(--purple);margin-top:6px" id="iCfmMerchant">—</div>
+            <div style="font-size:.8rem;color:var(--text2);margin-top:2px" id="iCfmNote"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1.5px solid var(--border)">
+            <span style="font-size:.88rem;color:var(--text2)">ยอดชำระ</span>
+            <span style="font-size:1.6rem;font-weight:800;color:var(--purple)" id="iCfmAmt">฿0.00</span>
+          </div>
+          <div style="text-align:right;font-size:.77rem;color:var(--text2)">ยอดหลังจ่าย: <b id="iCfmBal">—</b></div>
+        </div>
+        <div id="iCfmErr" class="alert alert-err d-none"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-gray" style="flex:1" onclick="resetInlineScan()">← สแกนใหม่</button>
+          <button class="btn" style="flex:1;background:var(--green);color:#fff;font-size:1rem;font-weight:800" id="iCfmBtn" onclick="doInlineQRPay()">
+            <span id="iCfmSp" class="d-none"><span class="spinner"></span></span> ✅ ยืนยัน
+          </button>
+        </div>
+      </div>
+
+      <!-- สำเร็จ -->
+      <div id="inlineSuccess" class="d-none" style="text-align:center;padding:20px 0">
+        <div style="font-size:4rem">🎉</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--green);margin:10px 0">ชำระเงินสำเร็จ!</div>
+        <div style="font-size:.88rem;color:var(--text2)" id="iSuccessDetail">—</div>
+        <div style="font-size:1.4rem;font-weight:800;color:var(--purple);margin:8px 0" id="iSuccessAmt">—</div>
+        <div style="font-size:.82rem;color:var(--text2)">ยอดคงเหลือ: <b id="iSuccessBal">—</b></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="closeSheet('sheetPay');renderWallet()">เสร็จสิ้น</button>
+      </div>
+
+      <button class="btn btn-gray" style="width:100%;margin-top:10px" onclick="closeSheet('sheetPay')">ยกเลิก</button>
+    </div>
+
+    <!-- ══ BOTTOM SHEET: รับเงิน (แสดง QR ของตัวเอง) ══ -->
+    <div class="sheet-overlay" id="overlayReceive" onclick="closeSheet('sheetReceive')"></div>
+    <div class="bottom-sheet" id="sheetReceive">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title"><span class="ic" data-lucide="qr-code" style="width:18px;height:18px"></span> รับเงิน — QR ของฉัน</div>
+      <div style="text-align:center">
+        <p style="font-size:.82rem;color:var(--text2);margin-bottom:14px">ให้ผู้โอนสแกน QR นี้เพื่อโอนเงินเข้า Wallet ของคุณ</p>
+        <div style="background:linear-gradient(135deg,#f3e5f5,#e8eaf6);border-radius:16px;padding:20px;display:inline-block">
+          <div id="myQRImg" style="width:220px;height:220px;display:flex;align-items:center;justify-content:center;color:#aaa">
+            <span class="ic" data-lucide="loader" style="width:32px;height:32px"></span>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-weight:800;font-size:.95rem;color:var(--purple)">${escHtml(me?.name||'')}</div>
+        <div style="font-size:.78rem;color:var(--text2);margin-top:2px">${escHtml(me?.studentId||'')} — KKU Wallet</div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--text2)">หมายเหตุ: ฟีเจอร์รับเงินระหว่างนักศึกษา (P2P) จะเปิดให้ใช้เร็วๆ นี้</div>
+      </div>
+      <button class="btn btn-gray" style="width:100%;margin-top:18px" onclick="closeSheet('sheetReceive')">ปิด</button>
+    </div>
+
+    <!-- ══ BOTTOM SHEET: เติมเงิน ══ -->
+    <div class="sheet-overlay" id="overlayTopup" onclick="closeSheet('sheetTopup')"></div>
+    <div class="bottom-sheet" id="sheetTopup">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title"><span class="ic" data-lucide="plus-circle" style="width:18px;height:18px"></span> เติมเงิน KKU Wallet</div>
+      <div class="alert alert-info" style="font-size:.8rem">💡 ยอดใน Wallet ใช้ชำระค่าธรรมเนียมได้ทันที ไม่มีค่าธรรมเนียมเพิ่ม</div>
       <div class="topup-presets">
         ${[100,200,500,1000,2000,5000].map(a=>`<div class="topup-preset" onclick="selectTopup(${a})">${fmtMoney(a)}</div>`).join('')}
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:14px">
-        <input type="number" id="topupInput" placeholder="หรือพิมพ์จำนวนเงิน (20–50,000 บาท)" min="20" max="50000" style="flex:1">
-      </div>
+      <input type="number" id="topupInput" placeholder="หรือพิมพ์จำนวน (20–50,000 บาท)" min="20" max="50000" style="margin-bottom:12px;font-size:1rem;text-align:center">
       <div style="display:flex;gap:10px">
-        <button class="btn btn-primary" onclick="doTopup('card')" style="flex:1"><span class="ic" data-lucide="credit-card" style="width:16px;height:16px"></span> เติมผ่านบัตร</button>
-        <button class="btn" style="flex:1;background:#138f2d;color:#fff" onclick="doTopup('promptpay')"><span class="ic" data-lucide="smartphone" style="width:14px;height:14px"></span> เติมผ่าน PromptPay</button>
+        <button class="btn btn-primary" onclick="doTopup('card')" style="flex:1"><span class="ic" data-lucide="credit-card" style="width:15px;height:15px"></span> บัตร</button>
+        <button class="btn" style="flex:1;background:#138f2d;color:#fff" onclick="doTopup('promptpay')"><span class="ic" data-lucide="smartphone" style="width:15px;height:15px"></span> PromptPay</button>
       </div>
+      <button class="btn btn-gray" style="width:100%;margin-top:10px" onclick="closeSheet('sheetTopup')">ยกเลิก</button>
     </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title"><span class="ic" data-lucide="list" style="width:16px;height:16px"></span> ประวัติการเคลื่อนไหว Wallet</div></div>
-      <div class="table-wrap">
-        <table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th></tr></thead>
-        <tbody>${transactions.length?transactions.map(t=>`<tr>
-          <td>${fmtDate(t.createdAt)}</td>
-          <td>${escHtml(t.desc||'-')}</td>
-          <td>${t.type==='credit'?'<span style="color:var(--green);font-weight:700">+ เข้า</span>':'<span style="color:var(--red);font-weight:700">- ออก</span>'}</td>
-          <td style="font-weight:700;color:${t.type==='credit'?'var(--green)':'var(--red)'}">${t.type==='credit'?'+':'−'}${fmtMoney(t.amount)}</td>
-        </tr>`).join(''):'<tr><td colspan="4" class="text-center" style="color:#aaa;padding:20px">ยังไม่มีธุรกรรม</td></tr>'}</tbody>
-        </table>
-      </div>
-    </div>`;
+    `;
   } catch(e) { document.getElementById('pageContent').innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`; }
 }
 
@@ -1522,6 +1637,149 @@ function renderSuccess(orderId, amount, method, newBalance=null) {
     <button class="btn btn-gray" onclick="closePayModal();renderFees()" style="flex:1">✅ เสร็จสิ้น</button>
     <button class="btn btn-primary" onclick="closePayModal();showPage('history')" style="flex:1"><span class="ic" data-lucide="clipboard-list" style="width:14px;height:14px"></span> ดูประวัติ</button>
   </div>`;
+}
+
+// ── BOTTOM SHEET ──
+let inlineScanStream = null;
+let inlineScanFrame = null;
+let inlineQRRef = null;
+
+function openSheet(id) {
+  document.getElementById('overlay'+id.replace('sheet','')).classList.add('open');
+  const sh = document.getElementById(id);
+  sh.classList.add('open');
+  if (id === 'sheetPay') {
+    // reset state ก่อนสแกน
+    setTimeout(startInlineScan, 100);
+  }
+  if (id === 'sheetReceive') {
+    loadMyQR();
+  }
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeSheet(id) {
+  const key = id.replace('sheet','');
+  document.getElementById('overlay'+key)?.classList.remove('open');
+  document.getElementById(id)?.classList.remove('open');
+  if (id === 'sheetPay') stopInlineScan();
+}
+
+async function loadMyQR() {
+  const box = document.getElementById('myQRImg');
+  if (!box) return;
+  box.innerHTML = `<span class="ic" data-lucide="loader" style="width:28px;height:28px"></span>`;
+  if (window.lucide) lucide.createIcons();
+  try {
+    // สร้าง QR จาก studentId + userId เพื่อรับเงิน (P2P placeholder)
+    const payload = JSON.stringify({ type:'KKUPAY_P2P', userId:me?.id, name:me?.name, studentId:me?.studentId });
+    const QR_API = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(payload)}&color=4a0072&bgcolor=ffffff`;
+    box.innerHTML = `<img src="${QR_API}" style="width:220px;height:220px;border-radius:10px" alt="My QR">`;
+  } catch { box.innerHTML = '<span style="color:#aaa;font-size:.8rem">ไม่สามารถสร้าง QR ได้</span>'; }
+}
+
+// ── INLINE SCANNER (ใน bottom sheet จ่ายเงิน) ──
+function startInlineScan() {
+  stopInlineScan();
+  resetInlineScan();
+  const video = document.getElementById('scanVideoInline');
+  const status = document.getElementById('scanStatusInline');
+  if (!video || !status) return;
+  status.textContent = 'กำลังเปิดกล้อง...';
+  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } })
+    .then(stream => {
+      inlineScanStream = stream;
+      video.srcObject = stream;
+      video.play();
+      status.textContent = '📷 ชี้กล้องไปที่ QR Code จากร้านค้า';
+      inlineScanTick();
+    })
+    .catch(() => { status.textContent = '❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้อง'; });
+}
+
+function inlineScanTick() {
+  const video = document.getElementById('scanVideoInline');
+  const canvas = document.getElementById('scanCanvasInline');
+  if (!video || !canvas || !inlineScanStream) return;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    if (window.jsQR) {
+      const code = jsQR(img.data, img.width, img.height);
+      if (code) {
+        try {
+          const data = JSON.parse(code.data);
+          if (data.type === 'KKUPAY_QR') {
+            stopInlineScan();
+            showInlineConfirm(data);
+            return;
+          }
+        } catch {}
+      }
+    }
+  }
+  inlineScanFrame = requestAnimationFrame(inlineScanTick);
+}
+
+function stopInlineScan() {
+  if (inlineScanStream) { inlineScanStream.getTracks().forEach(t=>t.stop()); inlineScanStream=null; }
+  if (inlineScanFrame) { cancelAnimationFrame(inlineScanFrame); inlineScanFrame=null; }
+}
+
+function resetInlineScan() {
+  inlineQRRef = null;
+  document.getElementById('inlineConfirm')?.classList.add('d-none');
+  document.getElementById('inlineSuccess')?.classList.add('d-none');
+  document.getElementById('scanAreaInline')?.style.removeProperty('display');
+  const st = document.getElementById('scanStatusInline');
+  if (st) st.textContent = '';
+}
+
+async function showInlineConfirm(data) {
+  try {
+    const info = await API('/api/qr/info', { method:'POST', body:JSON.stringify({ ref:data.ref }) });
+    inlineQRRef = info.ref;
+    const bal = wallet?.balance || 0;
+    document.getElementById('iCfmMerchant').textContent = info.merchantName;
+    document.getElementById('iCfmNote').textContent = info.note || '';
+    document.getElementById('iCfmAmt').textContent = '฿' + parseFloat(info.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+    document.getElementById('iCfmBal').textContent = '฿' + (bal - info.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+    document.getElementById('iCfmErr').classList.add('d-none');
+    // ซ่อน scanner แสดง confirm
+    document.getElementById('scanAreaInline').style.display = 'none';
+    document.getElementById('scanStatusInline').style.display = 'none';
+    document.getElementById('inlineConfirm').classList.remove('d-none');
+    if (window.lucide) lucide.createIcons();
+  } catch(e) {
+    alert('❌ ' + e.message);
+    startInlineScan();
+  }
+}
+
+async function doInlineQRPay() {
+  const btn = document.getElementById('iCfmBtn');
+  const sp = document.getElementById('iCfmSp');
+  const err = document.getElementById('iCfmErr');
+  err.classList.add('d-none');
+  btn.disabled = true;
+  sp.classList.remove('d-none');
+  try {
+    const r = await API('/api/qr/pay', { method:'POST', body:JSON.stringify({ ref:inlineQRRef }) });
+    if (wallet) wallet.balance = r.newBalance;
+    updateSbBalance();
+    document.getElementById('inlineConfirm').classList.add('d-none');
+    document.getElementById('inlineSuccess').classList.remove('d-none');
+    document.getElementById('iSuccessDetail').textContent = 'ร้าน ' + r.merchantName;
+    document.getElementById('iSuccessAmt').textContent = '฿' + parseFloat(r.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+    document.getElementById('iSuccessBal').textContent = '฿' + parseFloat(r.newBalance).toLocaleString('th-TH',{minimumFractionDigits:2});
+    if (window.lucide) lucide.createIcons();
+  } catch(e) {
+    err.textContent = '❌ ' + e.message;
+    err.classList.remove('d-none');
+  } finally { btn.disabled=false; sp.classList.add('d-none'); }
 }
 
 // ── QR SCAN ──
