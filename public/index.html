@@ -1714,7 +1714,15 @@ function startInlineScan() {
     // Fallback: ใช้ input file แทน
     scanArea.innerHTML = `
       <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;border-radius:16px;padding:24px;text-align:center;gap:12px">
-        <div style="font-size:2.5rem">📷</div>
+        <div style="width:56px;height:56px;margin:0 auto">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+            <rect x="8" y="18" width="48" height="36" rx="7" stroke="#a78bfa" stroke-width="3"/>
+            <circle cx="32" cy="36" r="9" stroke="#a78bfa" stroke-width="3"/>
+            <circle cx="32" cy="36" r="3.5" fill="#a78bfa" opacity=".4"/>
+            <path d="M22 18v-2a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2" stroke="#a78bfa" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="50" cy="27" r="2.5" fill="#a78bfa"/>
+          </svg>
+        </div>
         <div style="color:#fff;font-size:.85rem;font-weight:700">เปิดกล้องสแกน QR</div>
         <div style="color:rgba(255,255,255,.6);font-size:.75rem">กดปุ่มด้านล่างเพื่อถ่ายภาพ QR Code จากร้านค้า</div>
         <label style="background:var(--gold);color:#000;font-weight:800;padding:12px 24px;border-radius:12px;cursor:pointer;font-size:.9rem;margin-top:4px">
@@ -1739,7 +1747,7 @@ function startInlineScan() {
       inlineScanStream = stream;
       video.srcObject = stream;
       video.play();
-      status.innerHTML = '📷 ชี้กล้องไปที่ QR Code ของร้านค้า';
+      status.innerHTML = 'ชี้กล้องไปที่ QR Code ของร้านค้า';
       inlineScanTick();
     })
     .catch(err => {
@@ -1881,7 +1889,15 @@ function renderScan() {
   document.getElementById('pageContent').innerHTML = `
   <div class="card" style="max-width:420px;margin:0 auto">
     <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:3rem">📷</div>
+      <div style="width:64px;height:64px;margin:0 auto">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+          <rect x="8" y="18" width="48" height="36" rx="7" stroke="var(--purple)" stroke-width="3"/>
+          <circle cx="32" cy="36" r="9" stroke="var(--purple)" stroke-width="3"/>
+          <circle cx="32" cy="36" r="3.5" fill="var(--purple)" opacity=".35"/>
+          <path d="M22 18v-2a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2" stroke="var(--purple)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="27" r="2.5" fill="var(--purple)"/>
+        </svg>
+      </div>
       <h3 style="font-size:1.1rem;font-weight:800;color:var(--purple);margin-top:8px">สแกน QR จ่ายเงิน</h3>
       <p style="font-size:.82rem;color:var(--text2);margin-top:4px">สแกน QR Code ที่ร้านค้าแสดงบนหน้าจอ</p>
     </div>
@@ -1956,7 +1972,7 @@ async function startScan() {
     scanStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
     video.srcObject = scanStream;
     video.play();
-    status.textContent = '📷 ชี้กล้องไปที่ QR Code ของร้านค้า';
+    status.textContent = 'ชี้กล้องไปที่ QR Code ของร้านค้า';
     scanFrame();
   } catch(e) {
     status.textContent = '❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้องในเบราว์เซอร์';
