@@ -459,21 +459,48 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     </fieldset>
 
     <fieldset style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
-      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="paperclip" style="width:13px;height:13px"></span> เอกสารประกอบ (ชื่อไฟล์)</legend>
+      <legend style="font-weight:700;font-size:.83rem;color:var(--purple);padding:0 6px"><span class="ic" data-lucide="paperclip" style="width:13px;height:13px"></span> เอกสารประกอบ (อัพโหลดไฟล์)</legend>
       <div class="alert alert-warn" style="font-size:.78rem">
-        <span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> กรุณาเตรียมเอกสารต้นฉบับหรือสำเนาถ่ายเอกสารรับรองสำเนาถูกต้อง ส่งให้เจ้าหน้าที่ตรวจสอบหลังสมัคร
+        <span class="ic" data-lucide="triangle-alert" style="width:14px;height:14px"></span> รองรับไฟล์ PDF, JPG, PNG ขนาดไม่เกิน 5MB ต่อไฟล์
       </div>
-      <div class="form-group"><label><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> สำเนาหนังสือรับรองบริษัท / ทะเบียนพาณิชย์</label>
-        <input type="text" id="rg_docBusinessReg" placeholder="ชื่อไฟล์ หรือ link (เช่น business_reg.pdf)">
+      <style>
+        .file-upload-wrap{position:relative;margin-top:4px}
+        .file-upload-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+        .file-upload-btn{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1.5px dashed var(--border);border-radius:8px;background:#fafafa;font-size:.83rem;color:var(--text2);cursor:pointer;transition:.2s}
+        .file-upload-btn:hover{border-color:var(--purple);background:#faf5ff;color:var(--purple)}
+        .file-upload-name{font-size:.78rem;color:var(--green);margin-top:4px;font-weight:600;display:none}
+      </style>
+      <div class="form-group">
+        <label><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> สำเนาหนังสือรับรองบริษัท / ทะเบียนพาณิชย์</label>
+        <div class="file-upload-wrap">
+          <div class="file-upload-btn"><span class="ic" data-lucide="upload" style="width:15px;height:15px"></span> เลือกไฟล์...</div>
+          <input type="file" id="rg_docBusinessReg" accept=".pdf,.jpg,.jpeg,.png" onchange="showFileName(this,'rg_docBusinessReg_name')">
+        </div>
+        <div class="file-upload-name" id="rg_docBusinessReg_name"></div>
       </div>
-      <div class="form-group"><label>🪪 สำเนาบัตรประจำตัวประชาชนเจ้าของ <span style="color:var(--red)">*</span></label>
-        <input type="text" id="rg_docIdCard" placeholder="idcard_copy.pdf">
+      <div class="form-group">
+        <label>🪪 สำเนาบัตรประจำตัวประชาชนเจ้าของ <span style="color:var(--red)">*</span></label>
+        <div class="file-upload-wrap">
+          <div class="file-upload-btn"><span class="ic" data-lucide="upload" style="width:15px;height:15px"></span> เลือกไฟล์...</div>
+          <input type="file" id="rg_docIdCard" accept=".pdf,.jpg,.jpeg,.png" onchange="showFileName(this,'rg_docIdCard_name')">
+        </div>
+        <div class="file-upload-name" id="rg_docIdCard_name"></div>
       </div>
-      <div class="form-group"><label><span class="ic" data-lucide="landmark" style="width:13px;height:13px"></span> สำเนาหน้าสมุดบัญชีธนาคาร <span style="color:var(--red)">*</span></label>
-        <input type="text" id="rg_docBankBook" placeholder="bankbook_copy.pdf">
+      <div class="form-group">
+        <label><span class="ic" data-lucide="landmark" style="width:13px;height:13px"></span> สำเนาหน้าสมุดบัญชีธนาคาร <span style="color:var(--red)">*</span></label>
+        <div class="file-upload-wrap">
+          <div class="file-upload-btn"><span class="ic" data-lucide="upload" style="width:15px;height:15px"></span> เลือกไฟล์...</div>
+          <input type="file" id="rg_docBankBook" accept=".pdf,.jpg,.jpeg,.png" onchange="showFileName(this,'rg_docBankBook_name')">
+        </div>
+        <div class="file-upload-name" id="rg_docBankBook_name"></div>
       </div>
-      <div class="form-group"><label><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> ใบทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (ถ้ามี)</label>
-        <input type="text" id="rg_docVatReg" placeholder="vat_registration.pdf (เฉพาะผู้จด VAT)">
+      <div class="form-group">
+        <label><span class="ic" data-lucide="file-text" style="width:14px;height:14px"></span> ใบทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (ถ้ามี)</label>
+        <div class="file-upload-wrap">
+          <div class="file-upload-btn"><span class="ic" data-lucide="upload" style="width:15px;height:15px"></span> เลือกไฟล์...</div>
+          <input type="file" id="rg_docVatReg" accept=".pdf,.jpg,.jpeg,.png" onchange="showFileName(this,'rg_docVatReg_name')">
+        </div>
+        <div class="file-upload-name" id="rg_docVatReg_name"></div>
       </div>
     </fieldset>
 
@@ -823,7 +850,7 @@ async function doRegisterMerchant() {
   if (!/^\d{13}$/.test(v('rg_ownerIdCard').replace(/-/g,''))) return showRgErr('เลขบัตรประชาชนเจ้าของต้องมี 13 หลัก');
   if (!v('rg_ownerPhone')) return showRgErr('กรุณาระบุเบอร์โทรศัพท์เจ้าของ');
   if (!v('rg_bankAccount') || !v('rg_accountName')) return showRgErr('กรุณากรอกข้อมูลบัญชีธนาคารให้ครบ');
-  if (!v('rg_docIdCard') || !v('rg_docBankBook')) return showRgErr('กรุณาระบุชื่อไฟล์สำเนาบัตรประชาชน และสำเนาสมุดบัญชี');
+  if (!document.getElementById('rg_docIdCard').files.length || !document.getElementById('rg_docBankBook').files.length) return showRgErr('กรุณาอัพโหลดสำเนาบัตรประชาชน และสำเนาสมุดบัญชี');
   if (!v('rg_username')) return showRgErr('กรุณาตั้งชื่อผู้ใช้งาน');
   if (v('rg_password').length < 8) return showRgErr('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
   if (v('rg_password') !== v('rg_password2')) return showRgErr('รหัสผ่านไม่ตรงกัน');
@@ -844,8 +871,8 @@ async function doRegisterMerchant() {
       bankCode: v('rg_bankCode'), bankAccount: v('rg_bankAccount'),
       accountName: v('rg_accountName'), promptpayId: v('rg_promptpayId'),
       username: v('rg_username'), password: v('rg_password'),
-      docBusinessReg: v('rg_docBusinessReg'), docIdCard: v('rg_docIdCard'),
-      docBankBook: v('rg_docBankBook'), docVatReg: v('rg_docVatReg'),
+      docBusinessReg: getFileName('rg_docBusinessReg'), docIdCard: getFileName('rg_docIdCard'),
+      docBankBook: getFileName('rg_docBankBook'), docVatReg: getFileName('rg_docVatReg'),
     };
     const r = await fetch('/api/merchant/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const j = await r.json();
@@ -853,7 +880,7 @@ async function doRegisterMerchant() {
     suc.textContent = `✅ ${j.message} (รหัสร้านค้า: ${j.merchantCode})`;
     suc.classList.remove('d-none');
     // clear form
-    ['rg_businessName','rg_businessNameEn','rg_taxId','rg_registrationNumber','rg_address','rg_subDistrict','rg_district','rg_province','rg_postalCode','rg_ownerName','rg_ownerIdCard','rg_ownerPhone','rg_ownerEmail','rg_contactPhone','rg_contactEmail','rg_bankAccount','rg_accountName','rg_promptpayId','rg_username','rg_password','rg_password2','rg_docBusinessReg','rg_docIdCard','rg_docBankBook','rg_docVatReg'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['rg_businessName','rg_businessNameEn','rg_taxId','rg_registrationNumber','rg_address','rg_subDistrict','rg_district','rg_province','rg_postalCode','rg_ownerName','rg_ownerIdCard','rg_ownerPhone','rg_ownerEmail','rg_contactPhone','rg_contactEmail','rg_bankAccount','rg_accountName','rg_promptpayId','rg_username','rg_password','rg_password2','rg_docBusinessReg','rg_docIdCard','rg_docBankBook','rg_docVatReg'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; const nm = document.getElementById(id+'_name'); if(nm){nm.textContent='';nm.style.display='none';} });
     document.getElementById('rg_consent').checked = false;
   } catch(e) { showRgErr(e.message); }
   finally { sp.classList.add('d-none'); }
@@ -2097,6 +2124,27 @@ init();
 document.addEventListener('DOMContentLoaded', function() {
   if (window.lucide) lucide.createIcons();
 });
+
+function showFileName(input, nameId) {
+  const el = document.getElementById(nameId);
+  if (!el) return;
+  if (input.files && input.files.length > 0) {
+    const f = input.files[0];
+    if (f.size > 5 * 1024 * 1024) {
+      alert('ไฟล์ขนาดใหญ่เกิน 5MB กรุณาเลือกไฟล์ใหม่');
+      input.value = ''; el.textContent = ''; el.style.display = 'none'; return;
+    }
+    el.textContent = '✅ ' + f.name + ' (' + (f.size/1024).toFixed(0) + ' KB)';
+    el.style.display = 'block';
+  } else {
+    el.textContent = ''; el.style.display = 'none';
+  }
+}
+function getFileName(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.files || !el.files.length) return '';
+  return el.files[0].name;
+}
 </script>
 </body>
 </html>
