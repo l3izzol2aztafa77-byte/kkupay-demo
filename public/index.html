@@ -867,7 +867,7 @@ async function doLogin() {
     }
     if (me.role === 'merchant') { window.location.href='/admin.html'; return; }
     wallet = await API('/api/wallet').then(r=>r.wallet);
-    showApp(); loadNotifications(); showPage('dashboard');
+    showApp(); loadNotifications(); startNotifPolling(); showPage('dashboard');
   } catch(e) { err.textContent = e.message; err.classList.remove('d-none'); }
   finally { sp.classList.add('d-none'); }
 }
@@ -921,7 +921,7 @@ async function doRegisterStudent() {
     localStorage.setItem('kkupay_token', token);
     suc.textContent = '✅ สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...';
     suc.classList.remove('d-none');
-    setTimeout(() => init(), 1200);
+    setTimeout(() => { init(); startNotifPolling(); }, 1200);
   } catch(e) {
     showStuErr('ไม่สามารถเชื่อมต่อ server ได้');
   } finally { sp.classList.add('d-none'); }
@@ -1318,6 +1318,12 @@ function getNotifTarget(n) {
   if (t.includes('คืนเงิน') || t.includes('refund')) return 'history';
   if (t.includes('ปฏิเสธ') || t.includes('ไม่สามารถยืนยัน')) return 'fees';
   return null; // broadcast ทั่วไป ไม่มี link
+}
+
+let _notifInterval = null;
+function startNotifPolling() {
+  if (_notifInterval) clearInterval(_notifInterval);
+  _notifInterval = setInterval(loadNotifications, 30000); // poll ทุก 30 วิ
 }
 
 async function loadNotifications() {
