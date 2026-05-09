@@ -285,8 +285,10 @@ const MOCK_DATA = {
     {id:'l3',action:'REFUND',user:'admin',detail:'คืนเงิน REF-2026-005 จำนวน 4,500',ip:'192.168.1.1',createdAt:'2026-05-09T10:00:00Z'},
   ]}),
   '/api/admin/merchants': () => ({ merchants:[
-    {id:'m1',name:'ร้านค้าสวัสดิการ มข.',category:'food',status:'active',totalSales:128000,txCount:342,createdAt:'2026-01-15T00:00:00Z'},
-    {id:'m2',name:'ร้านหนังสือ มข.',category:'education',status:'active',totalSales:85000,txCount:215,createdAt:'2026-01-20T00:00:00Z'},
+    {id:'m1',name:'ร้านค้าสวัสดิการ มข.',category:'food',status:'active',totalSales:128000,txCount:342,createdAt:'2026-01-15T00:00:00Z',ownerName:'สมศักดิ์ ค้าขาย',ownerPhone:'0812345678',ownerEmail:'somsak@shop.com',note:''},
+    {id:'m2',name:'ร้านหนังสือ มข.',category:'education',status:'active',totalSales:85000,txCount:215,createdAt:'2026-01-20T00:00:00Z',ownerName:'มาลี หนังสือดี',ownerPhone:'0898765432',ownerEmail:'malee@book.com',note:''},
+    {id:'m3',name:'ร้านกาแฟริมบึง',category:'food',status:'pending',totalSales:0,txCount:0,createdAt:'2026-05-08T10:30:00Z',ownerName:'วิชัย กาแฟหอม',ownerPhone:'0841234567',ownerEmail:'wichai@cafe.com',taxId:'1234567890123',address:'ริมบึงสีฐาน มข. ขอนแก่น',note:'สมัครใหม่ รอตรวจเอกสาร'},
+    {id:'m4',name:'ร้านถ่ายเอกสาร Smart Copy',category:'service',status:'pending',totalSales:0,txCount:0,createdAt:'2026-05-09T08:15:00Z',ownerName:'สุภา ถ่ายเอกสาร',ownerPhone:'0867654321',ownerEmail:'supa@copy.com',taxId:'9876543210123',address:'อาคาร 2 คณะวิศวกรรมศาสตร์ มข.',note:''},
   ]}),
 };
 function _isMockToken(t) { return t && String(t).startsWith('mock-token'); }
