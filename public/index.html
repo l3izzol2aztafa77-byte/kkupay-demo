@@ -300,10 +300,11 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
     <p>ระบบชำระเงินออนไลน์ มหาวิทยาลัยขอนแก่น</p>
   </div>
 
-  <!-- แท็บ: Login / สมัครร้านค้า -->
+  <!-- แท็บ: Login / สมัครนักศึกษา / สมัครร้านค้า -->
   <div id="loginTabs" style="display:flex;gap:0;margin-bottom:18px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
-    <button id="tabLogin" onclick="switchLoginTab('login')" style="flex:1;padding:10px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer"><span class="ic" data-lucide="log-in" style="width:16px;height:16px"></span> เข้าสู่ระบบ</button>
-    <button id="tabReg" onclick="switchLoginTab('register')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:var(--text);font-weight:700;font-size:.88rem;cursor:pointer"><span class="ic" data-lucide="store" style="width:16px;height:16px"></span> สมัครร้านค้า</button>
+    <button id="tabLogin" onclick="switchLoginTab('login')" style="flex:1;padding:10px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:.82rem;cursor:pointer"><span class="ic" data-lucide="log-in" style="width:15px;height:15px"></span> เข้าสู่ระบบ</button>
+    <button id="tabStudent" onclick="switchLoginTab('student')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:var(--text);font-weight:700;font-size:.82rem;cursor:pointer"><span class="ic" data-lucide="graduation-cap" style="width:15px;height:15px"></span> สมัครนักศึกษา</button>
+    <button id="tabReg" onclick="switchLoginTab('register')" style="flex:1;padding:10px;border:none;background:#f5f5f5;color:var(--text);font-weight:700;font-size:.82rem;cursor:pointer"><span class="ic" data-lucide="store" style="width:15px;height:15px"></span> สมัครร้านค้า</button>
   </div>
 
   <!-- ─── Login Form ─── -->
@@ -331,6 +332,57 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(74
         <li>🔑 <b>admin</b> / admin1234 — ผู้ดูแลระบบ → <a href="/admin.html">Admin Panel</a></li>
       </ul>
     </div>
+  </div>
+
+  <!-- ─── Student Registration Form ─── -->
+  <div id="studentForm" style="display:none">
+    <div class="alert alert-info" style="font-size:.8rem">
+      🎓 สมัครบัญชีนักศึกษา KKU Pay — กรอกข้อมูลให้ครบแล้วใช้งานได้ทันที
+    </div>
+    <div id="stuRegErr" class="alert alert-err d-none"></div>
+    <div id="stuRegSuccess" class="alert alert-success d-none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group" style="margin-bottom:10px"><label>ชื่อ-นามสกุล (ภาษาไทย) <span style="color:var(--red)">*</span></label>
+        <input type="text" id="stu_name" placeholder="เช่น สมชาย ใจดี"></div>
+      <div class="form-group" style="margin-bottom:10px"><label>Name (English)</label>
+        <input type="text" id="stu_nameEn" placeholder="e.g. Somchai Jaidee"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group" style="margin-bottom:10px"><label>รหัสนักศึกษา <span style="color:var(--red)">*</span></label>
+        <input type="text" id="stu_studentId" placeholder="เช่น 671AB001"></div>
+      <div class="form-group" style="margin-bottom:10px"><label>ชั้นปี <span style="color:var(--red)">*</span></label>
+        <select id="stu_year"><option value="1">ปี 1</option><option value="2">ปี 2</option><option value="3">ปี 3</option><option value="4">ปี 4</option><option value="5">ปี 5</option><option value="6">ปี 6</option></select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px"><label>คณะ <span style="color:var(--red)">*</span></label>
+      <select id="stu_faculty">
+        <option value="">— เลือกคณะ —</option>
+        <option>วิศวกรรมศาสตร์</option><option>วิทยาศาสตร์</option><option>แพทยศาสตร์</option>
+        <option>พยาบาลศาสตร์</option><option>บริหารธุรกิจและการบัญชี</option><option>นิติศาสตร์</option>
+        <option>ศึกษาศาสตร์</option><option>มนุษยศาสตร์และสังคมศาสตร์</option><option>เภสัชศาสตร์</option>
+        <option>ทันตแพทยศาสตร์</option><option>สาธารณสุขศาสตร์</option><option>สัตวแพทยศาสตร์</option>
+        <option>เกษตรศาสตร์</option><option>เทคนิคการแพทย์</option><option>สถาปัตยกรรมศาสตร์</option>
+      </select></div>
+    <div class="form-group" style="margin-bottom:10px"><label>สาขาวิชา</label>
+      <input type="text" id="stu_program" placeholder="เช่น วิศวกรรมคอมพิวเตอร์"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group" style="margin-bottom:10px"><label>อีเมล</label>
+        <input type="email" id="stu_email" placeholder="xxx@kkumail.com"></div>
+      <div class="form-group" style="margin-bottom:10px"><label>เบอร์โทรศัพท์</label>
+        <input type="text" id="stu_phone" placeholder="0XX-XXX-XXXX"></div>
+    </div>
+    <hr style="margin:12px 0;border-color:var(--border)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group" style="margin-bottom:10px"><label>ชื่อผู้ใช้ <span style="color:var(--red)">*</span></label>
+        <input type="text" id="stu_username" placeholder="ตัวเล็ก a-z, 0-9" autocomplete="username"></div>
+      <div class="form-group" style="margin-bottom:10px"><label>รหัสผ่าน <span style="color:var(--red)">*</span></label>
+        <input type="password" id="stu_password" placeholder="อย่างน้อย 8 ตัวอักษร"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label>ยืนยันรหัสผ่าน <span style="color:var(--red)">*</span></label>
+      <input type="password" id="stu_password2" placeholder="ใส่รหัสผ่านอีกครั้ง"></div>
+    <button class="btn btn-primary" onclick="doRegisterStudent()" style="background:var(--green)">
+      <span id="stuRegSpinner" class="d-none"><span class="spinner"></span></span>
+      🎓 สมัครสมาชิกนักศึกษา
+    </button>
   </div>
 
   <!-- ─── Merchant Registration Form ─── -->
@@ -824,15 +876,60 @@ function doLogout(){ localStorage.removeItem('kkupay_token'); localStorage.remov
 
 // ── Tab switch: Login / Register ──
 function switchLoginTab(tab) {
-  const isLogin = tab === 'login';
-  document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
-  document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
-  document.getElementById('tabLogin').style.background = isLogin ? 'var(--purple)' : '#f5f5f5';
-  document.getElementById('tabLogin').style.color = isLogin ? '#fff' : 'var(--text)';
-  document.getElementById('tabReg').style.background = isLogin ? '#f5f5f5' : 'var(--green)';
-  document.getElementById('tabReg').style.color = isLogin ? 'var(--text)' : '#fff';
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('studentForm').style.display = tab==='student' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab==='register' ? 'block' : 'none';
+  const tabs = {login:'tabLogin', student:'tabStudent', register:'tabReg'};
+  const colors = {login:'var(--purple)', student:'#1565c0', register:'var(--green)'};
+  ['login','student','register'].forEach(t => {
+    const el = document.getElementById(tabs[t]);
+    if (!el) return;
+    el.style.background = t===tab ? colors[t] : '#f5f5f5';
+    el.style.color = t===tab ? '#fff' : 'var(--text)';
+  });
 }
 
+
+// ── Student Registration ──
+async function doRegisterStudent() {
+  const err = document.getElementById('stuRegErr');
+  const suc = document.getElementById('stuRegSuccess');
+  const sp = document.getElementById('stuRegSpinner');
+  err.classList.add('d-none'); suc.classList.add('d-none');
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  if (!v('stu_name')) return showStuErr('กรุณากรอกชื่อ-นามสกุล');
+  if (!v('stu_studentId')) return showStuErr('กรุณากรอกรหัสนักศึกษา');
+  if (!v('stu_faculty')) return showStuErr('กรุณาเลือกคณะ');
+  if (!v('stu_username')) return showStuErr('กรุณาตั้งชื่อผู้ใช้');
+  if (v('stu_password').length < 8) return showStuErr('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+  if (v('stu_password') !== v('stu_password2')) return showStuErr('รหัสผ่านไม่ตรงกัน');
+  sp.classList.remove('d-none');
+  try {
+    const r = await fetch('/api/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        username: v('stu_username'), password: v('stu_password'),
+        name: v('stu_name'), nameEn: v('stu_nameEn'),
+        studentId: v('stu_studentId'), faculty: v('stu_faculty'),
+        program: v('stu_program'), year: document.getElementById('stu_year').value,
+        email: v('stu_email'), phone: v('stu_phone')
+      })
+    });
+    const j = await r.json();
+    if (!r.ok) { showStuErr(j.error || 'สมัครไม่สำเร็จ'); return; }
+    token = j.token; me = j.user;
+    localStorage.setItem('kkupay_token', token);
+    suc.textContent = '✅ สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...';
+    suc.classList.remove('d-none');
+    setTimeout(() => init(), 1200);
+  } catch(e) {
+    showStuErr('ไม่สามารถเชื่อมต่อ server ได้');
+  } finally { sp.classList.add('d-none'); }
+}
+function showStuErr(msg) {
+  const el = document.getElementById('stuRegErr');
+  el.textContent = '❌ ' + msg; el.classList.remove('d-none');
+}
 // ── Merchant Registration ──
 async function doRegisterMerchant() {
   const err = document.getElementById('rgErr');

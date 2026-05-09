@@ -361,6 +361,39 @@ app.post('/api/auth/login', async (req,res) => {
   res.json({ token, user:safe });
 });
 
+// ─── STUDENT REGISTER ────────────────────────────────────────────────────────
+app.post('/api/auth/register', async (req,res) => {
+  const { username, password, name, nameEn, studentId, faculty, program, year, email, phone } = req.body;
+  if (!username || !password || !name || !studentId || !faculty)
+    return res.status(400).json({ error:'กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อผู้ใช้, รหัสผ่าน, ชื่อ, รหัสนักศึกษา, คณะ)' });
+  if (password.length < 8)
+    return res.status(400).json({ error:'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' });
+  if (dbFind('users', u => u.username === username))
+    return res.status(409).json({ error:'ชื่อผู้ใช้นี้ถูกใช้แล้ว กรุณาเลือกชื่อใหม่' });
+  if (dbFind('users', u => u.studentId === studentId))
+    return res.status(409).json({ error:'รหัสนักศึกษานี้มีในระบบแล้ว' });
+  const hashed = bcrypt.hashSync(password, 10);
+  const newId = uuidv4();
+  const user = dbInsert('users', {
+    id: newId, studentId, username, password: hashed,
+    name, nameEn: nameEn || '', role: 'student',
+    faculty, program: program || '', year: parseInt(year) || 1,
+    email: email || '', phone: phone || '',
+    createdAt: new Date().toISOString()
+  });
+  // สร้าง wallet ให้อัตโนมัติ
+  dbInsert('wallets', { id: uuidv4(), userId: newId, balance: 0, updatedAt: new Date().toISOString() });
+  // สร้างค่าเล่าเรียน demo
+  const tuitionMap = { 'วิศวกรรมศาสตร์':22500, 'แพทยศาสตร์':35000, 'พยาบาลศาสตร์':28000, 'วิทยาศาสตร์':18000, 'บริหารธุรกิจ':18000, 'นิติศาสตร์':18000 };
+  const amt = tuitionMap[faculty] || 18000;
+  const due = new Date(); due.setDate(due.getDate() + 30);
+  dbInsert('feeItems', { id:uuidv4(), userId:newId, code:'FEE-'+Date.now(), type:'tuition', label:'ค่าเล่าเรียน 1/2568', amount:amt, due:due.toISOString().slice(0,10), semester:'1/2568', note:'', status:'pending', createdAt:new Date().toISOString() });
+  addAudit(newId, 'REGISTER', `สมัครสมาชิกใหม่: ${name} (${studentId})`, req.ip);
+  const token = jwt.sign({ id:newId, role:'student', name, studentId }, JWT_SECRET, { expiresIn:'8h' });
+  const { password:_, ...safe } = user;
+  res.json({ success:true, token, user:safe, message:'สมัครสมาชิกสำเร็จ' });
+});
+
 app.get('/api/auth/me', authenticate, (req,res) => {
   const user = dbFind('users', u => u.id === req.user.id);
   if (!user) return res.status(404).json({ error:'User not found' });
