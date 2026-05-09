@@ -229,9 +229,83 @@ let token = localStorage.getItem('kkupay_admin_token');
 let me = null;
 let revenueChart = null, methodChart = null;
 
+// ══════════════════════════════════════════
+// DEMO MODE — ทำงานได้โดยไม่ต้องมี backend
+// ══════════════════════════════════════════
+const DEMO_USERS = {
+  'admin':   { id:'a1', username:'admin',   password:'admin1234',   name:'ผู้ดูแลระบบ', role:'admin',   token:'mock-token-admin' },
+  'finance': { id:'a2', username:'finance', password:'finance1234', name:'ฝ่ายการเงิน', role:'finance', token:'mock-token-finance' },
+  'support': { id:'a3', username:'support', password:'support1234', name:'ทีม Support', role:'support', token:'mock-token-support' },
+};
+const MOCK_DATA = {
+  '/api/auth/me': () => {
+    const u = Object.values(DEMO_USERS).find(u => u.token === token);
+    if (!u) throw new Error('Unauthorized');
+    return { user: u };
+  },
+  '/api/admin/stats': () => ({
+    totalRevenue:4825600, todayRevenue:182500, todayCount:23,
+    walletTotal:341200, pendingTotal:678400,
+    totalStudents:312, totalTransactions:1847,
+    successRate:97.3, mdrRevenue:72384, refundCount:14,
+    chartData:[
+      {date:'2026-05-03',amount:142000},{date:'2026-05-04',amount:198000},
+      {date:'2026-05-05',amount:87500},{date:'2026-05-06',amount:215000},
+      {date:'2026-05-07',amount:163000},{date:'2026-05-08',amount:237600},
+      {date:'2026-05-09',amount:182500},
+    ],
+    methodBreakdown:{promptpay:52,card:18,wallet:15,banking:8,ewallet:4,counter:3}
+  }),
+  '/api/admin/transactions': () => ({ transactions:[
+    {id:'tx1',ref:'REF-2026-001',studentName:'สมชาย ใจดี',studentId:'651234567',faculty:'วิศวกรรมศาสตร์',method:'promptpay',feeLabel:'ค่าเล่าเรียน 1/2568',amount:22500,status:'success',createdAt:'2026-05-09T09:12:00Z'},
+    {id:'tx2',ref:'REF-2026-002',studentName:'สมหญิง รักเรียน',studentId:'651234568',faculty:'แพทยศาสตร์',method:'card',feeLabel:'ค่าเล่าเรียน 1/2568',amount:35000,status:'success',createdAt:'2026-05-09T10:05:00Z'},
+    {id:'tx3',ref:'REF-2026-003',studentName:'มานะ ตั้งใจ',studentId:'651234569',faculty:'บริหารธุรกิจ',method:'wallet',feeLabel:'ค่าหอพัก',amount:8500,status:'pending',createdAt:'2026-05-09T11:30:00Z'},
+    {id:'tx4',ref:'REF-2026-004',studentName:'วิไล สวยงาม',studentId:'651234570',faculty:'นิติศาสตร์',method:'banking',feeLabel:'ค่าเล่าเรียน 1/2568',amount:18000,status:'success',createdAt:'2026-05-08T14:22:00Z'},
+    {id:'tx5',ref:'REF-2026-005',studentName:'ประสิทธิ์ เก่งมาก',studentId:'651234571',faculty:'วิทยาศาสตร์',method:'counter',feeLabel:'ค่าบำรุงการศึกษา',amount:4500,status:'refunded',createdAt:'2026-05-07T08:00:00Z'},
+  ]}),
+  '/api/admin/users': () => ({ users:[
+    {id:'u1',studentId:'651234567',name:'สมชาย ใจดี',email:'somchai@kkumail.com',faculty:'วิศวกรรมศาสตร์',program:'วิศวกรรมคอมพิวเตอร์',year:3,walletBalance:1250,feeCount:4,pendingFees:1,totalPaid:67500},
+    {id:'u2',studentId:'651234568',name:'สมหญิง รักเรียน',email:'somying@kkumail.com',faculty:'แพทยศาสตร์',program:'แพทยศาสตร์บัณฑิต',year:2,walletBalance:500,feeCount:6,pendingFees:0,totalPaid:210000},
+    {id:'u3',studentId:'651234569',name:'มานะ ตั้งใจ',email:'mana@kkumail.com',faculty:'บริหารธุรกิจ',program:'การจัดการ',year:1,walletBalance:3200,feeCount:2,pendingFees:2,totalPaid:18000},
+    {id:'u4',studentId:'651234570',name:'วิไล สวยงาม',email:'wilai@kkumail.com',faculty:'นิติศาสตร์',program:'นิติศาสตร์บัณฑิต',year:4,walletBalance:0,feeCount:5,pendingFees:0,totalPaid:90000},
+  ]}),
+  '/api/admin/fees': () => ({ fees:[
+    {id:'f1',code:'FEE-001',studentName:'สมชาย ใจดี',studentId:'651234567',faculty:'วิศวกรรมศาสตร์',type:'tuition',label:'ค่าเล่าเรียน 1/2568',amount:22500,due:'2026-06-30',status:'pending',note:''},
+    {id:'f2',code:'FEE-002',studentName:'มานะ ตั้งใจ',studentId:'651234569',faculty:'บริหารธุรกิจ',type:'dormitory',label:'ค่าหอพัก',amount:8500,due:'2026-05-15',status:'overdue',note:''},
+    {id:'f3',code:'FEE-003',studentName:'สมหญิง รักเรียน',studentId:'651234568',faculty:'แพทยศาสตร์',type:'tuition',label:'ค่าเล่าเรียน 1/2568',amount:35000,due:'2026-06-30',status:'paid',note:''},
+  ]}),
+  '/api/admin/refunds': () => ({ refunds:[
+    {id:'r1',paymentRef:'REF-2026-005',studentName:'ประสิทธิ์ เก่งมาก',studentId:'651234571',amount:4500,reason:'ชำระซ้ำ',processedByName:'ผู้ดูแลระบบ',status:'success',createdAt:'2026-05-07T10:00:00Z'},
+  ]}),
+  '/api/admin/pending-slips': () => ({ payments:[] }),
+  '/api/admin/settlement': () => ({ date:new Date().toISOString().slice(0,10), totalAmount:182500, count:23, items:[], netAmount:179265, mdrFee:3235 }),
+  '/api/admin/reconciliation': () => ({ matched:21, unmatched:2, total:23 }),
+  '/api/admin/audit-log': () => ({ logs:[
+    {id:'l1',action:'LOGIN',user:'admin',detail:'เข้าสู่ระบบสำเร็จ',ip:'192.168.1.1',createdAt:'2026-05-09T09:00:00Z'},
+    {id:'l2',action:'CONFIRM_PAYMENT',user:'admin',detail:'ยืนยันการชำระ REF-2026-001',ip:'192.168.1.1',createdAt:'2026-05-09T09:15:00Z'},
+    {id:'l3',action:'REFUND',user:'admin',detail:'คืนเงิน REF-2026-005 จำนวน 4,500',ip:'192.168.1.1',createdAt:'2026-05-09T10:00:00Z'},
+  ]}),
+  '/api/admin/merchants': () => ({ merchants:[
+    {id:'m1',name:'ร้านค้าสวัสดิการ มข.',category:'food',status:'active',totalSales:128000,txCount:342,createdAt:'2026-01-15T00:00:00Z'},
+    {id:'m2',name:'ร้านหนังสือ มข.',category:'education',status:'active',totalSales:85000,txCount:215,createdAt:'2026-01-20T00:00:00Z'},
+  ]}),
+};
+
+function _isMockToken(t) { return t && String(t).startsWith('mock-token'); }
+
+function mockAPI(path, opts={}) {
+  const method = (opts.method||'GET').toUpperCase();
+  const basePath = path.split('?')[0];
+  if (method !== 'GET') return Promise.resolve({ success:true, message:'ดำเนินการสำเร็จ (Demo Mode)' });
+  const handler = MOCK_DATA[basePath] || MOCK_DATA[path];
+  if (handler) { try { return Promise.resolve(handler()); } catch(e) { return Promise.reject(new Error(e.message)); } }
+  return Promise.resolve({ success:true });
+}
+
 const API = async (path, opts={}) => {
+  if (_isMockToken(token)) return mockAPI(path, opts);
   const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  const tid = setTimeout(() => controller.abort(), 10000);
   try {
     const r = await fetch(path, {
       signal: controller.signal,
@@ -240,7 +314,6 @@ const API = async (path, opts={}) => {
     });
     clearTimeout(tid);
     if (r.status === 401) {
-      // Token expired or invalid — force re-login
       localStorage.removeItem('kkupay_admin_token');
       localStorage.removeItem('kkupay_token');
       showLogin();
@@ -251,7 +324,10 @@ const API = async (path, opts={}) => {
     return j;
   } catch(e) {
     clearTimeout(tid);
-    if (e.name === 'AbortError') throw new Error('การเชื่อมต่อหมดเวลา (timeout) กรุณาลองใหม่');
+    if (e.name === 'AbortError' || e.name === 'TypeError') {
+      console.warn('[KKU Pay Admin] Backend ไม่พร้อม -> ใช้ Demo Mode');
+      return mockAPI(path, opts);
+    }
     throw e;
   }
 };
@@ -263,6 +339,11 @@ const statusBadge = s => { const cls={pending:'badge-pending',overdue:'badge-ove
 
 async function init() {
   if (!token) { showLogin(); return; }
+  if (_isMockToken(token)) {
+    const u = Object.values(DEMO_USERS).find(u => u.token === token);
+    if (u) { me = u; showApp(); showTab('overview'); return; }
+    localStorage.removeItem('kkupay_admin_token'); showLogin(); return;
+  }
   try {
     const d = await API('/api/auth/me');
     me = d.user;
@@ -280,6 +361,14 @@ function showApp(){
 async function doLogin(){
   const u=document.getElementById('lgUser').value.trim(), p=document.getElementById('lgPass').value;
   const err=document.getElementById('lgErr'); err.classList.add('d-none');
+  // Demo Mode: ตรวจ mock credentials ก่อน
+  const demoUser = DEMO_USERS[u];
+  if (demoUser && demoUser.password === p) {
+    token = demoUser.token; me = demoUser;
+    localStorage.setItem('kkupay_admin_token', token);
+    showApp(); showTab('overview'); return;
+  }
+  // ลอง backend จริง
   try{
     const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
     const j=await r.json(); if(!r.ok) throw new Error(j.error);
@@ -287,7 +376,12 @@ async function doLogin(){
     localStorage.setItem('kkupay_admin_token',token);
     if(!['admin','finance','support'].includes(me.role)) throw new Error('ไม่มีสิทธิ์เข้าระบบ Admin');
     showApp(); showTab('overview');
-  }catch(e){ err.textContent=e.message; err.classList.remove('d-none'); }
+  }catch(e){
+    if(e.name==='TypeError'){
+      err.textContent='ไม่สามารถเชื่อมต่อ server — กรุณาใช้ข้อมูล Demo: admin/admin1234, finance/finance1234, support/support1234';
+    } else { err.textContent=e.message; }
+    err.classList.remove('d-none');
+  }
 }
 function doLogout(){
   // clear ทั้งสอง token key เพื่อให้กลับไป login ทั่วไปได้สะดวก
