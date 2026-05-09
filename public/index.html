@@ -921,7 +921,11 @@ async function doRegisterStudent() {
     localStorage.setItem('kkupay_token', token);
     suc.textContent = '✅ สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...';
     suc.classList.remove('d-none');
-    setTimeout(() => { init(); startNotifPolling(); }, 1200);
+    // เข้าแอปตรงๆ โดยไม่ต้อง round-trip /api/auth/me (ป้องกัน token หายหลัง deploy)
+    setTimeout(async () => {
+      try { wallet = await API('/api/wallet').then(r=>r.wallet); } catch(_) {}
+      showApp(); loadNotifications(); startNotifPolling(); showPage('dashboard');
+    }, 1200);
   } catch(e) {
     showStuErr('ไม่สามารถเชื่อมต่อ server ได้');
   } finally { sp.classList.add('d-none'); }
@@ -1328,7 +1332,20 @@ function startNotifPolling() {
 
 async function loadNotifications() {
   try {
-    const { notifications } = await API('/api/notifications');
+    let notifications = [];
+    // อ่าน broadcast จาก localStorage (demo mode / admin broadcast ข้ามหน้า)
+    try {
+      const demoNotifs = JSON.parse(localStorage.getItem('kkupay_demo_notifs') || '[]');
+      if (demoNotifs.length) notifications = [...demoNotifs];
+    } catch(_) {}
+    // ลอง fetch จาก backend (ถ้ามี ให้ merge เข้ากัน)
+    try {
+      const { notifications: srvNotifs } = await API('/api/notifications');
+      // merge: เอา server เป็นหลัก แต่ demo notifs ที่ไม่ซ้ำ id ให้ใส่เพิ่ม
+      const srvIds = new Set(srvNotifs.map(n=>n.id));
+      const extras = notifications.filter(n=>!srvIds.has(n.id));
+      notifications = [...srvNotifs, ...extras].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    } catch(_) {}
     const unread = notifications.filter(n=>!n.read);
     const badge = document.getElementById('notifBadge');
     if (unread.length) { badge.textContent=unread.length; badge.classList.remove('d-none'); }

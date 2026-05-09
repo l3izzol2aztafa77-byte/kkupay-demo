@@ -295,7 +295,18 @@ function _isMockToken(t) { return t && String(t).startsWith('mock-token'); }
 function mockAPI(path, opts={}) {
   const method = (opts.method||'GET').toUpperCase();
   const basePath = path.split('?')[0];
-  if (method !== 'GET') return Promise.resolve({ success:true, message:'ดำเนินการสำเร็จ (Demo Mode)' });
+  // POST: handle broadcast specially (shared via localStorage so student portal sees it)
+  if (method !== 'GET') {
+    if (basePath === '/api/admin/notifications/broadcast') {
+      try {
+        const body = JSON.parse(opts.body || '{}');
+        const existing = JSON.parse(localStorage.getItem('kkupay_demo_notifs') || '[]');
+        existing.unshift({ id:'n'+Date.now(), userId:null, type:'broadcast', title:body.title||'ประกาศ', message:body.message||'', read:false, createdAt:new Date().toISOString() });
+        localStorage.setItem('kkupay_demo_notifs', JSON.stringify(existing.slice(0,50)));
+      } catch(_) {}
+    }
+    return Promise.resolve({ success:true, message:'ดำเนินการสำเร็จ (Demo Mode)' });
+  }
   const handler = MOCK_DATA[basePath] || MOCK_DATA[path];
   if (handler) { try { return Promise.resolve(handler()); } catch(e) { return Promise.reject(new Error(e.message)); } }
   return Promise.resolve({ success:true });
